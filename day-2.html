@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 x motoBlockly - Day 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Noto Sans TC"', 'sans-serif'] },
+                    colors: { maker: { light: '#fff7ed', DEFAULT: '#f97316', dark: '#c2410c' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <!-- 導覽列 -->
+    <nav class="glass-nav fixed w-full z-50 top-0 border-b border-slate-200 shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-maker text-2xl"></i>
+                    <span class="font-bold text-xl tracking-wider text-slate-800 hidden sm:inline-block">Lung-Hwa <span class="text-maker">物聯網創客</span></span>
+                </div>
+                
+                <!-- 桌面版選單 -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">前導課程</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-1.html" class="text-maker font-bold bg-maker-light px-4 py-2 rounded-lg transition-colors">Day 1: 有聲紅綠燈</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 2: 光影與閘門</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 3: 觀測與整合</a>
+                              
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <a href="https://drive.google.com/file/d/1Y1JUgKo8vmLsNyORpjvc-Uv0b1M5Vexb/view" target="_blank" class="flex items-center gap-2 bg-slate-800 text-white hover:bg-slate-700 px-4 py-2 rounded-lg font-bold transition-colors shadow-sm">
+                        <i class="fa-solid fa-download"></i> 下載 motoBlockly
+                    </a>
+                </div>
+
+                <!-- 手機版選單按鈕 -->
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="https://drive.google.com/file/d/1Y1JUgKo8vmLsNyORpjvc-Uv0b1M5Vexb/view" target="_blank" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded-md font-bold">
+                        <i class="fa-solid fa-download"></i> motoBlockly
+                    </a>
+                    <button id="mobile-menu-btn" class="text-slate-600 hover:text-maker focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 手機版選單 (下拉列表) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 absolute w-full shadow-lg">
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">前導課程</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-1.html" class="block w-full text-left px-6 py-4 text-maker font-bold bg-slate-50 border-l-4 border-maker">Day 1: 有聲紅綠燈</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">Day 2: 光影與閘門</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">Day 3: 觀測與整合</a>
+        </div>
+    </nav>
+
+    <!-- 頁首主視覺 -->
+    <header class="pt-24 pb-16 md:pt-28 md:pb-20 bg-gradient-to-br from-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBkPSJNMjAgMjBjMTEuMDQ2IDAgMjAtOC45NTQgMjAtMjBIMDBDMCAxMS4wNDYgOC45NTQgMjAgMjAgMjB6bTIwIDIwYzAtMTEuMDQ2LTguOTU0LTIwLTIwLTIwUzAgMjguOTU0IDAgNDBoNDB6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGwtb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-maker-light text-maker-dark text-sm font-bold tracking-wider mb-4 border border-maker/30">ESP32 x motoBlockly</span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">動手做，打造你的<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-maker to-yellow-400">智慧物聯網</span>世界</h1>
+            <p class="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-8">透過三天的專題導向課程 (PBL)，從基礎接線到邏輯編程，帶你認識感測器原理，解決真實生活中的問題。</p>
+            
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 flex-wrap">
+                <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="inline-flex items-center gap-2 bg-maker hover:bg-maker-dark text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-maker/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-graduation-cap"></i> 開始學習
+                </a>
+                <button onclick="openQRCodeModal()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-emerald-600/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-qrcode"></i> 成果分享
+                </button>
+                <a href="https://drive.google.com/file/d/1Y1JUgKo8vmLsNyORpjvc-Uv0b1M5Vexb/view" target="_blank" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold py-3 px-6 rounded-full transition-all backdrop-blur-sm w-full sm:w-auto justify-center hover:-translate-y-1 shadow-lg">
+                    <i class="fa-solid fa-download"></i> 下載 motoBlockly 軟體
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[60vh]">
+        <!-- ==================== Day 2 ==================== -->
+        <section id="day2">
+            <div class="flex items-center gap-3 mb-8 border-b-2 border-slate-200 pb-4">
+                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-2xl shadow-inner">
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-800">Day 2：光影與閘門 —— 進階控制</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-slate-100 mb-8">
+                <h3 class="text-2xl font-bold text-maker mb-2">🎯 專題目標：類比數值變化與伺服馬達系統</h3>
+                <p class="text-slate-600 mb-6">接續第一天的燈光基礎，我們將學習連續數值（類比）的控制，包含利用可變電阻調光調色、光敏電阻製作自動路燈。最後加入超音波與伺服馬達，打造一套智慧停車場閘門系統！</p>
+
+                <h4 class="text-lg font-bold text-slate-800 mb-4 border-l-4 border-maker pl-3">模組原理與概念</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- 類比輸入 -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-sliders text-purple-500 text-xl"></i>
+                            <h5 class="font-bold text-slate-700">可變電阻與光敏電阻</h5>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            <strong>類比輸入 (Analog)：</strong>能讀取 0~4095 的連續數值。可變電阻像音量旋鈕可手動調整；光敏電阻則會隨環境光線強弱自動改變電阻值。
+                        </p>
+                    </div>
+                    <!-- WS2812 -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-circle-notch text-pink-500 text-xl"></i>
+                            <h5 class="font-bold text-slate-700">WS2812 環狀燈</h5>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            <strong>全彩定位燈：</strong>只需一條訊號線，就能串聯控制多顆 LED。你可以指定「第幾顆燈」亮「什麼顏色」，非常適合做幸運轉盤或時鐘秒針效果。
+                        </p>
+                    </div>
+                    <!-- 伺服馬達與超音波 -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-door-open text-blue-500 text-xl"></i>
+                            <h5 class="font-bold text-slate-700">伺服馬達與超音波</h5>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            <strong>超音波</strong>用聲波反射測量距離。<strong>伺服馬達 (Servo)</strong>能精準控制旋轉角度 (通常是 0~180 度)，是製作智慧閘門、機器人關節的關鍵零件。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 模組小試身手 Day 2 -->
+                <div class="mb-8 bg-red-50/50 p-6 rounded-xl border border-red-100">
+                    <h4 class="text-lg font-bold text-red-800 mb-4 border-l-4 border-red-500 pl-3"><i class="fa-solid fa-wrench mr-1"></i> 模組小試身手：各別功能測試</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <!-- Task 1 -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors">
+                            <div class="flex items-center gap-2 mb-2 border-b pb-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">1</span>
+                                <h5 class="font-bold text-slate-800">可調亮度的燈</h5>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：可變電阻, 全彩LED, 1602A LCD</p>
+                            <ul class="text-sm text-slate-700 list-disc list-inside space-y-1">
+                                <li>用可變電阻控制 LED 亮度。</li>
+                                <li>在 LCD 顯示目前的亮度值。</li>
+                                <li><strong>進階：</strong>將數值轉換成調色盤 (紅➝綠➝藍 漸變)。</li>
+                            </ul>
+                        </div>
+                        <!-- Task 2 -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors">
+                            <div class="flex items-center gap-2 mb-2 border-b pb-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">2</span>
+                                <h5 class="font-bold text-slate-800">智慧路燈</h5>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：光敏電阻, LED</p>
+                            <p class="text-sm text-slate-700"><strong>🎯 任務：</strong>讀取光敏電阻數值，模擬天色。設定一個閥值，天黑時自動開燈，天亮時自動關燈。</p>
+                        </div>
+                        <!-- Task 3 -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors">
+                            <div class="flex items-center gap-2 mb-2 border-b pb-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                                <h5 class="font-bold text-slate-800">停車場閘門</h5>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：超音波, 伺服馬達</p>
+                            <p class="text-sm text-slate-700"><strong>🎯 任務：</strong>超音波偵測到車子靠近 (&lt;10cm) 時，伺服馬達轉動 90 度打開閘門，等待 3 秒後自動放下。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 挑戰區塊 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-lg border border-purple-200">
+                            <h5 class="font-bold text-purple-800 mb-2"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> 挑戰一：環狀燈 (WS2812)</h5>
+                            <p class="text-sm text-purple-900 mb-2">運用 WS2812 RGB 環形燈製作炫麗特效：</p>
+                            <ul class="text-sm text-purple-800 list-disc list-inside">
+                                <li><strong>(1) 電子時鐘：</strong> 讓一顆燈像秒針一樣，每一秒往前跳一格繞圈。</li>
+                                <li><strong>(2) 幸運轉盤：</strong> 結合按鈕，按下後燈光快速旋轉，放開後隨機停在一個位置！</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-r from-blue-100 to-cyan-100 p-4 rounded-lg border border-blue-200">
+                            <h5 class="font-bold text-blue-800 mb-2"><i class="fa-solid fa-coins text-yellow-500 mr-1"></i> 挑戰二：停車費計算</h5>
+                            <p class="text-sm text-blue-900 mb-2">升級停車場閘門系統：</p>
+                            <ul class="text-sm text-blue-800 list-disc list-inside">
+                                <li>車子進入後，開始利用「變數」計時。</li>
+                                <li>車子離開時 (超音波再次偵測)，停止計時。</li>
+                                <li>根據停留的秒數計算停車費，並顯示在 1602A LCD 上！</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-maker-light rounded-xl p-6 border border-maker/20">
+                    <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-maker mr-2"></i>程式邏輯挑戰 (停車場閘門)</h4>
+                    <p class="text-slate-700 italic mb-4">「如果『超音波距離』小於 10 公分，表示有車輛靠近。將『伺服馬達』轉到 90 度開啟閘門，等待車輛通過後，再將馬達轉回 0 度關閉閘門。」</p>
+                    <div class="flex flex-col gap-2 text-sm font-medium text-slate-600">
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                            <span class="bg-white px-3 py-1 rounded shadow-sm border border-slate-200">如果 (距離 &lt; 10 cm)</span>
+                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded shadow-sm">馬達角度設為 90 度 (開門)</span>
+                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
+                            <span class="bg-white px-3 py-1 rounded shadow-sm border border-slate-200">等待 3 秒</span>
+                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
+                            <span class="bg-red-100 text-red-800 px-3 py-1 rounded shadow-sm">馬達角度設為 0 度 (關門)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 2 虛擬碼與模擬動畫 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <!-- 虛擬碼 -->
+                    <div class="bg-slate-800 rounded-xl p-5 shadow-inner text-slate-300 font-mono text-sm">
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-2">
+                            <span class="text-maker-light font-bold"><i class="fa-solid fa-code"></i> 虛擬碼 (Pseudo Code)</span>
+                            <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">Day 2: 停車閘門</span>
+                        </div>
+                        <pre class="whitespace-pre-wrap"><code>Loop {
+  <span class="text-green-400">dist</span> = read_ultrasonic(D7, D8)
+  
+  if (<span class="text-green-400">dist</span> &lt; 10) {
+    servo_write(D5, 90)   <span class="text-slate-500">// 打開閘門</span>
+    lcd_print("Welcome!")
+    delay(3000)           <span class="text-slate-500">// 等待車輛通過</span>
+  } else {
+    servo_write(D5, 0)    <span class="text-slate-500">// 放下閘門</span>
+    lcd_print("Stop")
+  }
+  
+  delay(100)
+}</code></pre>
+                    </div>
+                    <!-- 互動模擬器 -->
+                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full bg-blue-500 text-white text-xs font-bold px-3 py-1 text-center">互動模擬器：調整車輛距離測試閘門</div>
+                        <div class="mt-6 flex flex-col items-center w-full gap-4">
+                            <!-- 閘門動畫區 -->
+                            <div class="relative w-48 h-32 border-b-4 border-slate-800 flex items-end justify-start overflow-hidden pt-10">
+                                <!-- 閘門桿 -->
+                                <div id="sim-gate-bar" class="absolute bottom-0 left-4 w-40 h-3 bg-gradient-to-r from-red-500 via-white to-red-500 origin-bottom-left transition-transform duration-500 transform rotate-0 rounded-r shadow-md"></div>
+                                <!-- 閘門基座 -->
+                                <div class="absolute bottom-0 left-2 w-6 h-8 bg-slate-700 rounded-t border border-slate-900 z-10"></div>
+                                <!-- 車子 -->
+                                <i id="sim-car" class="fa-solid fa-car-side text-4xl text-blue-600 absolute bottom-1 right-[-40px] transition-all duration-700"></i>
+                            </div>
+                            
+                            <div class="w-full max-w-xs bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <label class="block text-sm text-slate-600 mb-2 font-bold flex justify-between">
+                                    <span>🚙 車輛距離: <span id="sim-dist-val2">25</span> cm</span>
+                                    <span id="sim-gate-status" class="text-xs text-red-600 font-bold">閘門關閉</span>
+                                </label>
+                                <input type="range" id="sim-dist-slider2" min="2" max="30" value="25" class="w-full accent-blue-500">
+                                <p class="text-[10px] text-slate-500 mt-2 text-center">距離 &lt; 10cm 時開啟閘門 90 度，車輛通過。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 2 實作時程表 -->
+                <div class="mt-8">
+                    <h4 class="text-xl font-bold text-slate-800 mb-5 border-b-2 border-slate-100 pb-2"><i class="fa-regular fa-clock text-maker mr-2"></i>三小時實作通關指南</h4>
+                    <div class="space-y-6">
+                        <!-- Hour 1 -->
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold shadow-md z-10 shrink-0">1</div>
+                                <div class="w-1 bg-slate-200 h-full mt-2 rounded-full"></div>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 mb-2 hover:border-maker transition-colors">
+                                <h5 class="font-bold text-lg text-slate-800 mb-2">第 1 小時：調光大師與智慧路燈</h5>
+                                <div class="text-sm text-slate-600 space-y-2">
+                                    <p><strong>🎯 任務目標：</strong> 完成任務 1 (調光燈與調色) 及任務 2 (智慧路燈)。</p>
+                                    <ul class="list-disc list-inside pl-2 space-y-1">
+                                        <li>讀取可變電阻，並使用 LCD 顯示數值，再將數值對應到 LED 亮度或顏色。</li>
+                                        <li>利用光敏電阻控制 LED 開關，找到適當的「天黑閥值」。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Hour 2 -->
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold shadow-md z-10 shrink-0">2</div>
+                                <div class="w-1 bg-slate-200 h-full mt-2 rounded-full"></div>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 mb-2 hover:border-maker transition-colors">
+                                <h5 class="font-bold text-lg text-slate-800 mb-2">第 2 小時：炫彩舞台與時間魔法</h5>
+                                <div class="text-sm text-slate-600 space-y-2">
+                                    <p><strong>🎯 任務目標：</strong> 突破「挑戰一」，控制 WS2812 環形燈。</p>
+                                    <ul class="list-disc list-inside pl-2 space-y-1">
+                                        <li>了解陣列概念，利用迴圈與變數控制「第 N 顆燈」。</li>
+                                        <li>實作電子時鐘(每秒亮下一顆)，或是結合按鈕製作幸運轉盤抽獎遊戲。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Hour 3 -->
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-10 h-10 rounded-full bg-maker text-white flex items-center justify-center font-bold shadow-md z-10 shrink-0">3</div>
+                                <div class="w-1 bg-transparent h-full mt-2"></div>
+                            </div>
+                            <div class="bg-maker-light p-5 rounded-xl border border-maker/30 shadow-sm flex-1 mb-2">
+                                <h5 class="font-bold text-lg text-maker-dark mb-2">第 3 小時：智慧停車場閘門與收費 (挑戰二)</h5>
+                                <div class="text-sm text-slate-700 space-y-2">
+                                    <p><strong>🎯 任務目標：</strong> 完成任務 3 (超音波+伺服馬達)，並挑戰停車費計算。</p>
+                                    <ul class="list-disc list-inside pl-2 space-y-1">
+                                        <li>結合超音波測距與伺服馬達角度控制，打造自動閘門。</li>
+                                        <li><strong>進階：</strong> 使用「變數」累加計時，當車輛離開時，在 LCD 印出「Fee: $XX」的停車費用。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 圖片放大視窗 (Modal) -->
+        <div id="image-modal" class="fixed inset-0 z-[100] hidden bg-black/80 items-center justify-center p-4 backdrop-blur-sm transition-opacity cursor-zoom-out" onclick="closeImageModal()">
+            <div class="absolute top-4 right-6 text-white text-4xl cursor-pointer hover:text-maker transition-colors" onclick="closeImageModal()">&times;</div>
+            <img id="modal-image" src="" alt="放大圖片" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl cursor-default" onclick="event.stopPropagation()">
+        </div>
+
+        <!-- QR Code 成果分享浮動視窗 (Modal) -->
+        <div id="qrcode-modal" class="fixed inset-0 z-[100] hidden bg-black/70 items-center justify-center p-4 backdrop-blur-sm transition-opacity cursor-zoom-out" onclick="closeQRCodeModal()">
+            <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl relative cursor-default text-center transition-all duration-300 transform scale-95" id="qrcode-card" onclick="event.stopPropagation()">
+                <div class="absolute top-2 right-4 text-slate-400 hover:text-slate-600 text-2xl cursor-pointer transition-colors" onclick="closeQRCodeModal()">&times;</div>
+                <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-share-nodes text-maker"></i> 觀看成果分享
+                </h4>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-center items-center">
+                    <img src="https://raw.githubusercontent.com/su-yung-sheng/googlesites/refs/heads/main/2026072100.png" alt="成果分享 QR Code" class="w-64 h-64 object-contain rounded-lg shadow-sm">
+                </div>
+                <p class="text-xs text-slate-500 mt-4">💡 歡迎用手機掃描 QR Code 觀看學生的創作成果！</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-microchip text-maker text-xl"></i>
+                <span class="font-bold text-white tracking-wider">Lung-Hwa <span class="text-maker">PBL 課程</span></span>
+            </div>
+            <p class="text-sm">© 2026 創客教育. Designed for Junior High School Students.</p>
+            <div class="flex gap-4">
+                <span class="text-xs px-2 py-1 bg-slate-800 rounded">需準備零件盒存放模組</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 手機版選單開關邏輯 ---
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        if (btn && menu) {
+            btn.addEventListener('click', () => { menu.classList.toggle('hidden'); });
+        }
+
+        // --- 圖片放大視窗 (Modal) 邏輯 ---
+        function openImageModal(src) {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-image');
+            modalImg.src = src;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- QR Code 浮動視窗邏輯 ---
+        function openQRCodeModal() {
+            const modal = document.getElementById('qrcode-modal');
+            const card = document.getElementById('qrcode-card');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeQRCodeModal() {
+            const modal = document.getElementById('qrcode-modal');
+            const card = document.getElementById('qrcode-card');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- Day 2: 停車場閘門模擬器 ---
+        const distSlider2 = document.getElementById('sim-dist-slider2');
+        const distVal2 = document.getElementById('sim-dist-val2');
+        const gateBar = document.getElementById('sim-gate-bar');
+        const gateStatus = document.getElementById('sim-gate-status');
+        const simCar = document.getElementById('sim-car');
+        
+        if(distSlider2) {
+            distSlider2.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                distVal2.textContent = val;
+                
+                const carPos = 120 - ((val - 2) * (160 / 28));
+                simCar.style.right = `${carPos}px`;
+                
+                if(val < 10) {
+                    gateBar.style.transform = 'rotate(-90deg)';
+                    gateStatus.textContent = '閘門開啟 (90°)';
+                    gateStatus.className = 'text-xs text-green-600 font-bold';
+                    setTimeout(() => {
+                        simCar.style.right = '200px';
+                        simCar.style.opacity = '0';
+                    }, 500);
+                } else {
+                    gateBar.style.transform = 'rotate(0deg)';
+                    gateStatus.textContent = '閘門關閉 (0°)';
+                    gateStatus.className = 'text-xs text-red-600 font-bold';
+                    simCar.style.opacity = '1';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
