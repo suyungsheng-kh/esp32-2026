@@ -1,1 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>motoBlockly 教師設定端</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-gray-800">
 
+    <!-- 頂部導覽列 -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="font-black text-xl text-blue-800 tracking-wider flex items-center">
+                        <span class="mr-2">👩‍🏫</span> motoBlockly 教師控制台
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== 教師設定端 ==================== -->
+    <div class="fade-in">
+        <div class="max-w-6xl mx-auto pt-10 px-4 pb-12">
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-extrabold text-slate-700 mb-3 tracking-tight">題庫管理與成績查詢</h1>
+                <p class="text-gray-600 text-lg">透過此介面可管理題庫，系統會將您的設定同步至雲端供學生驗證使用。</p>
+            </div>
+
+            <!-- 上半部：題庫管理 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <!-- 左側：現有關卡列表 -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 h-fit max-h-[600px] overflow-y-auto">
+                    <h2 class="text-xl font-bold text-gray-800 mb-5 flex items-center border-b pb-3 sticky top-0 bg-white z-10">
+                        <svg class="w-6 h-6 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        目前已上架題庫
+                    </h2>
+                    <div id="teacherLevelList" class="space-y-4">
+                        <!-- 由 JS 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 右側：新增關卡表單 (解答範本上傳) -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-t-blue-500">
+                    <h2 class="text-xl font-bold text-blue-800 mb-5 flex items-center border-b pb-3">
+                        <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        新增 / 修改自訂關卡
+                    </h2>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">關卡代號 (ID)</label>
+                            <input type="text" id="newLevelId" placeholder="例如: level3" class="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">顯示名稱</label>
+                            <input type="text" id="newLevelName" placeholder="例如: 關卡三：馬達控制" class="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">任務說明</label>
+                            <textarea id="newLevelDesc" rows="2" placeholder="請描述學生需達成的目標..." class="w-full p-3 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"></textarea>
+                        </div>
+                        
+                        <!-- 檔案上傳區 -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <label class="block text-sm font-bold text-blue-800 mb-2">解答範本上傳 (必填)</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="file" id="templateFileInput" accept=".xml" class="hidden">
+                                <button onclick="document.getElementById('templateFileInput').click()" class="bg-white border border-blue-300 text-blue-700 hover:bg-blue-100 px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-sm">
+                                    選擇解答 .xml 檔案
+                                </button>
+                                <span id="templateFileName" class="text-sm text-blue-600 font-mono">未選擇檔案</span>
+                            </div>
+                            <p class="text-xs text-blue-600 leading-relaxed mt-3">請上傳包含標準答案的 motoBlockly XML 檔案。系統將自動解析其邏輯結構，作為判斷學生是否通關的標準依據。</p>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button id="submitLevelBtn" onclick="addNewLevel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5">
+                                ➕ 建立並加入題庫
+                            </button>
+                            <button id="cancelEditBtn" onclick="cancelEdit()" class="hidden w-1/3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-all">
+                                取消
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下半部：學生成績查詢區塊 -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border-t-4 border-t-emerald-500">
+                <div class="flex flex-col sm:flex-row justify-between items-center border-b pb-4 mb-4">
+                    <h2 class="text-xl font-bold text-emerald-800 flex items-center mb-4 sm:mb-0">
+                        <svg class="w-6 h-6 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        學生評測成績查詢
+                    </h2>
+                    <div class="flex items-center w-full sm:w-auto">
+                        <label class="text-sm font-bold text-gray-600 mr-3 whitespace-nowrap">篩選關卡：</label>
+                        <select id="queryLevelSelect" class="w-full sm:w-64 bg-gray-50 border border-gray-300 text-gray-800 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-2 font-medium">
+                            <option value="all">顯示所有關卡紀錄</option>
+                        </select>
+                        <button onclick="fetchAndDisplayRecords()" class="ml-3 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-4 py-2 rounded-lg font-bold transition-colors whitespace-nowrap">
+                            重新整理
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700 text-sm">
+                                <th class="py-3 px-4 rounded-tl-lg font-bold w-1/4">學生姓名/學號</th>
+                                <th class="py-3 px-4 font-bold w-1/3">挑戰關卡</th>
+                                <th class="py-3 px-4 font-bold">狀態</th>
+                                <th class="py-3 px-4 rounded-tr-lg font-bold">最後上傳時間</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody" class="text-gray-700">
+                            <tr><td colspan="4" class="text-center py-6 text-gray-500">點擊上方「重新整理」載入最新成績</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRRH1Sm3XfJuZFrpT-lOPnRPSz93XN2sI",
+            authDomain: "canvas-test-f69d4.firebaseapp.com",
+            projectId: "canvas-test-f69d4",
+            storageBucket: "canvas-test-f69d4.firebasestorage.app",
+            messagingSenderId: "378979938843",
+            appId: "1:378979938843:web:a681fb46637ca638d27ebe",
+            measurementId: "G-G7PG9SYX12"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+
+        // 預設關卡 (僅供顯示列表，實際解析在學生端)
+        const LEVEL0_TEMPLATE_XML = `<xml xmlns="https://developers.google.com/blockly/xml"><block type="arduino_setup"><statement name="MyLoop"><block type="inout_digital_write"><field name="PIN">13</field><field name="STAT">HIGH</field><next><block type="delay_custom"><value name="DELAY_TIME"><block type="math_number"><field name="NUM">1000</field></block></value><next><block type="inout_digital_write"><field name="PIN">13</field><field name="STAT">LOW</field><next><block type="delay_custom"><value name="DELAY_TIME"><block type="math_number"><field name="NUM">1000</field></block></value></block></next></block></next></block></next></block></statement></block></xml>`;
+
+        const levelConfigs = {
+            'level0': {
+                name: '關卡零：閃爍 LED (Blink)',
+                description: '請實作一個能讓 LED 燈持續閃爍的程式（亮 1 秒，滅 1 秒）。',
+                isCustom: false,
+                templateXml: LEVEL0_TEMPLATE_XML
+            }
+        };
+
+        let editingLevelId = null;
+        let pendingTemplateContent = null; 
+
+        // 讀取雲端題庫清單 (供編輯與刪除使用)
+        window.loadCustomLevelsList = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "motoblockly_levels"));
+                querySnapshot.forEach((firebaseDoc) => {
+                    const data = firebaseDoc.data();
+                    const id = firebaseDoc.id;
+                    levelConfigs[id] = {
+                        name: data.name,
+                        description: data.description,
+                        isCustom: true,
+                        templateXml: data.templateXml
+                    };
+                });
+            } catch (error) {
+                console.error("讀取雲端題庫清單失敗：", error);
+            }
+        }
+
+        // 動態產生清單與下拉選單
+        window.syncLevelDropdownsAndLists = function() {
+            const listContainer = document.getElementById('teacherLevelList');
+            const queryLevelSelect = document.getElementById('queryLevelSelect');
+
+            if (listContainer) listContainer.innerHTML = '';
+            if (queryLevelSelect) queryLevelSelect.innerHTML = '<option value="all">顯示所有關卡紀錄</option>';
+
+            for (const [key, config] of Object.entries(levelConfigs)) {
+                let actionButtons = '';
+                if (config.isCustom) {
+                    actionButtons = `
+                        <div class="flex space-x-2 mt-2 md:mt-0">
+                            <button onclick="editLevel('${key}')" class="text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-bold transition-colors">✏️ 修改</button>
+                            <button onclick="deleteLevel('${key}')" class="text-red-600 hover:text-red-800 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md text-sm font-bold transition-colors">🗑️ 刪除</button>
+                        </div>
+                    `;
+                } else {
+                    actionButtons = `<span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-md font-bold mt-2 md:mt-0">🔒 內建模組</span>`;
+                }
+
+                if (listContainer) {
+                    listContainer.innerHTML += `
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl hover:shadow-md transition-shadow">
+                            <div class="flex flex-col md:flex-row justify-between md:items-start mb-2">
+                                <div>
+                                    <span class="font-bold text-lg text-slate-800">${config.name}</span>
+                                    <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded-md font-mono ml-2">${key}</span>
+                                </div>
+                                ${actionButtons}
+                            </div>
+                            <p class="text-sm text-slate-600 mb-2">${config.description}</p>
+                            <div class="text-xs text-slate-500 bg-white p-2 rounded border border-slate-100">
+                                <b>評分：</b>依據教師上傳之範本進行動態結構比對
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (queryLevelSelect) {
+                    let optQuery = document.createElement('option');
+                    optQuery.value = key;
+                    optQuery.textContent = config.name;
+                    queryLevelSelect.appendChild(optQuery);
+                }
+            }
+        }
+
+        // 解答上傳邏輯
+        document.getElementById('templateFileInput')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const nameDisp = document.getElementById('templateFileName');
+            if (!file) {
+                pendingTemplateContent = null;
+                if(nameDisp) nameDisp.textContent = "未選擇檔案";
+                return;
+            }
+            if(nameDisp) nameDisp.innerHTML = `<span class="font-bold text-emerald-600">✅ 已載入: ${file.name}</span>`;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                pendingTemplateContent = event.target.result;
+            };
+            reader.readAsText(file);
+        });
+
+        window.editLevel = function(id) {
+            const config = levelConfigs[id];
+            if(!config || !config.isCustom) return;
+
+            editingLevelId = id;
+            document.getElementById('newLevelId').value = id;
+            document.getElementById('newLevelId').disabled = true; 
+            document.getElementById('newLevelId').classList.add('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            
+            document.getElementById('newLevelName').value = config.name;
+            document.getElementById('newLevelDesc').value = config.description || '';
+            
+            pendingTemplateContent = null; 
+            const nameDisp = document.getElementById('templateFileName');
+            if (nameDisp) nameDisp.innerHTML = `<span class="text-amber-600 font-bold">(已套用原有範本，若需更改請重新上傳)</span>`;
+
+            const submitBtn = document.getElementById('submitLevelBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '💾 更新並儲存關卡';
+                submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                submitBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            }
+            
+            document.getElementById('cancelEditBtn')?.classList.remove('hidden');
+            document.getElementById('newLevelId')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        window.cancelEdit = function() {
+            editingLevelId = null;
+            pendingTemplateContent = null;
+            document.getElementById('newLevelId').value = '';
+            document.getElementById('newLevelId').disabled = false;
+            document.getElementById('newLevelId').classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+            
+            document.getElementById('newLevelName').value = '';
+            document.getElementById('newLevelDesc').value = '';
+            document.getElementById('templateFileInput').value = '';
+            document.getElementById('templateFileName').textContent = '未選擇檔案';
+
+            const submitBtn = document.getElementById('submitLevelBtn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '➕ 建立並加入題庫';
+                submitBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+            document.getElementById('cancelEditBtn')?.classList.add('hidden');
+        }
+
+        window.deleteLevel = async function(id) {
+            if(!confirm(`⚠️ 確定要刪除關卡「${levelConfigs[id].name}」嗎？\n此動作將同步刪除 Firebase 中的資料，無法復原。`)) return;
+
+            try {
+                await deleteDoc(doc(db, "motoblockly_levels", id));
+                delete levelConfigs[id];
+                syncLevelDropdownsAndLists();
+                alert('🗑️ 關卡已成功刪除！');
+                if(editingLevelId === id) cancelEdit();
+            } catch(error) {
+                console.error("刪除關卡失敗：", error);
+                alert("刪除失敗，請檢查網路連線或資料庫權限。");
+            }
+        }
+
+        window.addNewLevel = async function() {
+            const id = document.getElementById('newLevelId').value.trim();
+            const name = document.getElementById('newLevelName').value.trim();
+            const desc = document.getElementById('newLevelDesc').value.trim();
+
+            if(!id || !name) {
+                alert('請至少填寫關卡代號與名稱！');
+                return;
+            }
+            if(!editingLevelId && levelConfigs[id] && !levelConfigs[id].isCustom) {
+                alert('不可覆蓋內建模組代號！');
+                return;
+            }
+
+            let finalTemplateXml = pendingTemplateContent;
+            if (!finalTemplateXml) {
+                if (editingLevelId && levelConfigs[id].templateXml) {
+                    finalTemplateXml = levelConfigs[id].templateXml; 
+                } else {
+                    alert('⚠️ 建立新關卡時，請務必上傳「解答範本 .xml」！');
+                    return;
+                }
+            }
+
+            try {
+                await setDoc(doc(db, "motoblockly_levels", id), {
+                    name: name,
+                    description: desc || '無任務說明',
+                    templateXml: finalTemplateXml
+                });
+            } catch (error) {
+                console.error("寫入雲端題庫失敗：", error);
+                alert("寫入雲端失敗，請檢查網路連線或資料庫權限。");
+                return;
+            }
+
+            levelConfigs[id] = {
+                name: name,
+                description: desc || '無任務說明',
+                templateXml: finalTemplateXml,
+                isCustom: true
+            };
+
+            const isUpdate = !!editingLevelId;
+            cancelEdit(); 
+            syncLevelDropdownsAndLists();
+            alert(isUpdate ? '✅ 關卡已成功更新！' : '🎉 新關卡已成功加入雲端題庫！');
+        }
+
+        window.fetchAndDisplayRecords = async function() {
+            const tableBody = document.getElementById('recordsTableBody');
+            const queryLevelSelect = document.getElementById('queryLevelSelect');
+
+            if (!tableBody || !queryLevelSelect) return;
+            const selectedLevel = queryLevelSelect.value;
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-emerald-600 font-bold">資料讀取中，請稍候...</td></tr>';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "motoblockly_records"));
+                let records = [];
+                
+                querySnapshot.forEach((doc) => {
+                    records.push(doc.data());
+                });
+
+                if (selectedLevel !== 'all') {
+                    records = records.filter(r => r.levelId === selectedLevel);
+                }
+
+                records.sort((a, b) => {
+                    if (a.studentId < b.studentId) return -1;
+                    if (a.studentId > b.studentId) return 1;
+                    const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+                    const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                tableBody.innerHTML = '';
+
+                if (records.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-500">此分類目前尚無任何評測紀錄</td></tr>';
+                    return;
+                }
+
+                records.forEach(r => {
+                    let timeStr = '剛剛';
+                    if (r.timestamp) {
+                        const date = r.timestamp.toDate();
+                        timeStr = `${date.toLocaleDateString('zh-TW')} ${date.toLocaleTimeString('zh-TW', {hour: '2-digit', minute:'2-digit'})}`;
+                    }
+
+                    let statusBadge = '';
+                    if (r.status === 'pass' || (r.isPass && !r.status && r.isPass !== 'warning')) {
+                        statusBadge = '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold whitespace-nowrap">✅ 完美通關</span>';
+                    } else if (r.status === 'warning') {
+                        statusBadge = '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-bold whitespace-nowrap">⚠️ 通關(有提醒)</span>';
+                    } else {
+                        statusBadge = '<span class="px-2 py-1 bg-rose-100 text-rose-700 rounded-md text-xs font-bold whitespace-nowrap">❌ 未達標</span>';
+                    }
+
+                    tableBody.innerHTML += `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 font-mono font-bold text-gray-800">${r.studentId}</td>
+                            <td class="py-3 px-4 text-sm text-gray-600">${r.levelName}</td>
+                            <td class="py-3 px-4">${statusBadge}</td>
+                            <td class="py-3 px-4 text-xs text-gray-400">${timeStr}</td>
+                        </tr>
+                    `;
+                });
+
+            } catch (error) {
+                console.error("讀取成績失敗：", error);
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-red-500">資料讀取失敗，請確認資料庫權限或網路連線。</td></tr>';
+            }
+        }
+
+        window.onload = async () => {
+            syncLevelDropdownsAndLists();
+            try {
+                await signInAnonymously(auth);
+                await loadCustomLevelsList(); 
+                syncLevelDropdownsAndLists(); 
+                fetchAndDisplayRecords();
+            } catch (error) {
+                console.warn("雲端資料庫連線失敗。", error);
+            }
+        };
+    </script>
+</body>
+</html>
