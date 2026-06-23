@@ -1,1 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>motoBlockly 學生驗證端</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
 
+    <!-- 頂部導覽列 -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="font-black text-xl text-blue-600 tracking-wider flex items-center">
+                        <span class="mr-2">👨‍🎓</span> motoBlockly 評測系統
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== 學生驗證端 ==================== -->
+    <div class="block fade-in">
+        <div class="max-w-3xl mx-auto pt-10 px-4 pb-12">
+            
+            <!-- 關卡選擇與上傳區 -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-10 border border-gray-100">
+                <div class="mb-6">
+                    <label for="studentId" class="block text-sm font-bold text-gray-700 mb-2">👤 你的學號或姓名 (紀錄成績用)：</label>
+                    <input type="text" id="studentId" placeholder="例如: 11001 王小明" class="block w-full bg-white border border-gray-300 text-gray-800 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-3 font-medium transition-colors" required>
+                </div>
+
+                <div class="mb-8">
+                    <label for="levelSelect" class="block text-sm font-bold text-gray-700 mb-2">🚩 選擇你要挑戰的關卡：</label>
+                    <select id="levelSelect" class="block w-full bg-blue-50 border border-blue-200 text-blue-800 rounded-lg focus:ring-blue-500 focus:border-blue-500 p-3 font-medium transition-colors cursor-pointer hover:bg-blue-100">
+                    </select>
+                    <div id="levelDescription" class="mt-3 text-sm text-gray-600 bg-gray-50 p-3 rounded-md border-l-4 border-gray-300 transition-all">
+                        請稍候，載入雲端題庫中...
+                    </div>
+                </div>
+
+                <div class="border-2 border-dashed border-blue-200 rounded-xl p-8 text-center hover:border-blue-400 transition-colors bg-gray-50 relative group cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                    <svg class="mx-auto h-14 w-14 text-blue-400 mb-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <label class="block mb-2 text-xl font-bold text-gray-700 cursor-pointer">點擊或拖曳選擇 .xml 檔案</label>
+                    <p class="text-sm text-gray-500 mb-4" id="fileNameDisplay">目前尚未選擇檔案</p>
+                    <input type="file" id="fileInput" accept=".xml" class="hidden">
+                </div>
+
+                <div class="mt-6">
+                    <button id="verifyBtn" disabled class="w-full bg-gray-400 cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl shadow-md transition-all text-lg tracking-wide">
+                        🚀 開始驗證
+                    </button>
+                    <p class="text-center text-sm text-gray-500 mt-2">請先輸入姓名並上傳檔案，即可開始驗證</p>
+                </div>
+            </div>
+
+            <!-- 結果顯示區 -->
+            <div id="resultArea" class="mt-8 hidden fade-in">
+                <h2 class="text-2xl font-bold mb-5 text-center" id="finalResultTitle">審查結果</h2>
+                
+                <div class="space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 transition-colors duration-300" id="checkBasicCard">
+                        <div class="flex items-center justify-between">
+                            <div class="pr-4">
+                                <h3 class="font-bold text-lg flex items-center text-gray-800">
+                                    <span id="checkBasicIcon" class="mr-2"></span>
+                                    1. 基本積木數量檢查
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1" id="basicDescText">與解答範本對比所需積木。</p>
+                                <p class="text-sm text-amber-600 font-bold mt-2 hidden" id="basicExtraText"></p>
+                            </div>
+                            <div id="checkBasicBadge" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 transition-colors duration-300" id="checkStructureCard">
+                        <div class="flex items-center justify-between">
+                            <div class="pr-4">
+                                <h3 class="font-bold text-lg flex items-center text-gray-800">
+                                    <span id="checkStructureIcon" class="mr-2"></span>
+                                    2. 基本邏輯結構檢查
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1" id="structDescText">包含積木排序、IF 判斷式組合比對。</p>
+                                <p class="text-sm text-amber-600 font-bold mt-2 hidden" id="structExtraText"></p>
+                            </div>
+                            <div id="checkStructureBadge" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-rose-50 rounded-xl shadow-inner p-5 border border-rose-200 hidden" id="errorSourceCard">
+                        <h3 class="font-bold text-rose-700 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            轉譯的程式碼 (供除錯比對)
+                        </h3>
+                        <div class="bg-white p-4 rounded-lg border border-rose-200 overflow-x-auto max-h-64 overflow-y-auto">
+                            <pre><code id="errorSourceContent" class="text-sm text-gray-700 font-mono whitespace-pre-wrap break-all"></code></pre>
+                        </div>
+                        <p class="text-sm text-rose-600 mt-3 font-bold">💡 提示：請觀察上方的程式碼，比對是否有缺少指令，或是順序不對、沒有正確組合 (拼起來)！</p>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 transition-colors duration-300" id="checkParamCard">
+                        <div class="flex items-center justify-between">
+                            <div class="pr-4">
+                                <h3 class="font-bold text-lg flex items-center text-gray-800">
+                                    <span id="checkParamIcon" class="mr-2"></span>
+                                    3. 參數設定檢查
+                                </h3>
+                                <p class="text-sm text-gray-500 mt-1" id="paramDescText">精準檢查腳位、HIGH/LOW 狀態與數值。</p>
+                            </div>
+                            <div id="checkParamBadge" class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold tracking-wide"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl shadow-inner p-5 border border-slate-200" id="checkParamsCard">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                            偵測到的差異 (與解答範本對比)
+                        </h3>
+                        <div id="paramsContent" class="text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, getDoc, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        // Firebase 專案設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRRH1Sm3XfJuZFrpT-lOPnRPSz93XN2sI",
+            authDomain: "canvas-test-f69d4.firebaseapp.com",
+            projectId: "canvas-test-f69d4",
+            storageBucket: "canvas-test-f69d4.firebasestorage.app",
+            messagingSenderId: "378979938843",
+            appId: "1:378979938843:web:a681fb46637ca638d27ebe",
+            measurementId: "G-G7PG9SYX12"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+
+        /* ==========================================================================
+           【核心分析引擎】：將 Blockly XML 轉為物件並進行深度比對
+           ========================================================================== */
+        
+        function extractSequence(blockNode) {
+            let seq = [];
+            let current = blockNode;
+            while (current && current.tagName === 'block') {
+                let blockData = { type: current.getAttribute('type'), fields: {}, statements: {}, inputs: {} };
+                
+                Array.from(current.children).forEach(c => {
+                    if (c.tagName === 'field') {
+                        blockData.fields[c.getAttribute('name')] = c.textContent;
+                    } else if (c.tagName === 'statement') {
+                        let firstBlock = Array.from(c.children).find(child => child.tagName === 'block');
+                        if (firstBlock) blockData.statements[c.getAttribute('name')] = extractSequence(firstBlock);
+                    } else if (c.tagName === 'value') {
+                        let firstBlock = Array.from(c.children).find(child => child.tagName === 'block');
+                        if (firstBlock) blockData.inputs[c.getAttribute('name')] = extractSequence(firstBlock);
+                    }
+                });
+                
+                seq.push(blockData);
+                
+                let nextNode = Array.from(current.children).find(c => c.tagName === 'next');
+                current = (nextNode && Array.from(nextNode.children).find(child => child.tagName === 'block')) 
+                          ? Array.from(nextNode.children).find(child => child.tagName === 'block') 
+                          : null;
+            }
+            return seq;
+        }
+
+        function buildAnalyzer(templateXmlText) {
+            return function(studentXmlDoc) {
+                const parser = new DOMParser();
+                const templateXmlDoc = parser.parseFromString(templateXmlText, "text/xml");
+
+                let results = { 
+                    basicPass: false, basicStatus: 'fail', 
+                    structurePass: false, structureStatus: 'fail', 
+                    paramStatus: 'pass', paramsHTML: '', 
+                    basicExtraMsg: '', structureExtraMsg: '' 
+                };
+
+                // --- 1. 基本積木數量對比 ---
+                const tBlocks = templateXmlDoc.querySelectorAll('block');
+                const sBlocks = studentXmlDoc.querySelectorAll('block');
+
+                let tCounts = {};
+                tBlocks.forEach(b => { let t = b.getAttribute('type'); tCounts[t] = (tCounts[t]||0) + 1; });
+                let sCounts = {};
+                sBlocks.forEach(b => { let t = b.getAttribute('type'); sCounts[t] = (sCounts[t]||0) + 1; });
+
+                let missing = false;
+                let extraMsgs = [];
+                for (let t in tCounts) {
+                    if ((sCounts[t]||0) < tCounts[t]) missing = true;
+                    if ((sCounts[t]||0) > tCounts[t]) extraMsgs.push(`${t} (多 ${(sCounts[t]||0) - tCounts[t]} 個)`);
+                }
+                for (let t in sCounts) {
+                    if (!tCounts[t]) extraMsgs.push(`${t} (${sCounts[t]} 個)`);
+                }
+
+                if (missing) {
+                    results.basicPass = false;
+                    results.basicStatus = 'fail';
+                    results.paramsHTML = '<div class="col-span-2 text-center text-amber-600 bg-amber-50 py-4 rounded-lg border border-amber-200 font-bold">💡 請先滿足基本積木數量要求，系統才能讀取並比對您的參數喔！</div>';
+                    return results; 
+                } else {
+                    results.basicPass = true;
+                    if (extraMsgs.length > 0) {
+                        results.basicStatus = 'warning';
+                        results.basicExtraMsg = '畫面中有多餘無用積木：' + extraMsgs.join('、');
+                    } else {
+                        results.basicStatus = 'pass';
+                    }
+                }
+
+                // --- 2. & 3. 邏輯結構與參數深度比對 ---
+                let tSetup = templateXmlDoc.querySelector('block[type="arduino_setup"]');
+                let sSetup = studentXmlDoc.querySelector('block[type="arduino_setup"]');
+
+                if (!sSetup) {
+                    results.structurePass = false; results.structureStatus = 'fail'; 
+                    results.structureExtraMsg = '❌ 找不到主程式 (Arduino Setup) 積木區塊。';
+                    return results;
+                }
+
+                let tLoop = tSetup.querySelector('statement[name="MyLoop"] > block');
+                let sLoop = sSetup.querySelector('statement[name="MyLoop"] > block');
+
+                let tSeq = extractSequence(tLoop);
+                let sSeq = extractSequence(sLoop);
+
+                let paramWarnings = [];
+                let isStructurePass = true;
+                let structureErrorMsg = "";
+
+                function compareBlocks(tSq, sSq, pathName) {
+                    if (tSq.length !== sSq.length) {
+                        isStructurePass = false;
+                        structureErrorMsg = `❌ 邏輯錯誤：[${pathName}] 的積木順序與長度，與解答範本不一致！`;
+                        return;
+                    }
+                    for (let i = 0; i < tSq.length; i++) {
+                        let t = tSq[i];
+                        let s = sSq[i];
+                        
+                        if (t.type !== s.type) {
+                            isStructurePass = false;
+                            structureErrorMsg = `❌ 結構錯誤：在 [${pathName}] 第 ${i+1} 步，預期為 ${t.type}，但您使用了 ${s.type}。`;
+                            return;
+                        }
+
+                        for (let f in t.fields) {
+                            if (t.fields[f] !== s.fields[f]) {
+                                paramWarnings.push({ path: pathName, type: t.type, field: f, exp: t.fields[f], act: s.fields[f]||'空' });
+                            }
+                        }
+
+                        for (let stmt in t.statements) {
+                            if (!s.statements[stmt]) {
+                                isStructurePass = false; structureErrorMsg = `❌ 邏輯錯誤：缺少內部程式區塊 (${stmt})。`; return;
+                            }
+                            compareBlocks(t.statements[stmt], s.statements[stmt], `${pathName} 內的執行區塊`);
+                        }
+
+                        for (let inp in t.inputs) {
+                            if (!s.inputs[inp]) {
+                                isStructurePass = false; structureErrorMsg = `❌ 邏輯錯誤：缺少判斷條件輸入 (${inp})。`; return;
+                            }
+                            compareBlocks(t.inputs[inp], s.inputs[inp], `${pathName} 的判斷條件`);
+                        }
+                    }
+                }
+
+                compareBlocks(tSeq, sSeq, "主迴圈");
+
+                if (!isStructurePass) {
+                    results.structurePass = false;
+                    results.structureStatus = 'fail';
+                    results.structureExtraMsg = structureErrorMsg;
+                    results.paramStatus = 'warning';
+                    results.paramsHTML = '<div class="col-span-2 text-center text-amber-600 bg-amber-50 py-4 rounded-lg border border-amber-200 font-bold">💡 請先修正基本邏輯結構，系統才能為您核對參數喔！</div>';
+                    return results;
+                }
+
+                results.structurePass = true;
+                results.structureStatus = 'pass'; 
+
+                if (paramWarnings.length > 0) {
+                    results.paramStatus = 'warning';
+                    let html = '<div class="grid grid-cols-1 gap-3 w-full">';
+                    paramWarnings.forEach(w => {
+                        let fieldName = w.field;
+                        if (w.field === 'PIN') fieldName = '腳位 (PIN)';
+                        else if (w.field === 'STAT') fieldName = '狀態 (HIGH/LOW)';
+                        else if (w.field === 'NUM') fieldName = '數值';
+                        else if (w.field === 'OP') fieldName = '判斷邏輯';
+                        
+                        html += `
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-amber-300">
+                                <p class="font-bold text-amber-800 border-b border-amber-100 pb-2 mb-2">⚠️ 參數差異 (${w.path} -> ${w.type})</p>
+                                <p class="text-slate-600 text-sm mb-1">${fieldName}設定：</p>
+                                <div class="flex items-center text-sm font-mono mt-2">
+                                    <span class="bg-rose-100 text-rose-700 px-2 py-1 rounded">你的輸入: ${w.act}</span>
+                                    <span class="mx-2 text-slate-400">➔</span>
+                                    <span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded">範本解答: ${w.exp}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div><div class="col-span-1 sm:col-span-2 bg-blue-50 border-l-4 border-blue-400 p-3 mt-4 text-sm text-blue-800 rounded-r-lg"><b>💡 提醒：</b>以上是與「解答範本」參數不同的地方。若為自行設計的數值則不影響通關；若是打錯字請記得修正！</div>`;
+                    results.paramsHTML = html;
+                } else {
+                    results.paramStatus = 'pass';
+                    results.paramsHTML = '<div class="col-span-2 text-center text-emerald-600 py-4 font-bold">🎉 所有參數與條件設定，皆與解答範本完全一致！</div>';
+                }
+
+                return results;
+            }
+        }
+
+        const LEVEL0_TEMPLATE_XML = `<xml xmlns="https://developers.google.com/blockly/xml"><block type="arduino_setup"><statement name="MyLoop"><block type="inout_digital_write"><field name="PIN">13</field><field name="STAT">HIGH</field><next><block type="delay_custom"><value name="DELAY_TIME"><block type="math_number"><field name="NUM">1000</field></block></value><next><block type="inout_digital_write"><field name="PIN">13</field><field name="STAT">LOW</field><next><block type="delay_custom"><value name="DELAY_TIME"><block type="math_number"><field name="NUM">1000</field></block></value></block></next></block></next></block></next></block></statement></block></xml>`;
+
+        const levelConfigs = {
+            'level0': {
+                name: '關卡零：閃爍 LED (Blink)',
+                description: '請實作一個能讓 LED 燈持續閃爍的程式（亮 1 秒，滅 1 秒）。',
+                basicRequirement: '數量將依據教師解答範本自動檢測。',
+                structRequirement: '結構將嚴格比對教師解答範本。',
+                paramRequirement: '腳位、HIGH/LOW 狀態將與解答範本深度比對。',
+                isLoaded: true, 
+                templateXml: LEVEL0_TEMPLATE_XML,
+                analyze: buildAnalyzer(LEVEL0_TEMPLATE_XML)
+            }
+        };
+
+        /* ==========================================================================
+           【系統運作區】
+           ========================================================================== */
+        let currentFileContent = null;
+
+        window.checkVerifyBtnState = function() {
+            const studentIdInput = document.getElementById('studentId');
+            const verifyBtn = document.getElementById('verifyBtn');
+
+            if (!studentIdInput || !verifyBtn) return;
+
+            const studentId = studentIdInput.value.trim();
+            if (studentId !== '' && currentFileContent !== null) {
+                verifyBtn.disabled = false;
+                verifyBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                verifyBtn.classList.add('bg-blue-600', 'hover:bg-blue-700', 'transform', 'hover:-translate-y-0.5');
+            } else {
+                verifyBtn.disabled = true;
+                verifyBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                verifyBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'transform', 'hover:-translate-y-0.5');
+            }
+        }
+
+        window.loadCustomLevelsList = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "motoblockly_levels"));
+                const levelSelect = document.getElementById('levelSelect');
+                if (levelSelect) levelSelect.innerHTML = '';
+                
+                // 放回預設關卡
+                if (levelSelect) {
+                    let opt0 = document.createElement('option');
+                    opt0.value = 'level0';
+                    opt0.textContent = levelConfigs['level0'].name;
+                    levelSelect.appendChild(opt0);
+                }
+
+                querySnapshot.forEach((firebaseDoc) => {
+                    const data = firebaseDoc.data();
+                    const id = firebaseDoc.id;
+                    
+                    if (!levelConfigs[id]) {
+                        levelConfigs[id] = {
+                            name: data.name,
+                            description: '請稍候，正在讀取關卡資訊...',
+                            isCustom: true,
+                            isLoaded: false 
+                        };
+                    }
+                    if (levelSelect) {
+                        let optStudent = document.createElement('option');
+                        optStudent.value = id;
+                        optStudent.textContent = data.name;
+                        levelSelect.appendChild(optStudent);
+                    }
+                });
+                updateLevelInfo();
+            } catch (error) {
+                console.error("讀取雲端題庫清單失敗：", error);
+            }
+        }
+
+        window.updateLevelInfo = async function() {
+            const levelSelect = document.getElementById('levelSelect');
+            if(!levelSelect) return;
+
+            const selectedId = levelSelect.value;
+            if(!selectedId) return;
+
+            const config = levelConfigs[selectedId];
+            const descElem = document.getElementById('levelDescription');
+
+            if (config.isCustom && !config.isLoaded) {
+                if (descElem) descElem.innerHTML = `<b>載入中...</b> 請稍候，正在同步雲端資料。`;
+                try {
+                    const docSnap = await getDoc(doc(db, "motoblockly_levels", selectedId));
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        
+                        config.description = data.description;
+                        config.basicRequirement = '數量將依據教師解答範本自動檢測。';
+                        config.structRequirement = '結構與 IF 判斷將嚴格比對解答範本。';
+                        config.paramRequirement = '腳位、狀態將與解答範本深度比對。';
+                        config.templateXml = data.templateXml;
+                        config.analyze = buildAnalyzer(data.templateXml);
+                        config.isLoaded = true; 
+                    }
+                } catch(error) {
+                    console.error("讀取關卡細節失敗", error);
+                    if (descElem) descElem.innerHTML = `<span class="text-red-500">讀取關卡失敗，請檢查網路連線。</span>`;
+                    return;
+                }
+            }
+
+            if (descElem) descElem.innerHTML = `<b>任務目標：</b>${config.description}`;
+        }
+
+        window.runAnalysis = function(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                alert("XML 檔案格式錯誤，無法解析！請確認匯出的是正確的檔案。");
+                return;
+            }
+
+            const levelSelect = document.getElementById('levelSelect');
+            if (!levelSelect) return;
+            
+            const currentLevelId = levelSelect.value;
+            const levelConfig = levelConfigs[currentLevelId];
+            const results = levelConfig.analyze(xmlDoc);
+
+            updateUI(results, xmlDoc); 
+        }
+
+        window.generatePseudoCode = function(xmlDoc) {
+            function parseBlockToCode(block, indent = "") {
+                if (!block) return "";
+                let code = "";
+                let type = block.getAttribute('type');
+
+                if (type === 'inout_digital_write') {
+                    let pin = block.querySelector('field[name="PIN"]')?.textContent || '?';
+                    let stat = block.querySelector('field[name="STAT"]')?.textContent || '?';
+                    code += indent + `digitalWrite(${pin}, ${stat});\n`;
+                } else if (type === 'delay_custom') {
+                    let delayTime = block.querySelector('value[name="DELAY_TIME"] field[name="NUM"]')?.textContent || '?';
+                    code += indent + `delay(${delayTime});\n`;
+                } else if (type === 'controls_if') {
+                    code += indent + `if (...) {\n`;
+                    let stmt = block.querySelector('statement[name="DO0"]');
+                    if(stmt && stmt.firstElementChild) {
+                        code += parseBlockToCode(stmt.firstElementChild, indent + "    ");
+                    }
+                    code += indent + `}\n`;
+                } else {
+                    code += indent + `// [其他積木: ${type}]\n`;
+                }
+
+                let nextNode = Array.from(block.children).find(child => child.tagName === 'next');
+                if (nextNode && nextNode.firstElementChild) {
+                    code += parseBlockToCode(nextNode.firstElementChild, indent);
+                }
+                return code;
+            }
+
+            let setupBlock = xmlDoc.querySelector('block[type="arduino_setup"]');
+            if (!setupBlock) {
+                return "// 未找到 Arduino Setup 主迴圈積木，積木可能未組合！\n";
+            }
+
+            let loopStatement = setupBlock.querySelector('statement[name="MyLoop"]');
+            let code = "void loop() {\n";
+            if (loopStatement && loopStatement.firstElementChild) {
+                code += parseBlockToCode(loopStatement.firstElementChild, "    ");
+            } else {
+                code += "    // 無積木放在主迴圈內\n";
+            }
+            code += "}\n";
+            return code;
+        }
+
+        const icons = {
+            pass: '<svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>',
+            fail: '<svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>',
+            warning: '<svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>'
+        };
+
+        window.updateUI = async function(results, xmlDoc) {
+            const resultArea = document.getElementById('resultArea');
+            if (!resultArea) return;
+
+            resultArea.classList.remove('hidden');
+            
+            const bStatus = results.basicStatus || (results.basicPass ? 'pass' : 'fail');
+            const sStatus = results.structureStatus || (results.structurePass ? 'pass' : 'fail');
+            const pStatus = results.paramStatus || 'warning'; 
+            
+            const isOverallPass = (bStatus === 'pass' || bStatus === 'warning') && 
+                                  (sStatus === 'pass' || sStatus === 'warning') && 
+                                  (pStatus === 'pass' || pStatus === 'warning');
+                                  
+            let overallStatus = 'pass';
+            if (!isOverallPass) overallStatus = 'fail';
+            else if (bStatus === 'warning' || sStatus === 'warning' || pStatus === 'warning') overallStatus = 'warning';
+
+            const studentIdInput = document.getElementById('studentId');
+            const levelSelect = document.getElementById('levelSelect');
+
+            const studentId = studentIdInput ? studentIdInput.value.trim() : '';
+            const currentLevelId = levelSelect ? levelSelect.value : '';
+            
+            if (studentId && currentLevelId) {
+                try {
+                    const recordDocId = `${currentLevelId}_${studentId}`;
+                    await setDoc(doc(db, "motoblockly_records", recordDocId), {
+                        studentId: studentId,
+                        levelId: currentLevelId,
+                        levelName: levelConfigs[currentLevelId].name,
+                        isPass: isOverallPass,
+                        status: overallStatus,
+                        timestamp: serverTimestamp() 
+                    });
+                } catch (error) {
+                    console.error("儲存成績失敗：", error);
+                }
+            }
+
+            resultArea.classList.remove('fade-in');
+            void resultArea.offsetWidth; 
+            resultArea.classList.add('fade-in');
+
+            const finalResultTitle = document.getElementById('finalResultTitle');
+            if (finalResultTitle) {
+                if (isOverallPass) {
+                    finalResultTitle.textContent = "🎉 恭喜通關！邏輯完全正確";
+                    finalResultTitle.className = "text-2xl font-black mb-5 text-center text-emerald-600";
+                } else {
+                    finalResultTitle.textContent = "🤔 邏輯有誤，請根據下方提示修正";
+                    finalResultTitle.className = "text-2xl font-black mb-5 text-center text-rose-600";
+                }
+            }
+
+            setCardUI(document.getElementById('checkBasicCard'), document.getElementById('checkBasicIcon'), document.getElementById('checkBasicBadge'), bStatus);
+            setCardUI(document.getElementById('checkStructureCard'), document.getElementById('checkStructureIcon'), document.getElementById('checkStructureBadge'), sStatus);
+            setCardUI(document.getElementById('checkParamCard'), document.getElementById('checkParamIcon'), document.getElementById('checkParamBadge'), pStatus);
+
+            const basicExtraElem = document.getElementById('basicExtraText');
+            if (basicExtraElem) {
+                if (results.basicExtraMsg) {
+                    basicExtraElem.textContent = results.basicExtraMsg;
+                    basicExtraElem.className = bStatus === 'fail' ? "text-sm text-rose-600 font-bold mt-2" : "text-sm text-amber-600 font-bold mt-2";
+                } else {
+                    basicExtraElem.className = "hidden";
+                }
+            }
+
+            const structExtraElem = document.getElementById('structExtraText');
+            if (structExtraElem) {
+                if (results.structureExtraMsg) {
+                    structExtraElem.textContent = results.structureExtraMsg;
+                    structExtraElem.className = sStatus === 'fail' ? "text-sm text-rose-600 font-bold mt-2" : "text-sm text-amber-600 font-bold mt-2";
+                } else {
+                    structExtraElem.className = "hidden";
+                }
+            }
+
+            const paramsContent = document.getElementById('paramsContent');
+            if (paramsContent) paramsContent.innerHTML = results.paramsHTML;
+
+            const errorSourceCard = document.getElementById('errorSourceCard');
+            const errorSourceContent = document.getElementById('errorSourceContent');
+            if (errorSourceCard && errorSourceContent) {
+                if (bStatus === 'fail' || sStatus === 'fail') {
+                    errorSourceCard.classList.remove('hidden');
+                    errorSourceContent.textContent = generatePseudoCode(xmlDoc);
+                } else {
+                    errorSourceCard.classList.add('hidden');
+                }
+            }
+        }
+
+        window.setCardUI = function(card, icon, badge, status) {
+            if (!card || !icon || !badge) return;
+
+            if (status === 'pass' || status === true) {
+                card.className = "bg-white rounded-xl shadow-sm p-5 border-l-4 transition-colors duration-300 border-emerald-500";
+                icon.innerHTML = icons.pass;
+                badge.textContent = "檢查通過";
+                badge.className = "whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold tracking-wide bg-emerald-100 text-emerald-700";
+            } else if (status === 'warning') {
+                card.className = "bg-white rounded-xl shadow-sm p-5 border-l-4 transition-colors duration-300 border-amber-400";
+                icon.innerHTML = icons.warning;
+                if (card.id === 'checkParamCard') {
+                    badge.textContent = "參數提醒";
+                } else {
+                    badge.textContent = "有多餘積木 (提醒)";
+                }
+                badge.className = "whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold tracking-wide bg-amber-100 text-amber-800";
+            } else {
+                card.className = "bg-white rounded-xl shadow-sm p-5 border-l-4 transition-colors duration-300 border-rose-500";
+                icon.innerHTML = icons.fail;
+                badge.textContent = "未達標";
+                badge.className = "whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold tracking-wide bg-rose-100 text-rose-700";
+            }
+        }
+
+        // ================= 綁定事件處理 =================
+        window.onload = async () => {
+            document.getElementById('studentId')?.addEventListener('input', checkVerifyBtnState);
+            
+            document.getElementById('levelSelect')?.addEventListener('change', async () => {
+                document.getElementById('resultArea')?.classList.add('hidden'); 
+                await updateLevelInfo();
+            });
+
+            document.getElementById('fileInput')?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const nameDisp = document.getElementById('fileNameDisplay');
+
+                if (!file) {
+                    currentFileContent = null;
+                    if (nameDisp) nameDisp.textContent = "目前尚未選擇檔案";
+                    checkVerifyBtnState(); 
+                    return;
+                }
+
+                if (nameDisp) nameDisp.innerHTML = `已選擇檔案：<span class="text-blue-600 font-bold">${file.name}</span>`;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    currentFileContent = event.target.result;
+                    checkVerifyBtnState(); 
+                };
+                reader.readAsText(file);
+            });
+
+            document.getElementById('verifyBtn')?.addEventListener('click', () => {
+                if (!currentFileContent) return;
+                const studentIdInput = document.getElementById('studentId');
+                const studentId = studentIdInput ? studentIdInput.value.trim() : '';
+                
+                if (!studentId) {
+                    alert("⚠️ 請先在上方輸入你的學號或姓名！");
+                    return;
+                }
+                runAnalysis(currentFileContent);
+            });
+
+            try {
+                await signInAnonymously(auth);
+                await loadCustomLevelsList(); 
+            } catch (error) {
+                console.warn("雲端資料庫連線失敗。", error);
+            }
+        };
+    </script>
+</body>
+</html>
