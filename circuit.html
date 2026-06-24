@@ -104,89 +104,7 @@
     const TASKS = [
       // ================= 輸出模組 =================
       {
-        id: 'led_y', type: 'output', name: '🟡 LED (黃)', desc: '將 SIG 接 pin 4，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#FFCC00' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO4_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO4']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮黃色 LED。' };
-          if (!sig) return { success: false, msg: '訊號線請接在 pin 4 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'led_r', type: 'output', name: '🔴 LED (紅)', desc: '將 SIG 接 pin 5，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#FF3B30' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO5_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO5']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮紅色 LED。' };
-          if (!sig) return { success: false, msg: '訊號線請接在 pin 5 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 5 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'led_g', type: 'output', name: '🟢 LED (綠)', desc: '將 SIG 接 pin 18，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#34C759' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO18_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO18']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮綠色 LED。' };
-          if (!sig) return { success: false, msg: '訊號線請接在 pin 18 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 18 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'led_rgb', type: 'output', name: '🌈 LED (RGB)', desc: 'R, G, B 分別接 pin 25, 26, 27，GND 配對其中一組。',
-        pins: [
-          { id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'R', label: 'R', color: '#FF3B30' },
-          { id: 'G', label: 'G', color: '#34C759' }, { id: 'B', label: 'B', color: '#007AFF' }
-        ],
-        validate: (modConns) => {
-          const r = modConns.some(c => c.modulePin === 'R' && c.shieldPin === 'IO25_S');
-          const g = modConns.some(c => c.modulePin === 'G' && c.shieldPin === 'IO26_S');
-          const b = modConns.some(c => c.modulePin === 'B' && c.shieldPin === 'IO27_S');
-          const { gnd } = checkPower(modConns, ['IO25', 'IO26', 'IO27'], null, 'GND');
-          if (gnd && r && g && b) return { success: true, msg: '接線正確！現在可以控制 RGB 顏色了。' };
-          if (!(r && g && b)) return { success: false, msg: 'R, G, B 訊號請分別接至 pin 25, 26, 27。' };
-          return { success: false, msg: 'GND 需接在 pin 25, 26 或 27 同排的 G 腳位上。' };
-        }
-      },
-      {
-        id: 'ws2812', type: 'output', name: '⭕ WS2812 環狀燈', desc: '將 DIN 接 pin 19，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'DIN', label: 'DIN', color: '#FFCC00' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'DIN' && c.shieldPin === 'IO19_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO19']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！準備發出炫麗光芒。' };
-          if (!sig) return { success: false, msg: 'DIN 訊號請接在 pin 19 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 19 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'buzzer', type: 'output', name: '🔔 蜂鳴器', desc: '將 I/O 接 pin 21，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IO', label: 'I/O', color: '#5856D6' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO21_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO21']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！蜂鳴器已就緒。' };
-          if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 21 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 21 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: '將 IN 接 pin 22，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IN', label: 'IN', color: '#FF9500' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO22_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO22']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
-          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 22 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 22 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'lcd1602_i2c', type: 'output', name: '📟 LCD 1602 (I2C)', desc: '將 SDA 與 SCL 接至下方的 I2C 專用腳位。',
+        id: 'lcd1602_i2c', type: 'output', name: '📟 LCD 1602 (I2C)', desc: '將 SDA 接 21，SCL 接 22，並配對同排的 V 與 G。',
         pins: [
           { id: 'GND', label: 'GND', color: '#1f2937' },
           { id: 'VCC', label: 'VCC', color: '#ef4444' },
@@ -194,16 +112,37 @@
           { id: 'SCL', label: 'SCL', color: '#FFCC00' }
         ],
         validate: (modConns) => {
-          let vcc = false, gnd = false, sda = false, scl = false;
-          modConns.forEach(c => {
-            if (c.modulePin === 'VCC' && c.shieldPin === 'I2C_V') vcc = true;
-            if (c.modulePin === 'GND' && c.shieldPin === 'I2C_G') gnd = true;
-            if (c.modulePin === 'SDA' && c.shieldPin === 'I2C_SDA') sda = true;
-            if (c.modulePin === 'SCL' && c.shieldPin === 'I2C_SCL') scl = true;
-          });
-          if (vcc && gnd && sda && scl) return { success: true, msg: '接線正確！螢幕可以顯示文字了。' };
-          if (!sda || !scl) return { success: false, msg: 'SDA 與 SCL 訊號請接在下方的 I2C 專用腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 I2C 專用電源腳位。' };
+          let valid = false;
+          let hasSda = false;
+          let hasScl = false;
+
+          // 檢查新擴充的第 1 組 I2C
+          const b1_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'I2C_1_21');
+          const b1_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'I2C_1_22');
+          const b1_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_1_V');
+          const b1_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_1_G');
+          if (b1_sda || modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'IO21_S')) hasSda = true;
+          if (b1_scl || modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'IO22_S')) hasScl = true;
+          
+          if (b1_sda && b1_scl && b1_v && b1_g) valid = true;
+
+          // 檢查新擴充的第 2 組 I2C
+          const b2_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'I2C_2_21');
+          const b2_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'I2C_2_22');
+          const b2_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_2_V');
+          const b2_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_2_G');
+          
+          if (b2_sda && b2_scl && b2_v && b2_g) valid = true;
+
+          // 檢查標準 IO21, IO22 腳位
+          const std_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'IO21_S');
+          const std_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'IO22_S');
+          const std_pwr = checkPower(modConns, ['IO21', 'IO22']);
+          if (std_sda && std_scl && std_pwr.vcc && std_pwr.gnd) valid = true;
+
+          if (valid) return { success: true, msg: '接線正確！螢幕可以顯示文字了。' };
+          if (!hasSda || !hasScl) return { success: false, msg: 'SDA請接pin 21，SCL請接pin 22。' };
+          return { success: false, msg: '請將 VCC 與 GND 配對在同一區塊(排)上。' };
         }
       },
       {
@@ -368,13 +307,71 @@
               createCustomModule('btn_r', 'IO35'),
               createCustomModule('led_r', 'IO18')
             ]
+          },
+          {
+            id: 'd1-2',
+            title: '2. 蜂鳴器發聲',
+            desc: '將蜂鳴器訊號接至 pin 27，並完成供電配對。',
+            setup: () => [
+              createCustomModule('buzzer', 'IO27')
+            ]
           }
         ]
       },
       {
         day: 'Day-2',
         title: '環境感測與顯示',
-        levels: []
+        levels: [
+          {
+            id: 'd2-1',
+            title: '1. 可調亮度的燈',
+            desc: '可變電阻(33)，LCD(SDA:21, SCL:22)，全彩LED(R:25, G:26, B:27)。',
+            setup: () => [
+              createCustomModule('potentiometer', 'IO33'),
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: '【關卡指定】SDA(21), SCL(22)，接下方 I2C 或標準腳位。' },
+              { ...TASKS.find(t => t.id === 'led_rgb'), desc: '【關卡指定】R(25), G(26), B(27)，GND擇一配對。' }
+            ]
+          },
+          {
+            id: 'd2-2',
+            title: '2. 智慧路燈',
+            desc: '光敏電阻(14)，LCD(SDA:21, SCL:22)，全彩LED(R:25, G:26, B:27)。',
+            setup: () => [
+              createCustomModule('photoresistor', 'IO14'),
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: '【關卡指定】SDA(21), SCL(22)，接下方 I2C 或標準腳位。' },
+              { ...TASKS.find(t => t.id === 'led_rgb'), desc: '【關卡指定】R(25), G(26), B(27)，GND擇一配對。' }
+            ]
+          },
+          {
+            id: 'd2-3',
+            title: '3. 停車場閘門',
+            desc: 'LCD(SDA:21, SCL:22)，超音波(Trig:19, Echo:23)，伺服馬達(13)。',
+            setup: () => [
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: '【關卡指定】SDA(21), SCL(22)，接下方 I2C 或標準腳位。' },
+              {
+                ...TASKS.find(t => t.id === 'ultrasonic'),
+                desc: '【關卡指定】Trig 接 19，Echo 接 23，VCC/GND 擇一配對。',
+                validate: (modConns) => {
+                  const trig = modConns.some(c => c.modulePin === 'Trig' && c.shieldPin === 'IO19_S');
+                  const echo = modConns.some(c => c.modulePin === 'Echo' && c.shieldPin === 'IO23_S');
+                  const { vcc, gnd } = checkPower(modConns, ['IO19', 'IO23']);
+                  if (vcc && gnd && trig && echo) return { success: true, msg: '✅ 成功連接超音波模組。' };
+                  if (!(trig && echo)) return { success: false, msg: '❌ Trig 與 Echo 請分別接至 pin 19 與 23 的 S 腳位。' };
+                  return { success: false, msg: '❌ VCC 與 GND 需接在 pin 19 或 23 同排。' };
+                }
+              },
+              createCustomModule('servo', 'IO13')
+            ]
+          },
+          {
+            id: 'd2-4',
+            title: '(★) 炫麗特效',
+            desc: '環狀燈 (WS2812) 訊號接至 pin 4，並配對旁邊的 V 與 G。',
+            setup: () => [
+              createCustomModule('ws2812', 'IO4')
+            ]
+          }
+        ]
       },
       {
         day: 'Day-3',
@@ -385,32 +382,37 @@
 
     // ESP32 擴充板腳位定義
     const LEFT_PINS = [
-      { id: '3V3', label: '3.3V', type: 'power', color: '#FF3B30' },
       { id: 'EN', label: 'EN', type: 'ctrl', color: '#007AFF' },
-      { id: 'IO36', label: '36', type: 'io' }, { id: 'IO39', label: '39', type: 'io' },
-      { id: 'IO34', label: '34', type: 'io' }, { id: 'IO35', label: '35', type: 'io' },
-      { id: 'IO32', label: '32', type: 'io' }, { id: 'IO33', label: '33', type: 'io' },
-      { id: 'IO25', label: '25', type: 'io' }, { id: 'IO26', label: '26', type: 'io' },
-      { id: 'IO27', label: '27', type: 'io' }, { id: 'IO14', label: '14', type: 'io' },
+      { id: 'IO36', label: 'VP(36)', type: 'io' },
+      { id: 'IO39', label: 'VN(39)', type: 'io' },
+      { id: 'IO34', label: '34', type: 'io' },
+      { id: 'IO35', label: '35', type: 'io' },
+      { id: 'IO32', label: '32', type: 'io' },
+      { id: 'IO33', label: '33', type: 'io' },
+      { id: 'IO25', label: '25', type: 'io' },
+      { id: 'IO26', label: '26', type: 'io' },
+      { id: 'IO27', label: '27', type: 'io' },
+      { id: 'IO14', label: '14', type: 'io' },
       { id: 'IO12', label: '12', type: 'io' },
+      { id: 'IO13', label: '13', type: 'io' },
       { id: 'GND_L', label: 'GND', type: 'power', color: '#1C1C1E' },
-      { id: 'IO13', label: '13', type: 'io' }, { id: 'IO9', label: '9', type: 'io' },
-      { id: 'IO10', label: '10', type: 'io' }, { id: 'IO11', label: '11', type: 'io' },
-      { id: '5V', label: '5V', type: 'power', color: '#FF3B30' }
+      { id: 'VIN', label: 'VIN', type: 'power', color: '#FF3B30' }
     ];
 
     const RIGHT_PINS = [
-      { id: 'GND_R1', label: 'GND', type: 'power', color: '#1C1C1E' },
-      { id: 'IO23', label: '23', type: 'io' }, { id: 'IO22', label: '22', type: 'io' },
-      { id: 'TX0', label: 'TX0', type: 'io' }, { id: 'RX0', label: 'RX0', type: 'io' },
+      { id: 'IO23', label: '23', type: 'io' },
+      { id: 'IO22', label: '22', type: 'io' },
+      { id: 'TX0', label: 'TX0', type: 'io', disabled: true },
+      { id: 'RX0', label: 'RX0', type: 'io', disabled: true },
       { id: 'IO21', label: '21', type: 'io' },
-      { id: 'GND_R2', label: 'GND', type: 'power', color: '#1C1C1E' },
-      { id: 'IO19', label: '19', type: 'io' }, { id: 'IO18', label: '18', type: 'io' },
-      { id: 'IO5', label: '5', type: 'io' }, { id: 'IO17', label: '17', type: 'io' },
-      { id: 'IO16', label: '16', type: 'io' }, { id: 'IO4', label: '4', type: 'io' },
-      { id: 'IO0', label: '0', type: 'io' }, { id: 'IO2', label: '2', type: 'io' },
-      { id: 'IO15', label: '15', type: 'io' }, { id: 'IO8', label: '8', type: 'io' },
-      { id: 'IO7', label: '7', type: 'io' }, { id: 'IO6', label: '6', type: 'io' }
+      { id: 'IO19', label: '19', type: 'io' },
+      { id: 'IO18', label: '18', type: 'io' },
+      { id: 'IO5', label: '5', type: 'io' },
+      { id: 'IO17', label: '17', type: 'io' },
+      { id: 'IO16', label: '16', type: 'io' },
+      { id: 'IO4', label: '4', type: 'io' },
+      { id: 'IO2', label: '2', type: 'io' },
+      { id: 'IO15', label: '15', type: 'io' }
     ];
 
     function App() {
@@ -892,16 +894,16 @@
                   
                   <div className="flex w-full justify-between items-stretch">
                     
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 w-[120px]">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
-                        <span className="w-8">GPIO</span>
+                        <span className="w-[44px] text-right pr-2">GPIO</span>
                         <span className="w-5">G</span>
                         <span className="w-5">V</span>
                         <span className="w-5">S</span>
                       </div>
                       {LEFT_PINS.map(pin => (
                         <div key={pin.id} className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[#F2F2F7] font-mono text-[10px] w-8 text-right pr-2 font-medium opacity-80">{pin.label}</span>
+                          <span className="text-[#F2F2F7] font-mono text-[10px] w-[44px] text-right pr-1 font-medium opacity-80 whitespace-nowrap tracking-tighter">{pin.label}</span>
                           {pin.type === 'io' ? (
                             <React.Fragment>
                               <PinButton type="shield" id={`${pin.id}_G`} pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} />
@@ -935,7 +937,7 @@
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 w-[120px]">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
                         <span className="w-5">G</span>
                         <span className="w-5">V</span>
@@ -946,44 +948,46 @@
                         <div key={pin.id} className="flex items-center gap-1.5 mb-0.5">
                           {pin.type === 'io' ? (
                             <React.Fragment>
-                              <PinButton type="shield" id={`${pin.id}_G`} pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                              <PinButton type="shield" id={`${pin.id}_V`} pinColor="red" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                              <PinButton type="shield" id={`${pin.id}_S`} pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} />
+                              <PinButton type="shield" id={`${pin.id}_G`} pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} disabled={pin.disabled} />
+                              <PinButton type="shield" id={`${pin.id}_V`} pinColor="red" activePin={activePin} connections={connections} onClick={handlePinClick} disabled={pin.disabled} />
+                              <PinButton type="shield" id={`${pin.id}_S`} pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} disabled={pin.disabled} />
                             </React.Fragment>
                           ) : (
                             <React.Fragment>
                               <div className="w-5 h-5"></div>
                               <div className="w-5 h-5"></div>
-                              <PinButton type="shield" id={`${pin.id}_S`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
+                              <PinButton type="shield" id={`${pin.id}_S`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} disabled={pin.disabled} />
                             </React.Fragment>
                           )}
-                          <span className="text-[#F2F2F7] font-mono text-[10px] w-8 pl-2 font-medium opacity-80">{pin.label}</span>
+                          <span className={`text-[#F2F2F7] font-mono text-[10px] w-8 pl-2 font-medium opacity-80 ${pin.disabled ? 'text-[#8E8E93]' : ''}`}>{pin.label}</span>
                         </div>
                       ))}
+
+                      {/* 另外空一行再加入的區域 */}
+                      <div className="mt-5 pt-4 border-t border-[#3A3A3C] flex justify-between gap-1.5 w-full">
+                        {[1, 2].map(num => (
+                          <div key={num} className="border border-[#48484A] rounded-lg py-2 px-2.5 flex flex-col items-center shadow-sm bg-[#2C2C2E]/40 flex-1">
+                            <div className="flex flex-col gap-1.5 w-full">
+                              {[
+                                { id: '22', color: 'blue' },
+                                { id: '21', color: 'blue' },
+                                { id: 'V', color: 'red' },
+                                { id: 'G', color: 'black' }
+                              ].map(pin => (
+                                <div key={pin.id} className="flex items-center justify-between w-full">
+                                  <PinButton type="shield" id={`I2C_${num}_${pin.id}`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
+                                  <span className="text-[#F2F2F7] font-mono text-[10px] font-bold opacity-80 text-right pr-0.5">{pin.id}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
                     </div>
 
-                  </div>
-                  
-                  <div className="mt-6 pt-4 border-t border-[#3A3A3C] w-full flex justify-around">
-                  <div>
-                    <div className="text-[10px] text-[#8E8E93] font-medium text-center mb-1.5 tracking-wider">I2C</div>
-                    <div className="flex justify-center gap-1.5">
-                      <PinButton type="shield" id="I2C_SCL" pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                      <PinButton type="shield" id="I2C_SDA" pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                      <PinButton type="shield" id="I2C_V" pinColor="red" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                      <PinButton type="shield" id="I2C_G" pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-[#8E8E93] font-medium text-center mb-1.5 tracking-wider">UART</div>
-                    <div className="flex justify-center gap-1.5">
-                      <PinButton type="shield" id="UART_TX" pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                      <PinButton type="shield" id="UART_RX" pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                    </div>
                   </div>
                 </div>
-
-              </div>
 
               <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 pb-20 mt-4">
                  <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80">
@@ -1006,7 +1010,7 @@
     );
   }
 
-  function PinButton({ type, id, pinColor, activePin, connections, onClick }) {
+  function PinButton({ type, id, pinColor, activePin, connections, onClick, disabled }) {
       const isActive = activePin?.type === type && activePin?.id === id;
       const isConnected = connections.some(c => c.shieldPin === id);
       
@@ -1021,15 +1025,16 @@
       return (
         <button
           id={`pin-${type}-${id}`}
-          onClick={() => onClick(type, id, pinHex)}
+          onClick={() => !disabled && onClick(type, id, pinHex)}
           className={`w-5 h-5 flex items-center justify-center rounded-[4px] border-[1.5px] transition-all relative ${
+            disabled ? 'opacity-30 cursor-not-allowed border-[#3A3A3C]' :
             isActive ? 'border-[#FFCC00] scale-110 z-10' : 'border-[#3A3A3C] hover:border-[#8E8E93]'
           }`}
           style={{ backgroundColor: pinHex === '#1C1C1E' ? '#2C2C2E' : pinHex }}
-          title={`擴充板腳位 ${id}`}
+          title={disabled ? `擴充板腳位 ${id} (無法使用)` : `擴充板腳位 ${id}`}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent rounded-sm pointer-events-none"></div>
-          <div className={`w-2 h-2 rounded-[2px] shadow-sm relative z-10 ${pinDotColor}`}></div>
+          <div className={`w-2 h-2 rounded-[2px] shadow-sm relative z-10 ${disabled ? 'bg-[#3A3A3C]' : pinDotColor}`}></div>
         </button>
       );
     }
