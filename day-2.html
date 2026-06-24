@@ -38,7 +38,7 @@
                 
                 <!-- 桌面版選單 -->
                 <div class="hidden md:flex items-center space-x-2">
-                    <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">前導課程</a>
+                    <a href="c" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">前導課程</a>
                     <a href="https://suyungsheng-kh.github.io/esp32-2026/day-1.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 1: 有聲紅綠燈</a>
                     <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="text-maker font-bold bg-maker-light px-4 py-2 rounded-lg transition-colors">Day 2: 光影與閘門</a>
                     <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 3: 觀測與整合</a>
@@ -145,35 +145,101 @@
                     <h4 class="text-lg font-bold text-red-800 mb-4 border-l-4 border-red-500 pl-3"><i class="fa-solid fa-wrench mr-1"></i> 模組小試身手：各別功能測試</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <!-- Task 1 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">1</span>
                                 <h5 class="font-bold text-slate-800">可調亮度的燈</h5>
                             </div>
-                            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：可變電阻, 全彩LED, 1602A LCD</p>
-                            <ul class="text-sm text-slate-700 list-disc list-inside space-y-1">
-                                <li>用可變電阻控制 LED 亮度。</li>
-                                <li>在 LCD 顯示目前的亮度值。</li>
-                                <li><strong>進階：</strong>將數值轉換成調色盤 (紅➝綠➝藍 漸變)。</li>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">可變電阻：</span>Pin 33</li>
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">全彩 LED：</span>R(25), G(26), B(27)</li>
                             </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-3">
+                                <li>在 LCD 顯示目前的亮度值(可變電阻)</li>
+                                <li>用可變電阻控制 LED 亮度</li>
+                                <li class="list-none pt-1 mt-1 border-t border-slate-100"><strong>🚀 進階：</strong>將數值轉換成調色盤 (紅➝綠➝藍 漸變)</li>
+                            </ul>
+                            <div class="bg-indigo-50 text-indigo-700 text-[11px] p-2 rounded border border-indigo-100 mt-auto">
+                                <strong class="text-xs">💡 提示：LED 亮度設定</strong>
+                                <ul class="list-none mt-1 space-y-0.5">
+                                    <li><strong>R：</strong>設定類比腳位 25 頻道 1 (頻道 1 數值 #)</li>
+                                    <li><strong>G：</strong>設定類比腳位 26 頻道 2 (頻道 2 數值 #)</li>
+                                    <li><strong>B：</strong>設定類比腳位 27 頻道 3 (頻道 3 數值 #)</li>
+                                </ul>
+                            </div>
                         </div>
                         <!-- Task 2 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">2</span>
                                 <h5 class="font-bold text-slate-800">智慧路燈</h5>
                             </div>
-                            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：光敏電阻, LED</p>
-                            <p class="text-sm text-slate-700"><strong>🎯 任務：</strong>讀取光敏電阻數值，模擬天色。設定一個閥值，天黑時自動開燈，天亮時自動關燈。</p>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">光敏電阻：</span>Pin 14</li>
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">全彩 LED：</span>R(25), G(26), B(27)</li>
+                            </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>在 LCD 顯示目前的環境亮度值(光敏電阻)</li>
+                                <li>用光敏電阻模擬天色。設定一個閥值，天黑時自動開燈，天亮時自動關燈。</li>
+                            </ul>
+                            <div class="bg-indigo-50 text-indigo-700 text-[11px] p-2 rounded border border-indigo-100 mt-1 mb-3 leading-relaxed">
+                                <strong>💡 提示：</strong>光敏電阻的偵測數值代表環境亮度，但是<strong>環境越亮數值越低</strong>，<strong>數值越高代表天色越暗</strong>！
+                            </div>
+
+                            <!-- 小小的互動模擬：天色與光敏數值 -->
+                            <div id="sim-task2-bg" class="bg-sky-50 p-3 rounded-lg border border-sky-100 mt-auto transition-colors duration-500 shadow-inner">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span id="sim-task2-sky" class="text-xs font-bold text-sky-800 transition-colors duration-500"><i class="fa-solid fa-sun text-yellow-500 mr-1"></i>大晴天</span>
+                                    <i id="sim-task2-led" class="fa-solid fa-lightbulb text-slate-400/50 text-lg transition-all duration-300"></i>
+                                </div>
+                                <input type="range" id="sim-task2-slider" min="0" max="100" value="0" class="w-full accent-slate-500 h-1.5 mb-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between items-center text-[11px] font-mono">
+                                    <span id="sim-task2-val-text" class="text-sky-800 transition-colors duration-500">光敏數值: <strong id="sim-task2-val" class="text-sm">200</strong></span>
+                                    <span class="text-slate-500 bg-white/60 px-1.5 py-0.5 rounded shadow-sm">閥值: &gt;2900</span>
+                                </div>
+                            </div>
                         </div>
                         <!-- Task 3 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-red-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
                                 <h5 class="font-bold text-slate-800">停車場閘門</h5>
                             </div>
-                            <p class="text-xs text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：超音波, 伺服馬達</p>
-                            <p class="text-sm text-slate-700"><strong>🎯 任務：</strong>超音波偵測到車子靠近 (&lt;10cm) 時，伺服馬達轉動 90 度打開閘門，等待 3 秒後自動放下。</p>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">超音波：</span>Trig(19), Echo(23)</li>
+                                <li><span class="text-slate-800 font-bold">伺服馬達：</span>Pin 13</li>
+                            </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>在 LCD 顯示目前的偵測距離(cm)</li>
+                                <li>超音波偵測到車子靠近 (&lt;10cm) 時，伺服馬達轉動 90 度打開閘門，否則轉回 0 度。</li>
+                            </ul>
+                            <div class="bg-indigo-50 text-indigo-700 text-xs p-2 rounded border border-indigo-100 mt-1 mb-3 leading-relaxed">
+                                <strong>💡 提示：</strong>「宣告全域變數 distance 為 float 資料 0」<br>用途為儲存偵測距離(cm)
+                            </div>
+
+                            <!-- 小小的互動模擬：超音波與閘門 -->
+                            <div id="sim-task3-bg" class="bg-slate-50 p-3 rounded-lg border border-slate-200 mt-auto transition-colors duration-300 shadow-inner">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span id="sim-task3-status" class="text-xs font-bold text-red-600 transition-colors duration-300"><i class="fa-solid fa-ban mr-1"></i>閘門關閉 (0°)</span>
+                                    <div class="relative w-12 h-6 border-b-2 border-slate-800 flex items-end justify-start overflow-hidden">
+                                        <div id="sim-task3-gate" class="absolute bottom-0 left-1 w-10 h-1 bg-red-500 origin-bottom-left transition-transform duration-300 transform rotate-0"></div>
+                                    </div>
+                                </div>
+                                <input type="range" id="sim-task3-slider" min="2" max="30" value="20" class="w-full accent-blue-500 h-1.5 mb-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between items-center text-[11px] font-mono">
+                                    <span class="text-slate-700">距離: <strong id="sim-task3-val" class="text-sm">20</strong> cm</span>
+                                    <span class="text-slate-500 bg-white/60 px-1.5 py-0.5 rounded shadow-sm">閥值: &lt;10cm</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -184,7 +250,7 @@
                             <p class="text-sm text-purple-900 mb-2">運用 WS2812 RGB 環形燈製作炫麗特效：</p>
                             <ul class="text-sm text-purple-800 list-disc list-inside">
                                 <li><strong>(1) 電子時鐘：</strong> 讓一顆燈像秒針一樣，每一秒往前跳一格繞圈。</li>
-                                <li><strong>(2) 幸運轉盤：</strong> 結合按鈕，按下後燈光快速旋轉，放開後隨機停在一個位置！</li>
+                                <li><strong>(2) 幸運轉盤：</strong> 燈光快速旋轉 5 次後，隨機停在一個位置！</li>
                             </ul>
                         </div>
                         <div class="bg-gradient-to-r from-blue-100 to-cyan-100 p-4 rounded-lg border border-blue-200">
@@ -195,71 +261,6 @@
                                 <li>車子離開時 (超音波再次偵測)，停止計時。</li>
                                 <li>根據停留的秒數計算停車費，並顯示在 1602A LCD 上！</li>
                             </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-maker-light rounded-xl p-6 border border-maker/20">
-                    <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-maker mr-2"></i>程式邏輯挑戰 (停車場閘門)</h4>
-                    <p class="text-slate-700 italic mb-4">「如果『超音波距離』小於 10 公分，表示有車輛靠近。將『伺服馬達』轉到 90 度開啟閘門，等待車輛通過後，再將馬達轉回 0 度關閉閘門。」</p>
-                    <div class="flex flex-col gap-2 text-sm font-medium text-slate-600">
-                        <div class="flex flex-wrap items-center gap-2 mt-2">
-                            <span class="bg-white px-3 py-1 rounded shadow-sm border border-slate-200">如果 (距離 &lt; 10 cm)</span>
-                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
-                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded shadow-sm">馬達角度設為 90 度 (開門)</span>
-                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
-                            <span class="bg-white px-3 py-1 rounded shadow-sm border border-slate-200">等待 3 秒</span>
-                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
-                            <span class="bg-red-100 text-red-800 px-3 py-1 rounded shadow-sm">馬達角度設為 0 度 (關門)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Day 2 虛擬碼與模擬動畫 -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                    <!-- 虛擬碼 -->
-                    <div class="bg-slate-800 rounded-xl p-5 shadow-inner text-slate-300 font-mono text-sm">
-                        <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-2">
-                            <span class="text-maker-light font-bold"><i class="fa-solid fa-code"></i> 虛擬碼 (Pseudo Code)</span>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">Day 2: 停車閘門</span>
-                        </div>
-                        <pre class="whitespace-pre-wrap"><code>Loop {
-  <span class="text-green-400">dist</span> = read_ultrasonic(D7, D8)
-  
-  if (<span class="text-green-400">dist</span> &lt; 10) {
-    servo_write(D5, 90)   <span class="text-slate-500">// 打開閘門</span>
-    lcd_print("Welcome!")
-    delay(3000)           <span class="text-slate-500">// 等待車輛通過</span>
-  } else {
-    servo_write(D5, 0)    <span class="text-slate-500">// 放下閘門</span>
-    lcd_print("Stop")
-  }
-  
-  delay(100)
-}</code></pre>
-                    </div>
-                    <!-- 互動模擬器 -->
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-full bg-blue-500 text-white text-xs font-bold px-3 py-1 text-center">互動模擬器：調整車輛距離測試閘門</div>
-                        <div class="mt-6 flex flex-col items-center w-full gap-4">
-                            <!-- 閘門動畫區 -->
-                            <div class="relative w-48 h-32 border-b-4 border-slate-800 flex items-end justify-start overflow-hidden pt-10">
-                                <!-- 閘門桿 -->
-                                <div id="sim-gate-bar" class="absolute bottom-0 left-4 w-40 h-3 bg-gradient-to-r from-red-500 via-white to-red-500 origin-bottom-left transition-transform duration-500 transform rotate-0 rounded-r shadow-md"></div>
-                                <!-- 閘門基座 -->
-                                <div class="absolute bottom-0 left-2 w-6 h-8 bg-slate-700 rounded-t border border-slate-900 z-10"></div>
-                                <!-- 車子 -->
-                                <i id="sim-car" class="fa-solid fa-car-side text-4xl text-blue-600 absolute bottom-1 right-[-40px] transition-all duration-700"></i>
-                            </div>
-                            
-                            <div class="w-full max-w-xs bg-slate-50 p-4 rounded-lg border border-slate-100">
-                                <label class="block text-sm text-slate-600 mb-2 font-bold flex justify-between">
-                                    <span>🚙 車輛距離: <span id="sim-dist-val2">25</span> cm</span>
-                                    <span id="sim-gate-status" class="text-xs text-red-600 font-bold">閘門關閉</span>
-                                </label>
-                                <input type="range" id="sim-dist-slider2" min="2" max="30" value="25" class="w-full accent-blue-500">
-                                <p class="text-[10px] text-slate-500 mt-2 text-center">距離 &lt; 10cm 時開啟閘門 90 度，車輛通過。</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -409,34 +410,70 @@
             document.body.style.overflow = 'auto';
         }
 
-        // --- Day 2: 停車場閘門模擬器 ---
-        const distSlider2 = document.getElementById('sim-dist-slider2');
-        const distVal2 = document.getElementById('sim-dist-val2');
-        const gateBar = document.getElementById('sim-gate-bar');
-        const gateStatus = document.getElementById('sim-gate-status');
-        const simCar = document.getElementById('sim-car');
-        
-        if(distSlider2) {
-            distSlider2.addEventListener('input', (e) => {
-                const val = parseInt(e.target.value);
-                distVal2.textContent = val;
+        // --- Day 2: 智慧路燈 光敏電阻小模擬器 ---
+        const task2Slider = document.getElementById('sim-task2-slider');
+        const task2Bg = document.getElementById('sim-task2-bg');
+        const task2Sky = document.getElementById('sim-task2-sky');
+        const task2ValText = document.getElementById('sim-task2-val-text');
+        const task2Val = document.getElementById('sim-task2-val');
+        const task2Led = document.getElementById('sim-task2-led');
+
+        if (task2Slider) {
+            task2Slider.addEventListener('input', (e) => {
+                const darkLevel = parseInt(e.target.value); 
                 
-                const carPos = 120 - ((val - 2) * (160 / 28));
-                simCar.style.right = `${carPos}px`;
+                const sensorValue = 200 + Math.floor((darkLevel / 100) * 3895);
+                task2Val.textContent = sensorValue;
+                
+                if (darkLevel < 35) {
+                    task2Bg.className = 'bg-sky-50 p-3 rounded-lg border border-sky-100 mt-auto transition-colors duration-500 shadow-inner';
+                    task2Sky.className = 'text-xs font-bold text-sky-800 transition-colors duration-500';
+                    task2Sky.innerHTML = '<i class="fa-solid fa-sun text-yellow-500 mr-1"></i>大晴天';
+                    task2ValText.className = 'text-sky-800 transition-colors duration-500';
+                } else if (darkLevel < 70) {
+                    task2Bg.className = 'bg-indigo-100 p-3 rounded-lg border border-indigo-200 mt-auto transition-colors duration-500 shadow-inner';
+                    task2Sky.className = 'text-xs font-bold text-indigo-800 transition-colors duration-500';
+                    task2Sky.innerHTML = '<i class="fa-solid fa-cloud-sun text-slate-500 mr-1"></i>傍晚';
+                    task2ValText.className = 'text-indigo-800 transition-colors duration-500';
+                } else {
+                    task2Bg.className = 'bg-slate-800 p-3 rounded-lg border border-slate-700 mt-auto transition-colors duration-500 shadow-inner';
+                    task2Sky.className = 'text-xs font-bold text-slate-300 transition-colors duration-500';
+                    task2Sky.innerHTML = '<i class="fa-solid fa-moon text-yellow-300 mr-1"></i>黑夜';
+                    task2ValText.className = 'text-slate-300 transition-colors duration-500';
+                }
+
+                if (sensorValue > 2900) {
+                    task2Led.className = 'fa-solid fa-lightbulb text-yellow-400 text-xl transition-all duration-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]';
+                    task2Val.className = 'text-sm text-yellow-400';
+                } else {
+                    task2Led.className = 'fa-solid fa-lightbulb text-slate-400/50 text-lg transition-all duration-300';
+                    task2Val.className = 'text-sm';
+                }
+            });
+        }
+
+        // --- Day 2: 停車場閘門 小模擬器 ---
+        const task3Slider = document.getElementById('sim-task3-slider');
+        const task3Val = document.getElementById('sim-task3-val');
+        const task3Gate = document.getElementById('sim-task3-gate');
+        const task3Status = document.getElementById('sim-task3-status');
+        const task3Bg = document.getElementById('sim-task3-bg');
+        
+        if(task3Slider) {
+            task3Slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                task3Val.textContent = val;
                 
                 if(val < 10) {
-                    gateBar.style.transform = 'rotate(-90deg)';
-                    gateStatus.textContent = '閘門開啟 (90°)';
-                    gateStatus.className = 'text-xs text-green-600 font-bold';
-                    setTimeout(() => {
-                        simCar.style.right = '200px';
-                        simCar.style.opacity = '0';
-                    }, 500);
+                    task3Gate.style.transform = 'rotate(-90deg)';
+                    task3Status.innerHTML = '<i class="fa-solid fa-check-circle mr-1"></i>閘門開啟 (90°)';
+                    task3Status.className = 'text-xs font-bold text-green-600 transition-colors duration-300';
+                    task3Bg.className = 'bg-green-50 p-3 rounded-lg border border-green-100 mt-auto transition-colors duration-300 shadow-inner';
                 } else {
-                    gateBar.style.transform = 'rotate(0deg)';
-                    gateStatus.textContent = '閘門關閉 (0°)';
-                    gateStatus.className = 'text-xs text-red-600 font-bold';
-                    simCar.style.opacity = '1';
+                    task3Gate.style.transform = 'rotate(0deg)';
+                    task3Status.innerHTML = '<i class="fa-solid fa-ban mr-1"></i>閘門關閉 (0°)';
+                    task3Status.className = 'text-xs font-bold text-red-600 transition-colors duration-300';
+                    task3Bg.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 mt-auto transition-colors duration-300 shadow-inner';
                 }
             });
         }
