@@ -91,8 +91,6 @@
     // 更新：嚴格檢查電源與接地是否與訊號 (targetPins) 在「同一排」
     const checkPower = (modConns, targetPins, vccPin = 'VCC', gndPin = 'GND') => {
       let vcc = false, gnd = false;
-      
-      // 根據目標腳位，動態產生允許的對應 V 與 G 腳位名稱 (例如：IO4_V, IO4_G)
       const allowedV = targetPins.map(p => `${p}_V`);
       const allowedG = targetPins.map(p => `${p}_G`);
       
@@ -100,8 +98,6 @@
         if (vccPin && c.modulePin === vccPin && allowedV.includes(c.shieldPin)) vcc = true;
         if (gndPin && c.modulePin === gndPin && allowedG.includes(c.shieldPin)) gnd = true;
       });
-      
-      // 若該模組不需 VCC (vccPin為null)，則預設回傳 true
       return { vcc: vccPin ? vcc : true, gnd: gndPin ? gnd : true };
     };
 
@@ -187,6 +183,42 @@
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
           if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 22 的 S 腳位。' };
           return { success: false, msg: '請將 VCC 與 GND 接在 pin 22 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'lcd1602_i2c', type: 'output', name: '📟 LCD 1602 (I2C)', desc: '將 SDA 與 SCL 接至下方的 I2C 專用腳位。',
+        pins: [
+          { id: 'GND', label: 'GND', color: '#1f2937' },
+          { id: 'VCC', label: 'VCC', color: '#ef4444' },
+          { id: 'SDA', label: 'SDA', color: '#007AFF' },
+          { id: 'SCL', label: 'SCL', color: '#FFCC00' }
+        ],
+        validate: (modConns) => {
+          let vcc = false, gnd = false, sda = false, scl = false;
+          modConns.forEach(c => {
+            if (c.modulePin === 'VCC' && c.shieldPin === 'I2C_V') vcc = true;
+            if (c.modulePin === 'GND' && c.shieldPin === 'I2C_G') gnd = true;
+            if (c.modulePin === 'SDA' && c.shieldPin === 'I2C_SDA') sda = true;
+            if (c.modulePin === 'SCL' && c.shieldPin === 'I2C_SCL') scl = true;
+          });
+          if (vcc && gnd && sda && scl) return { success: true, msg: '接線正確！螢幕可以顯示文字了。' };
+          if (!sda || !scl) return { success: false, msg: 'SDA 與 SCL 訊號請接在下方的 I2C 專用腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 I2C 專用電源腳位。' };
+        }
+      },
+      {
+        id: 'servo', type: 'output', name: '⚙️ 伺服馬達', desc: '將 SIG(橘) 接 pin 18，並配對旁邊的 V 與 G。',
+        pins: [
+          { id: 'GND', label: 'GND(棕)', color: '#A0522D' },
+          { id: 'VCC', label: 'VCC(紅)', color: '#FF3B30' },
+          { id: 'SIG', label: 'SIG(橘)', color: '#FF9500' }
+        ],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO18_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO18']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！伺服馬達可以轉動了。' };
+          if (!sig) return { success: false, msg: 'SIG 訊號請接在 pin 18 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 18 旁邊對應的 V 與 G 腳位。' };
         }
       },
 
@@ -278,6 +310,76 @@
           if (!sig) return { success: false, msg: 'DATA 訊號請接在 pin 16 的 S 腳位。' };
           return { success: false, msg: '請將 VCC 與 GND 接在 pin 16 旁邊對應的 V 與 G 腳位。' };
         }
+      },
+      {
+        id: 'ultrasonic', type: 'input', name: '🦇 超音波 (HC-SR04)', desc: 'Trig 接 pin 16，Echo 接 pin 17，GND 配對其中一組。',
+        pins: [
+          { id: 'VCC', label: 'VCC', color: '#ef4444' },
+          { id: 'Trig', label: 'Trig', color: '#007AFF' },
+          { id: 'Echo', label: 'Echo', color: '#34C759' },
+          { id: 'GND', label: 'GND', color: '#1f2937' }
+        ],
+        validate: (modConns) => {
+          const trig = modConns.some(c => c.modulePin === 'Trig' && c.shieldPin === 'IO16_S');
+          const echo = modConns.some(c => c.modulePin === 'Echo' && c.shieldPin === 'IO17_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO16', 'IO17']);
+          if (vcc && gnd && trig && echo) return { success: true, msg: '接線正確！可以開始測距了。' };
+          if (!(trig && echo)) return { success: false, msg: 'Trig 與 Echo 請分別接至 pin 16 與 17 的 S 腳位。' };
+          return { success: false, msg: 'VCC 與 GND 需接在 pin 16 或 17 同排的 V 與 G 腳位上。' };
+        }
+      }
+    ];
+
+    // ================= 挑戰關卡定義 =================
+    // 工廠函數：根據 TASKS 模板產生客製化目標腳位的模組
+    const createCustomModule = (baseTaskId, targetPinStr) => {
+      const baseTask = TASKS.find(t => t.id === baseTaskId);
+      const targetNum = targetPinStr.replace('IO', '');
+      return {
+        ...baseTask,
+        desc: `【關卡指定】將訊號接至 pin ${targetNum}，並配對 V 與 G。`,
+        validate: (modConns) => {
+            const sigPinDef = baseTask.pins.find(p => !['VCC', 'GND'].includes(p.id));
+            const sigPin = sigPinDef ? sigPinDef.id : null;
+            const sig = modConns.some(c => c.modulePin === sigPin && c.shieldPin === `${targetPinStr}_S`);
+            const { vcc, gnd } = checkPower(modConns, [targetPinStr]);
+            
+            if (vcc && gnd && sig) return { success: true, msg: `✅ 成功連接至 pin ${targetNum}。` };
+            if (!sig) return { success: false, msg: `❌ 訊號請接 pin ${targetNum} 的 S。` };
+            return { success: false, msg: `❌ 請將 VCC/GND 接至 pin ${targetNum} 對應排針。` };
+        }
+      };
+    };
+
+    const CHALLENGES = [
+      {
+        day: 'Day-1',
+        title: '基礎控制與條件',
+        levels: [
+          {
+            id: 'd1-1',
+            title: '1. 神奇開關',
+            desc: '依序配對：綠按鈕(33)➜綠LED(16)，黃按鈕(34)➜黃LED(17)，紅按鈕(35)➜紅LED(18)。注意同排供電！',
+            setup: () => [
+              createCustomModule('btn_g', 'IO33'),
+              createCustomModule('led_g', 'IO16'),
+              createCustomModule('btn_y', 'IO34'),
+              createCustomModule('led_y', 'IO17'),
+              createCustomModule('btn_r', 'IO35'),
+              createCustomModule('led_r', 'IO18')
+            ]
+          }
+        ]
+      },
+      {
+        day: 'Day-2',
+        title: '環境感測與顯示',
+        levels: []
+      },
+      {
+        day: 'Day-3',
+        title: '智慧物聯網應用',
+        levels: []
       }
     ];
 
@@ -312,14 +414,17 @@
     ];
 
     function App() {
+      // 模式與狀態管理
+      const [appMode, setAppMode] = useState('sandbox'); // 'sandbox' | 'challenge'
+      const [activeChallenge, setActiveChallenge] = useState(null);
+      const [challengeSuccess, setChallengeSuccess] = useState(false);
+
       const [workspaceModules, setWorkspaceModules] = useState([]);
       const [connections, setConnections] = useState([]);
       const [activePin, setActivePin] = useState(null); 
       const [wireCoords, setWireCoords] = useState([]);
       const [feedbacks, setFeedbacks] = useState(null); 
       const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-      
-      // 新增狀態：深中淺練習模式
       const [randomColorMode, setRandomColorMode] = useState(false);
       
       const containerRef = useRef(null);
@@ -355,6 +460,13 @@
         return () => { window.removeEventListener('resize', updateCoords); clearTimeout(timer); };
       }, [updateCoords]);
 
+      // 當切換深中淺模式時，如果是挑戰模式，重新載入關卡以套用顏色
+      useEffect(() => {
+        if (appMode === 'challenge' && activeChallenge) {
+          loadChallenge(activeChallenge);
+        }
+      }, [randomColorMode]);
+
       const handleMouseMove = (e) => {
         if (activePin && containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect();
@@ -362,24 +474,46 @@
         }
       };
 
+      // 載入關卡
+      const loadChallenge = (level) => {
+        setConnections([]);
+        setFeedbacks(null);
+        setActivePin(null);
+        setChallengeSuccess(false);
+        setActiveChallenge(level);
+        
+        let mods = level.setup();
+        
+        // 如果開啟了「深中淺模式」，隨機套用顏色組合
+        if (randomColorMode) {
+          mods = mods.map(mod => {
+            const randomSet = WIRE_SETS[Math.floor(Math.random() * WIRE_SETS.length)];
+            const newPins = mod.pins.map(pin => {
+              if (pin.id === 'GND') return { ...pin, color: randomSet.GND.hex, colorName: randomSet.GND.name };
+              if (pin.id === 'VCC') return { ...pin, color: randomSet.VCC.hex, colorName: randomSet.VCC.name };
+              if (!['R', 'G', 'B'].includes(pin.id)) return { ...pin, color: randomSet.SIG.hex, colorName: randomSet.SIG.name };
+              return pin;
+            });
+            return { ...mod, pins: newPins };
+          });
+        }
+        
+        const instances = mods.map((m, idx) => ({ ...m, instanceId: `${m.id}_c${idx}` }));
+        setWorkspaceModules(instances);
+      };
+
       const addModule = (taskTemplate) => {
         const newId = `${taskTemplate.id}_${Date.now()}`;
-        
-        // 深複製 pins 陣列，避免改到模板
         let newPins = taskTemplate.pins.map(p => ({ ...p }));
-        
-        // 如果開啟了「深中淺模式」，就隨機套用顏色組合
         if (randomColorMode) {
           const randomSet = WIRE_SETS[Math.floor(Math.random() * WIRE_SETS.length)];
           newPins = newPins.map(pin => {
             if (pin.id === 'GND') return { ...pin, color: randomSet.GND.hex, colorName: randomSet.GND.name };
             if (pin.id === 'VCC') return { ...pin, color: randomSet.VCC.hex, colorName: randomSet.VCC.name };
-            // 除了 RGB 特定顏色外，其餘訊號線套用隨機的淺色
             if (!['R', 'G', 'B'].includes(pin.id)) return { ...pin, color: randomSet.SIG.hex, colorName: randomSet.SIG.name };
             return pin;
           });
         }
-
         setWorkspaceModules([...workspaceModules, { ...taskTemplate, instanceId: newId, pins: newPins }]);
         setFeedbacks(null);
       };
@@ -393,6 +527,7 @@
 
       const handlePinClick = (type, pinId, color = '#8E8E93', moduleId = null) => {
         setFeedbacks(null);
+        setChallengeSuccess(false);
         
         if (!activePin) {
           setActivePin({ type, id: pinId, color, moduleId });
@@ -435,6 +570,7 @@
       const removeConnection = (id) => {
         setConnections(connections.filter(c => c.id !== id));
         setFeedbacks(null);
+        setChallengeSuccess(false);
       };
 
       const checkWiring = () => {
@@ -444,6 +580,13 @@
           return { name: mod.name, ...mod.validate(modConns) };
         });
         setFeedbacks(results);
+        
+        // 若在挑戰模式下全部模組皆驗證成功，則觸發通關狀態
+        if (appMode === 'challenge' && results.every(r => r.success)) {
+          setChallengeSuccess(true);
+        } else {
+          setChallengeSuccess(false);
+        }
       };
 
       const createCurve = (x1, y1, x2, y2) => {
@@ -473,11 +616,14 @@
 
       const renderModuleCard = (mod) => (
         <div key={mod.instanceId} className="bg-ios-card p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-ios-grayLight flex flex-col items-center relative w-full shrink-0">
-          <button 
-            onClick={() => removeModule(mod.instanceId)} 
-            className="absolute -top-2 -right-2 bg-ios-grayLight text-ios-gray hover:bg-ios-red hover:text-white w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors shadow-sm"
-            title="刪除模組"
-          ><i className="fa-solid fa-xmark"></i></button>
+          {/* 沙盒模式才允許刪除單一模組 */}
+          {appMode === 'sandbox' && (
+            <button 
+              onClick={() => removeModule(mod.instanceId)} 
+              className="absolute -top-2 -right-2 bg-ios-grayLight text-ios-gray hover:bg-ios-red hover:text-white w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors shadow-sm"
+              title="刪除模組"
+            ><i className="fa-solid fa-xmark"></i></button>
+          )}
           
           <div className="text-ios-text font-semibold mb-1 text-[15px] tracking-tight">
             {mod.name}
@@ -494,7 +640,6 @@
                 <div key={pin.id} className="flex items-center justify-between">
                   <span className="text-ios-gray font-mono text-[13px] font-medium flex items-center">
                     {pin.label}
-                    {/* 顯示被隨機分配的線材顏色名稱 */}
                     {pin.colorName && (
                       <span className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded-md bg-ios-bg border border-ios-grayLight text-ios-text shadow-sm whitespace-nowrap">
                         {pin.colorName}線
@@ -546,16 +691,33 @@
           
           <header className="bg-ios-card/80 backdrop-blur-xl border-b border-ios-grayLight px-6 py-4 flex justify-between items-center shrink-0 z-30">
             <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
-              <i className="fa-solid fa-bolt text-ios-yellow"></i> ESP32 接線練習
+              <i className="fa-solid fa-bolt text-ios-yellow"></i> ESP32 接線練習 {appMode === 'challenge' && activeChallenge ? ` - ${activeChallenge.title}` : ''}
             </h1>
             <div className="text-[13px] font-medium text-ios-gray">
-              點擊列表加入模組，連接對應腳位
+              {appMode === 'sandbox' ? '點擊列表加入模組，連接對應腳位' : '請依照關卡指示完成精準接線'}
             </div>
           </header>
 
           <div className="flex flex-1 overflow-hidden relative">
             
             <aside className="w-[300px] bg-ios-bg border-r border-ios-grayLight flex flex-col z-20 shrink-0 h-full">
+              
+              {/* 模式切換按鈕 */}
+              <div className="mx-4 mt-6 p-1 bg-ios-grayLight rounded-[10px] flex shadow-inner shrink-0">
+                <button 
+                  onClick={() => { setAppMode('sandbox'); setWorkspaceModules([]); setConnections([]); setFeedbacks(null); setChallengeSuccess(false); setActiveChallenge(null); }}
+                  className={`flex-1 py-1.5 text-[13px] font-semibold rounded-[8px] transition-all ${appMode === 'sandbox' ? 'bg-white shadow-sm text-ios-text' : 'text-ios-gray hover:text-ios-text'}`}
+                >
+                  自由沙盒
+                </button>
+                <button 
+                  onClick={() => { setAppMode('challenge'); setWorkspaceModules([]); setConnections([]); setFeedbacks(null); setChallengeSuccess(false); }}
+                  className={`flex-1 py-1.5 text-[13px] font-semibold rounded-[8px] transition-all ${appMode === 'challenge' ? 'bg-white shadow-sm text-ios-text' : 'text-ios-gray hover:text-ios-text'}`}
+                >
+                  關卡挑戰
+                </button>
+              </div>
+
               <div className="flex-1 overflow-y-auto pt-6 pb-2 custom-scrollbar">
                 
                 {/* 🎨 深中淺練習模式開關 */}
@@ -572,7 +734,7 @@
                     </button>
                   </div>
                   <div className="text-[12px] text-ios-gray leading-relaxed">
-                    開啟後，加入模組會隨機獲得以下線材。請根據顏色判斷連接位置！<br/>
+                    開啟後，模組會隨機獲得以下線材。請根據顏色判斷連接位置！<br/>
                     <ul className="mt-1 space-y-0.5">
                       <li>• <b>深色 (GND)：</b>黑、棕、藍</li>
                       <li>• <b>中色 (VCC)：</b>紅、紫、綠</li>
@@ -581,16 +743,50 @@
                   </div>
                 </div>
 
-                <ModuleListGroup title="輸出模組 (Output)" type="output" />
-                <ModuleListGroup title="輸入模組 (Input)" type="input" />
+                {appMode === 'sandbox' && (
+                  <React.Fragment>
+                    <ModuleListGroup title="輸出模組 (Output)" type="output" />
+                    <ModuleListGroup title="輸入模組 (Input)" type="input" />
+                  </React.Fragment>
+                )}
+
+                {appMode === 'challenge' && (
+                  <div className="px-4 flex flex-col gap-4">
+                    {CHALLENGES.map(day => (
+                      <div key={day.day}>
+                        <h3 className="text-[13px] font-bold text-ios-gray uppercase mb-2 pl-1">{day.day} - {day.title}</h3>
+                        {day.levels.length === 0 ? (
+                          <div className="bg-ios-card rounded-[10px] border border-ios-grayLight p-3 text-center text-ios-gray text-[13px] shadow-sm">
+                            🚧 關卡建置中...
+                          </div>
+                        ) : (
+                          <div className="bg-ios-card rounded-[10px] overflow-hidden border border-ios-grayLight shadow-sm">
+                            {day.levels.map((level, idx, arr) => (
+                              <button
+                                key={level.id}
+                                onClick={() => loadChallenge(level)}
+                                className={`w-full text-left px-4 py-3 flex flex-col bg-ios-card active:bg-ios-grayLight/50 transition-colors ${idx !== arr.length - 1 ? 'border-b border-ios-grayLight' : ''} ${activeChallenge?.id === level.id ? 'bg-ios-blue/5' : ''}`}
+                              >
+                                <span className={`text-[15px] font-medium ${activeChallenge?.id === level.id ? 'text-ios-blue' : 'text-ios-text'}`}>{level.title}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               
               <div className="p-4 bg-ios-bg border-t border-ios-grayLight shrink-0 flex flex-col gap-3">
                 <button 
-                  onClick={() => { setWorkspaceModules([]); setConnections([]); setFeedbacks(null); setActivePin(null); }}
+                  onClick={() => { 
+                    if (appMode === 'sandbox') setWorkspaceModules([]); 
+                    setConnections([]); setFeedbacks(null); setActivePin(null); setChallengeSuccess(false); 
+                  }}
                   className="w-full bg-ios-card text-ios-red font-medium py-3 rounded-xl transition-all active:bg-ios-grayLight border border-ios-grayLight shadow-sm"
                 >
-                  清空工作區
+                  {appMode === 'sandbox' ? '清空工作區' : '重置所有連線'}
                 </button>
                 <button 
                   onClick={checkWiring}
@@ -605,7 +801,29 @@
             <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F2F2F7]">
               
               <div className="absolute top-0 w-full z-30 px-6 py-4 pointer-events-none flex flex-col items-center">
-                {workspaceModules.length > 0 && feedbacks && (
+                
+                {/* 挑戰成功通關橫幅 */}
+                {challengeSuccess && (
+                  <div className="pointer-events-auto bg-[#E8F5E9] border border-[#A5D6A7] text-[#2E7D32] shadow-lg rounded-2xl w-full max-w-2xl p-4 flex items-center justify-center gap-3 animate-bounce">
+                    <i className="fa-solid fa-trophy text-2xl text-[#FFB300]"></i>
+                    <span className="font-bold text-[16px]">太棒了！你已完美完成本關卡的所有接線挑戰！</span>
+                  </div>
+                )}
+
+                {/* 挑戰模式任務說明 */}
+                {appMode === 'challenge' && activeChallenge && !feedbacks && !challengeSuccess && (
+                  <div className="pointer-events-auto bg-ios-card/90 backdrop-blur-xl border border-ios-grayLight shadow-lg rounded-2xl w-full max-w-2xl p-4 flex flex-col gap-2 transition-all">
+                    <h3 className="text-[13px] font-semibold text-ios-blue uppercase tracking-wide">
+                      <i className="fa-solid fa-flag"></i> 任務目標
+                    </h3>
+                    <div className="text-[14px] text-ios-text font-medium leading-relaxed">
+                      {activeChallenge.desc}
+                    </div>
+                  </div>
+                )}
+
+                {/* 錯誤反饋 */}
+                {workspaceModules.length > 0 && feedbacks && !challengeSuccess && (
                   <div className="pointer-events-auto bg-ios-card/90 backdrop-blur-xl border border-ios-grayLight shadow-lg rounded-2xl w-full max-w-3xl p-4 flex flex-col gap-3 transition-all">
                     <div className="flex justify-between items-center px-1">
                        <h3 className="text-[13px] font-semibold text-ios-gray uppercase tracking-wide">檢查結果</h3>
@@ -660,7 +878,7 @@
                    {outputModules.length === 0 && (
                      <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
                         <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
-                        請加入輸出模組
+                        {appMode === 'challenge' ? '此關卡無輸出模組' : '請加入輸出模組'}
                      </div>
                    )}
                    {outputModules.map(mod => renderModuleCard(mod))}
@@ -774,7 +992,7 @@
                  {inputModules.length === 0 && (
                    <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
                       <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
-                      請加入輸入模組
+                      {appMode === 'challenge' ? '此關卡無輸入模組' : '請加入輸入模組'}
                    </div>
                  )}
                  {inputModules.map(mod => renderModuleCard(mod))}
