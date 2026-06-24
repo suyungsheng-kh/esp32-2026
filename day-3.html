@@ -146,40 +146,72 @@
                     <h4 class="text-lg font-bold text-green-800 mb-4 border-l-4 border-green-500 pl-3"><i class="fa-solid fa-wrench mr-1"></i> 模組小試身手：資料中心大集合</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Task 1 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">1</span>
                                 <h5 class="font-bold text-slate-800">氣象台</h5>
                             </div>
-                            <p class="text-[11px] text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：DHT11, LCD</p>
-                            <p class="text-xs text-slate-700"><strong>🎯 任務：</strong>讀取 DHT11，在 LCD 第一行顯示 "T: 25C"，第二行顯示 "H: 60%"。</p>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">DHT11：</span>訊號腳位</li>
+                            </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>讀取 DHT11 的溫濕度數值。</li>
+                                <li>在 LCD 第一行顯示 "T: 25C"，第二行顯示 "H: 60%"。</li>
+                            </ul>
                         </div>
                         <!-- Task 2 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">2</span>
                                 <h5 class="font-bold text-slate-800">泥土醫生</h5>
                             </div>
-                            <p class="text-[11px] text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：土壤濕度, LCD</p>
-                            <p class="text-xs text-slate-700"><strong>🎯 任務：</strong>清空 LCD，改為持續顯示土壤濕度的數值，並找出「太乾」的閥值。</p>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">土壤濕度：</span>類比腳位</li>
+                            </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>清空 LCD 螢幕。</li>
+                                <li>持續顯示土壤濕度的數值，並找出「太乾」的閥值。</li>
+                            </ul>
                         </div>
                         <!-- Task 3 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
                                 <h5 class="font-bold text-slate-800">水溫計</h5>
                             </div>
-                            <p class="text-[11px] text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：水溫感測器, LCD</p>
-                            <p class="text-xs text-slate-700"><strong>🎯 任務：</strong>將水溫探頭握在手中加溫，觀察 LCD 上的溫度數值變化。</p>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">水溫感測：</span>訊號腳位</li>
+                            </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>將水溫探頭握在手中加溫。</li>
+                                <li>觀察並在 LCD 顯示溫度數值的變化。</li>
+                            </ul>
                         </div>
                         <!-- Task 4 -->
-                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-green-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">4</span>
                                 <h5 class="font-bold text-slate-800">風暴製造機</h5>
                             </div>
-                            <p class="text-[11px] text-slate-500 mb-2"><i class="fa-solid fa-plug text-slate-400"></i> 接線：繼電器+風扇</p>
-                            <p class="text-xs text-slate-700"><strong>🎯 任務：</strong>寫程式讓繼電器每 2 秒開關一次，確認風扇能順利啟動與停止。</p>
+                            <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
+                            <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
+                                <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
+                                <li><span class="text-slate-800 font-bold">繼電器：</span>控制腳位</li>
+                            </ul>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>寫程式讓繼電器每 2 秒開關一次。</li>
+                                <li>確認風扇能順利被啟動與停止。</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -229,7 +261,7 @@
                         </div>
                         <div class="bg-slate-800 p-3 rounded border border-slate-600 hover:border-maker transition-colors">
                             <strong class="text-maker-light block text-sm">🦇 3. 視障安全雷達拐杖</strong>
-                            <span class="text-xs text-slate-400">利用超音波偵測前方障礙物。距離越近，蜂鳴器的「滴滴」聲越急促，LED 燈也會變紅。</span>
+                            <span class="text-xs text-slate-400">利用超音波偵測前方障礙物。距離越近蜂鳴器越急促。同時亮起紅色 LED，用來「提醒周遭路人與車輛」注意避讓！</span>
                         </div>
                         <div class="bg-slate-800 p-3 rounded border border-slate-600 hover:border-maker transition-colors">
                             <strong class="text-maker-light block text-sm">🚨 4. 農田防盜防猴警報</strong>
@@ -246,66 +278,63 @@
                     </div>
                 </div>
 
-                <!-- Day 3 虛擬碼與模擬動畫 (以保母與防盜為例) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                    <!-- 虛擬碼 -->
-                    <div class="bg-slate-800 rounded-xl p-5 shadow-inner text-slate-300 font-mono text-xs">
-                        <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-2">
-                            <span class="text-maker-light font-bold"><i class="fa-solid fa-code"></i> 虛擬碼 (Pseudo Code)</span>
-                            <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">範例：保母與防盜</span>
-                        </div>
-                        <pre class="whitespace-pre-wrap"><code>Loop {
-  <span class="text-slate-500">// 系統一：自動灌溉保母</span>
-  <span class="text-green-400">soil</span> = read_analog(A1)
-  if (<span class="text-green-400">soil</span> &lt; 300) {
-    set_digital(D6, <span class="text-yellow-400">HIGH</span>) <span class="text-slate-500">// 抽水</span>
-  } else {
-    set_digital(D6, <span class="text-yellow-400">LOW</span>)
-  }
-  
-  <span class="text-slate-500">// 系統二：防盜警報</span>
-  <span class="text-green-400">distance</span> = read_ultrasonic(D7, D8)
-  if (<span class="text-green-400">distance</span> &lt; 20) {
-    set_rgb(255, 0, 0) <span class="text-slate-500">// 紅燈閃爍警示</span>
-    delay(500)
-    set_rgb(0, 0, 0)
-  } else {
-    set_rgb(0, 255, 0) <span class="text-slate-500">// 綠燈安全</span>
-  }
-}</code></pre>
-                    </div>
-                    <!-- 互動模擬器 -->
-                    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-full bg-green-600 text-white text-xs font-bold px-3 py-1 text-center">專題範例展示：雙系統獨立運作測試</div>
-                        <div class="mt-6 flex flex-col items-center w-full gap-4">
-                            <div class="flex gap-10 w-full justify-center h-16">
-                                <div id="sim-pump" class="flex flex-col items-center gap-1 text-slate-400 transition-all duration-300">
-                                    <i class="fa-solid fa-droplet text-3xl"></i>
-                                    <span class="text-xs font-bold">抽水馬達 (停)</span>
+                <!-- 專題範例互動模擬器 -->
+                <div class="mb-8">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4 border-l-4 border-emerald-500 pl-3"><i class="fa-solid fa-gamepad text-emerald-600 mr-1"></i> 專題範例互動展示</h4>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <!-- 模擬器 1: 智慧溫室環控 -->
+                        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col items-center relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full bg-emerald-600 text-white text-xs font-bold px-3 py-1 text-center">範例一：智慧溫室環控 (DHT11 + 風扇 + LCD)</div>
+                            <div class="mt-8 flex w-full justify-around items-center h-28 px-4">
+                                <!-- LCD 顯示器 -->
+                                <div class="bg-[#8cc474] p-2 rounded border-4 border-slate-800 w-36 shadow-inner text-left font-mono font-bold text-slate-900 leading-tight">
+                                    <div id="sim1-lcd1" class="text-[11px]">Temp: 25 C</div>
+                                    <div id="sim1-lcd2" class="text-[11px]">Status: OK</div>
                                 </div>
-                                <div id="sim-rgb" class="flex flex-col items-center gap-1 text-green-500 transition-all duration-300">
-                                    <i class="fa-solid fa-shield-halved text-3xl drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]"></i>
-                                    <span class="text-xs font-bold">農場安全</span>
+                                <!-- 繼電器與風扇 -->
+                                <div class="flex flex-col items-center gap-2">
+                                    <i id="sim1-fan" class="fa-solid fa-fan text-5xl text-slate-300 transition-colors duration-300"></i>
+                                    <span id="sim1-fan-text" class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">風扇 (關閉)</span>
                                 </div>
                             </div>
-                            
-                            <div class="w-full bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col gap-3">
-                                <div>
-                                    <label class="block text-sm text-slate-600 font-bold flex justify-between">
-                                        <span>🌱 土壤濕度: <span id="sim-soil-val">500</span></span>
-                                        <span class="text-xs text-slate-500">&lt;300 觸發</span>
-                                    </label>
-                                    <input type="range" id="sim-soil-slider" min="0" max="1000" value="500" class="w-full accent-blue-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm text-slate-600 font-bold flex justify-between">
-                                        <span>🦇 物體距離: <span id="sim-dist-val">50</span> cm</span>
-                                        <span class="text-xs text-slate-500">&lt;20cm 觸發</span>
-                                    </label>
-                                    <input type="range" id="sim-dist-slider" min="5" max="100" value="50" class="w-full accent-indigo-500">
-                                </div>
+                            <div class="w-full bg-slate-50 p-4 rounded-lg border border-slate-100 mt-4">
+                                <label class="block text-sm text-slate-600 font-bold flex justify-between mb-2">
+                                    <span>🌡️ 溫室溫度: <span id="sim1-temp-val" class="text-emerald-600">25</span>°C</span>
+                                    <span class="text-xs text-slate-500 bg-white px-1.5 py-0.5 rounded shadow-sm border border-slate-200">閥值 &gt;30°C 散熱</span>
+                                </label>
+                                <input type="range" id="sim1-temp-slider" min="15" max="45" value="25" class="w-full accent-emerald-500 cursor-pointer">
                             </div>
                         </div>
+
+                        <!-- 模擬器 2: 視障安全雷達拐杖 -->
+                        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col items-center relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full bg-indigo-600 text-white text-xs font-bold px-3 py-1 text-center">範例二：視障安全雷達拐杖 (超音波 + 蜂鳴器 + LED)</div>
+                            <div class="mt-8 flex w-full justify-around items-center h-28 px-4">
+                                <!-- LED 警示燈 -->
+                                <div class="flex flex-col items-center gap-3">
+                                    <div id="sim2-led" class="w-10 h-10 rounded-full bg-slate-200 border-2 border-slate-300 shadow-inner transition-colors duration-200 flex items-center justify-center">
+                                        <div class="w-4 h-4 rounded-full bg-white/40"></div>
+                                    </div>
+                                    <span id="sim2-led-text" class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">警示燈 (熄滅)</span>
+                                </div>
+                                <!-- 蜂鳴器 -->
+                                <div class="flex flex-col items-center gap-2">
+                                    <div class="relative w-12 h-12 flex items-center justify-center">
+                                        <i id="sim2-buzzer" class="fa-solid fa-volume-high text-4xl text-slate-300 transition-all duration-200 relative z-10 bg-white rounded-full px-1"></i>
+                                    </div>
+                                    <span id="sim2-buzzer-text" class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">蜂鳴器 (靜音)</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-50 p-4 rounded-lg border border-slate-100 mt-4">
+                                <label class="block text-sm text-slate-600 font-bold flex justify-between mb-2">
+                                    <span>🦇 前方障礙物距離: <span id="sim2-dist-val" class="text-indigo-600">60</span> cm</span>
+                                    <span class="text-xs text-slate-500 bg-white px-1.5 py-0.5 rounded shadow-sm border border-slate-200">閥值 &lt;30cm 警報</span>
+                                </label>
+                                <input type="range" id="sim2-dist-slider" min="5" max="100" value="60" class="w-full accent-indigo-500 cursor-pointer">
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -454,42 +483,80 @@
             document.body.style.overflow = 'auto';
         }
 
-        // --- Day 3: 智慧農場 模擬器 ---
-        const soilSlider = document.getElementById('sim-soil-slider');
-        const soilVal = document.getElementById('sim-soil-val');
-        const simPump = document.getElementById('sim-pump');
+        // --- Day 3: 專題互動模擬器 ---
         
-        if(soilSlider) {
-            soilSlider.addEventListener('input', (e) => {
-                const val = parseInt(e.target.value);
-                soilVal.textContent = val;
-                if(val < 300) {
-                    simPump.className = 'flex flex-col items-center gap-1 text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] transition-all duration-300';
-                    simPump.querySelector('span').textContent = '抽水馬達 (開)';
+        // 模擬器 1: 智慧溫室環控
+        const sim1TempSlider = document.getElementById('sim1-temp-slider');
+        const sim1TempVal = document.getElementById('sim1-temp-val');
+        const sim1Lcd1 = document.getElementById('sim1-lcd1');
+        const sim1Lcd2 = document.getElementById('sim1-lcd2');
+        const sim1Fan = document.getElementById('sim1-fan');
+        const sim1FanText = document.getElementById('sim1-fan-text');
+        
+        if(sim1TempSlider) {
+            sim1TempSlider.addEventListener('input', (e) => {
+                const temp = parseInt(e.target.value);
+                sim1TempVal.textContent = temp;
+                sim1Lcd1.textContent = `Temp: ${temp} C`;
+                
+                if(temp > 30) {
+                    // 超過 30 度，啟動風扇降溫
+                    sim1Lcd2.textContent = 'Warning: HOT!';
+                    sim1Lcd2.className = 'text-[11px] text-red-700 font-black animate-pulse mt-1';
+                    
+                    sim1Fan.className = 'fa-solid fa-fan text-5xl text-teal-500 animate-spin transition-colors duration-300 drop-shadow-md';
+                    sim1FanText.textContent = '風扇 (運轉中)';
+                    sim1FanText.className = 'text-xs font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded shadow-sm border border-teal-200';
                 } else {
-                    simPump.className = 'flex flex-col items-center gap-1 text-slate-400 transition-all duration-300';
-                    simPump.querySelector('span').textContent = '抽水馬達 (停)';
+                    // 正常狀態
+                    sim1Lcd2.textContent = 'Status: OK';
+                    sim1Lcd2.className = 'text-[11px] text-slate-900 mt-1';
+                    
+                    sim1Fan.className = 'fa-solid fa-fan text-5xl text-slate-300 transition-colors duration-300';
+                    sim1FanText.textContent = '風扇 (關閉)';
+                    sim1FanText.className = 'text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded';
                 }
             });
         }
 
-        const distSlider = document.getElementById('sim-dist-slider');
-        const distVal = document.getElementById('sim-dist-val');
-        const simRgb = document.getElementById('sim-rgb');
+        // 模擬器 2: 視障安全雷達拐杖
+        const sim2DistSlider = document.getElementById('sim2-dist-slider');
+        const sim2DistVal = document.getElementById('sim2-dist-val');
+        const sim2Led = document.getElementById('sim2-led');
+        const sim2LedText = document.getElementById('sim2-led-text');
+        const sim2Buzzer = document.getElementById('sim2-buzzer');
+        const sim2BuzzerText = document.getElementById('sim2-buzzer-text');
         
-        if(distSlider) {
-            distSlider.addEventListener('input', (e) => {
-                const val = parseInt(e.target.value);
-                distVal.textContent = val;
+        if(sim2DistSlider) {
+            sim2DistSlider.addEventListener('input', (e) => {
+                const dist = parseInt(e.target.value);
+                sim2DistVal.textContent = dist;
                 
-                if(val < 20) {
-                    simRgb.className = 'flex flex-col items-center gap-1 text-red-500 transition-all duration-300';
-                    simRgb.querySelector('i').className = 'fa-solid fa-triangle-exclamation text-3xl drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse';
-                    simRgb.querySelector('span').textContent = '入侵警報!';
+                if(dist < 30) {
+                    // 距離小於 30cm，發出警報
+                    sim2Led.className = 'w-10 h-10 rounded-full bg-red-500 border-2 border-red-600 shadow-[0_0_15px_rgba(239,68,68,0.8)] animate-pulse flex items-center justify-center';
+                    sim2LedText.textContent = '警示燈 (閃爍)';
+                    sim2LedText.className = 'text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded shadow-sm border border-red-200';
+                    
+                    // 距離越近，模擬震動幅度越大 (用不同速度的 bounce 或 pulse)
+                    if (dist < 10) {
+                        sim2Buzzer.className = 'fa-solid fa-volume-high text-4xl text-red-600 animate-bounce relative z-10 bg-white rounded-full px-1 drop-shadow-md';
+                        sim2BuzzerText.textContent = '蜂鳴器 (極急促)';
+                    } else {
+                        sim2Buzzer.className = 'fa-solid fa-volume-high text-4xl text-amber-500 animate-pulse relative z-10 bg-white rounded-full px-1 drop-shadow-md';
+                        sim2BuzzerText.textContent = '蜂鳴器 (滴滴滴)';
+                    }
+                    sim2BuzzerText.className = 'text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded shadow-sm border border-red-200';
+
                 } else {
-                    simRgb.className = 'flex flex-col items-center gap-1 text-green-500 transition-all duration-300';
-                    simRgb.querySelector('i').className = 'fa-solid fa-shield-halved text-3xl drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]';
-                    simRgb.querySelector('span').textContent = '農場安全';
+                    // 安全距離
+                    sim2Led.className = 'w-10 h-10 rounded-full bg-slate-200 border-2 border-slate-300 shadow-inner transition-colors duration-200 flex items-center justify-center';
+                    sim2LedText.textContent = '警示燈 (熄滅)';
+                    sim2LedText.className = 'text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded';
+                    
+                    sim2Buzzer.className = 'fa-solid fa-volume-high text-4xl text-slate-300 transition-all duration-200 relative z-10 bg-white rounded-full px-1';
+                    sim2BuzzerText.textContent = '蜂鳴器 (靜音)';
+                    sim2BuzzerText.className = 'text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded';
                 }
             });
         }
