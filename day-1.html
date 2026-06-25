@@ -212,6 +212,20 @@
                     </div>
                 </div>
 
+                <!-- 冷知識：什麼是上拉電阻？ -->
+                <div class="bg-gradient-to-r from-sky-50 to-blue-50 rounded-xl p-6 border border-blue-100 mb-8 relative overflow-hidden shadow-sm">
+                    <!-- 裝飾背景圖示 -->
+                    <div class="absolute -right-2 -bottom-2 text-7xl opacity-10 text-blue-500 pointer-events-none transform -rotate-12"><i class="fa-solid fa-lightbulb"></i></div>
+                    
+                    <h4 class="text-lg font-bold text-blue-800 mb-3 relative z-10"><i class="fa-solid fa-book-open-reader text-blue-600 mr-2"></i>冷知識：為什麼按鈕要選「上拉電阻」？</h4>
+                    <p class="text-slate-700 text-sm leading-relaxed relative z-10">
+                        想像一下，ESP32 的接收腳位就像一顆綁著線的<strong>「氫氣球」</strong>。如果什麼都不接，氣球會在半空中隨風亂飄（這代表腳位會受到空氣中的靜電干擾，數值在 0 和 1 之間瘋狂亂跳，這叫做「浮接」）。<br><br>
+                        <strong>「上拉電阻」(Pull-Up Resistor)</strong> 就像是給氣球一個微弱但穩定的浮力，讓它平時乖乖貼在天花板（保持在穩定的高電位 <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-blue-600 font-bold">1</span>）。<br>
+                        當你<strong>按下按鈕</strong>，就像是用力把線拉到地板（數值變成低電位 <span class="bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-red-600 font-bold">0</span>）。<strong>放開按鈕</strong>，氣球又會自動穩穩地飄回天花板。<br><br>
+                        有了這個「上拉」的力量，ESP32 就不會被干擾，能 100% 確定你到底有沒有按下按鈕囉！
+                    </p>
+                </div>
+
                 <div class="bg-maker-light rounded-xl p-6 border border-maker/20">
                     <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-maker mr-2"></i>程式邏輯挑戰 (話流程圖)</h4>
                     <p class="text-slate-700 italic mb-4">「先亮綠燈 2 秒，此時蜂鳴器慢慢發出『滴—滴』的聲音。接著換黃燈亮，安靜等待 1 秒。最後換紅燈亮 3 秒，此時蜂鳴器變成急促的『滴滴滴滴』。然後不斷重複。」</p>
