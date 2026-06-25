@@ -104,37 +104,116 @@
     const TASKS = [
       // ================= 輸出模組 =================
       {
-        id: 'lcd1602_i2c', type: 'output', name: '📟 LCD 1602 (I2C)', desc: '將 SDA 接 21，SCL 接 22，並配對同排的 V 與 G。',
+        id: 'led_y', type: 'output', name: '🟡 LED (黃)', desc: '將 SIG 接 pin 4，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#FFCC00' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO4_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO4']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮黃色 LED。' };
+          if (!sig) return { success: false, msg: '訊號線請接在 pin 4 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'led_r', type: 'output', name: '🔴 LED (紅)', desc: '將 SIG 接 pin 5，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#FF3B30' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO5_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO5']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮紅色 LED。' };
+          if (!sig) return { success: false, msg: '訊號線請接在 pin 5 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 5 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'led_g', type: 'output', name: '🟢 LED (綠)', desc: '將 SIG 接 pin 18，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#34C759' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO18_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO18']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮綠色 LED。' };
+          if (!sig) return { success: false, msg: '訊號線請接在 pin 18 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 18 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'led_rgb', type: 'output', name: '🌈 LED (RGB)', desc: 'R, G, B 分別接 pin 25, 26, 27，GND 配對其中一組。',
         pins: [
-          { id: 'GND', label: 'GND', color: '#1f2937' },
-          { id: 'VCC', label: 'VCC', color: '#ef4444' },
+          { id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'R', label: 'R', color: '#FF3B30' },
+          { id: 'G', label: 'G', color: '#34C759' }, { id: 'B', label: 'B', color: '#007AFF' }
+        ],
+        validate: (modConns) => {
+          const r = modConns.some(c => c.modulePin === 'R' && c.shieldPin === 'IO25_S');
+          const g = modConns.some(c => c.modulePin === 'G' && c.shieldPin === 'IO26_S');
+          const b = modConns.some(c => c.modulePin === 'B' && c.shieldPin === 'IO27_S');
+          const { gnd } = checkPower(modConns, ['IO25', 'IO26', 'IO27'], null, 'GND');
+          if (gnd && r && g && b) return { success: true, msg: '接線正確！現在可以控制 RGB 顏色了。' };
+          if (!(r && g && b)) return { success: false, msg: 'R, G, B 訊號請分別接至 pin 25, 26, 27。' };
+          return { success: false, msg: 'GND 需接在 pin 25, 26 或 27 同排的 G 腳位上。' };
+        }
+      },
+      {
+        id: 'ws2812', type: 'output', name: '⭕ WS2812 環狀燈', desc: '將 DIN 接 pin 19，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'DIN', label: 'DIN', color: '#FFCC00' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'DIN' && c.shieldPin === 'IO19_S');
+          // 允許接 IO19 或 IO4 (特效關卡)
+          const { vcc, gnd } = checkPower(modConns, ['IO19', 'IO4']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！準備發出炫麗光芒。' };
+          if (!sig) return { success: false, msg: 'DIN 訊號請接在指定的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在訊號旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'buzzer', type: 'output', name: '🔔 蜂鳴器', desc: '將 I/O 接 pin 21，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IO', label: 'I/O', color: '#5856D6' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO21_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO21']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！蜂鳴器已就緒。' };
+          if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 21 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 21 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: '將 IN 接 pin 22，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IN', label: 'IN', color: '#FF9500' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO22_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO22']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
+          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 22 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 22 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'lcd1602_i2c', type: 'output', name: '📟 LCD 1602 (I2C)', desc: '將 SDA 接 21，SCL 接 22，並配對同排的 V 與 G。',
+        // 依照要求重新排序：SCL, SDA, VCC, GND
+        pins: [
+          { id: 'SCL', label: 'SCL', color: '#FFCC00' },
           { id: 'SDA', label: 'SDA', color: '#007AFF' },
-          { id: 'SCL', label: 'SCL', color: '#FFCC00' }
+          { id: 'VCC', label: 'VCC', color: '#ef4444' },
+          { id: 'GND', label: 'GND', color: '#1f2937' }
         ],
         validate: (modConns) => {
           let valid = false;
           let hasSda = false;
           let hasScl = false;
 
-          // 檢查新擴充的第 1 組 I2C
           const b1_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'I2C_1_21');
           const b1_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'I2C_1_22');
           const b1_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_1_V');
           const b1_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_1_G');
           if (b1_sda || modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'IO21_S')) hasSda = true;
           if (b1_scl || modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'IO22_S')) hasScl = true;
-          
           if (b1_sda && b1_scl && b1_v && b1_g) valid = true;
 
-          // 檢查新擴充的第 2 組 I2C
           const b2_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'I2C_2_21');
           const b2_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'I2C_2_22');
           const b2_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_2_V');
           const b2_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_2_G');
-          
           if (b2_sda && b2_scl && b2_v && b2_g) valid = true;
 
-          // 檢查標準 IO21, IO22 腳位
           const std_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'IO21_S');
           const std_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'IO22_S');
           const std_pwr = checkPower(modConns, ['IO21', 'IO22']);
@@ -270,7 +349,6 @@
     ];
 
     // ================= 挑戰關卡定義 =================
-    // 工廠函數：根據 TASKS 模板產生客製化目標腳位的模組
     const createCustomModule = (baseTaskId, targetPinStr) => {
       const baseTask = TASKS.find(t => t.id === baseTaskId);
       const targetNum = targetPinStr.replace('IO', '');
@@ -594,7 +672,10 @@
       const createCurve = (x1, y1, x2, y2) => {
         const dx = Math.abs(x2 - x1);
         const offset = Math.max(dx * 0.4, 50);
-        return `M ${x1} ${y1} C ${x1 + offset} ${y1}, ${x2 - offset} ${y2}, ${x2} ${y2}`;
+        // 自動判斷左右關係，確保曲線向內彎折，不會產生反向突起
+        const cp1x = x1 < x2 ? x1 + offset : x1 - offset;
+        const cp2x = x1 < x2 ? x2 - offset : x2 + offset;
+        return `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp2x} ${y2}, ${x2} ${y2}`;
       };
 
       const getActivePinCoords = () => {
@@ -613,70 +694,91 @@
 
       const activeCoords = getActivePinCoords();
 
-      const outputModules = workspaceModules.filter(m => m.type === 'output');
+      // LCD 1602 由於要固定在右下角，我們將它從常規排版中濾出
+      const outputModules = workspaceModules.filter(m => m.type === 'output' && m.id !== 'lcd1602_i2c');
       const inputModules = workspaceModules.filter(m => m.type === 'input');
+      const fixedRightModules = workspaceModules.filter(m => m.id === 'lcd1602_i2c');
 
-      const renderModuleCard = (mod) => (
-        <div key={mod.instanceId} className="bg-ios-card p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-ios-grayLight flex flex-col items-center relative w-full shrink-0">
-          {/* 沙盒模式才允許刪除單一模組 */}
-          {appMode === 'sandbox' && (
-            <button 
-              onClick={() => removeModule(mod.instanceId)} 
-              className="absolute -top-2 -right-2 bg-ios-grayLight text-ios-gray hover:bg-ios-red hover:text-white w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors shadow-sm"
-              title="刪除模組"
-            ><i className="fa-solid fa-xmark"></i></button>
-          )}
-          
-          <div className="text-ios-text font-semibold mb-1 text-[15px] tracking-tight">
-            {mod.name}
+      const renderModuleCard = (mod) => {
+        // 判斷該模組是否位於右側 (輸入模組或 LCD 1602)，以決定孔位是否要對調到左邊
+        const isRightSideModule = mod.type === 'input' || mod.id === 'lcd1602_i2c';
+        
+        return (
+          <div key={mod.instanceId} className="bg-ios-card p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-ios-grayLight flex flex-col items-center relative w-full shrink-0">
+            {/* 沙盒模式才允許刪除單一模組 */}
+            {appMode === 'sandbox' && (
+              <button 
+                onClick={() => removeModule(mod.instanceId)} 
+                className="absolute -top-2 -right-2 bg-ios-grayLight text-ios-gray hover:bg-ios-red hover:text-white w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors shadow-sm"
+                title="刪除模組"
+              ><i className="fa-solid fa-xmark"></i></button>
+            )}
+            
+            <div className="text-ios-text font-semibold mb-1 text-[15px] tracking-tight">
+              {mod.name}
+            </div>
+            <div className="text-[12px] text-ios-gray mb-5 text-center leading-snug px-2">
+              {mod.desc}
+            </div>
+            
+            <div className="flex flex-col gap-3 w-full px-2">
+              {mod.pins.map(pin => {
+                const isActive = activePin?.type === 'module' && activePin?.id === pin.id && activePin?.moduleId === mod.instanceId;
+                const isConnected = connections.some(c => c.moduleId === mod.instanceId && c.modulePin === pin.id);
+                return (
+                  // 根據 isRightSideModule 動態反轉排列順序 (flex-row-reverse)
+                  <div key={pin.id} className={`flex items-center justify-between ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
+                    <span className={`text-ios-gray font-mono text-[13px] font-medium flex items-center ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
+                      {pin.label}
+                      {pin.colorName && (
+                        <span className={`text-[10px] ${isRightSideModule ? 'mr-1.5' : 'ml-1.5'} px-1.5 py-0.5 rounded-md bg-ios-bg border border-ios-grayLight text-ios-text shadow-sm whitespace-nowrap`}>
+                          {pin.colorName}線
+                        </span>
+                      )}
+                    </span>
+                    <button
+                      id={`pin-module-${mod.instanceId}-${pin.id}`}
+                      onClick={() => handlePinClick('module', pin.id, pin.color, mod.instanceId)}
+                      className={`w-6 h-6 rounded-full border-[2.5px] transition-all flex items-center justify-center ${
+                        isActive ? 'border-ios-blue scale-110 shadow-md bg-ios-blue/10' : 
+                        isConnected ? 'border-ios-gray bg-ios-grayLight' : 'border-ios-separator bg-white hover:border-ios-gray'
+                      }`}
+                      title={`連接 ${pin.label}`}
+                    >
+                      {(isActive || isConnected) && <div className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-ios-blue' : 'bg-ios-gray'}`}></div>}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="text-[12px] text-ios-gray mb-5 text-center leading-snug px-2">
-            {mod.desc}
-          </div>
-          
-          <div className="flex flex-col gap-3 w-full px-2">
-            {mod.pins.map(pin => {
-              const isActive = activePin?.type === 'module' && activePin?.id === pin.id && activePin?.moduleId === mod.instanceId;
-              const isConnected = connections.some(c => c.moduleId === mod.instanceId && c.modulePin === pin.id);
-              return (
-                <div key={pin.id} className="flex items-center justify-between">
-                  <span className="text-ios-gray font-mono text-[13px] font-medium flex items-center">
-                    {pin.label}
-                    {pin.colorName && (
-                      <span className="text-[10px] ml-1.5 px-1.5 py-0.5 rounded-md bg-ios-bg border border-ios-grayLight text-ios-text shadow-sm whitespace-nowrap">
-                        {pin.colorName}線
-                      </span>
-                    )}
-                  </span>
-                  <button
-                    id={`pin-module-${mod.instanceId}-${pin.id}`}
-                    onClick={() => handlePinClick('module', pin.id, pin.color, mod.instanceId)}
-                    className={`w-6 h-6 rounded-full border-[2.5px] transition-all flex items-center justify-center ${
-                      isActive ? 'border-ios-blue scale-110 shadow-md bg-ios-blue/10' : 
-                      isConnected ? 'border-ios-gray bg-ios-grayLight' : 'border-ios-separator bg-white hover:border-ios-gray'
-                    }`}
-                    title={`連接 ${pin.label}`}
-                  >
-                    {(isActive || isConnected) && <div className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-ios-blue' : 'bg-ios-gray'}`}></div>}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
+        );
+      };
 
       const ModuleListGroup = ({ title, type }) => (
         <div className="mb-6">
           <h3 className="text-[13px] font-semibold text-ios-gray uppercase tracking-wider mb-2 px-4">{title}</h3>
           <div className="bg-ios-card rounded-[10px] overflow-hidden border border-ios-grayLight mx-4 shadow-sm">
-            {TASKS.filter(t => t.type === type).map((task, idx, arr) => (
+            {TASKS.filter(t => t.type === type && t.id !== 'lcd1602_i2c').map((task, idx, arr) => (
               <button
                 key={task.id}
                 onClick={() => addModule(task)}
                 className={`w-full text-left px-4 py-3 flex justify-between items-center bg-ios-card active:bg-ios-grayLight/50 transition-colors ${
                   idx !== arr.length - 1 ? 'border-b border-ios-grayLight' : ''
                 }`}
+              >
+                <span className="text-[15px] font-medium text-ios-text">{task.name}</span>
+                <div className="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue flex items-center justify-center font-bold text-sm">
+                  <i className="fa-solid fa-plus"></i>
+                </div>
+              </button>
+            ))}
+            {/* 特例：將 LCD1602 放回選單 */}
+            {TASKS.filter(t => t.type === type && t.id === 'lcd1602_i2c').map((task) => (
+              <button
+                key={task.id}
+                onClick={() => addModule(task)}
+                className="w-full text-left px-4 py-3 flex justify-between items-center bg-ios-card active:bg-ios-grayLight/50 transition-colors border-t border-ios-grayLight"
               >
                 <span className="text-[15px] font-medium text-ios-text">{task.name}</span>
                 <div className="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue flex items-center justify-center font-bold text-sm">
@@ -849,7 +951,7 @@
               <div 
                 id="workspace-container"
                 ref={containerRef} 
-                className="flex-1 relative p-8 pt-24 flex justify-center items-start gap-12 overflow-auto custom-scrollbar"
+                className="flex-1 relative p-8 pt-24 pb-64 flex justify-center items-start gap-12 overflow-auto custom-scrollbar"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => setActivePin(null)}
               >
@@ -873,14 +975,14 @@
                   )}
                 </svg>
 
-                <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 pb-20 mt-4">
+                <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 mt-4">
                    <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80">
                       <i className="fa-solid fa-arrow-right-from-bracket"></i> 輸出模組區
                    </h3>
                    {outputModules.length === 0 && (
                      <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
                         <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
-                        {appMode === 'challenge' ? '此關卡無輸出模組' : '請加入輸出模組'}
+                        {appMode === 'challenge' ? '此關卡無一般輸出模組' : '請加入輸出模組'}
                      </div>
                    )}
                    {outputModules.map(mod => renderModuleCard(mod))}
@@ -989,28 +1091,38 @@
                   </div>
                 </div>
 
-              <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 pb-20 mt-4">
-                 <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80">
-                    <i className="fa-solid fa-arrow-right-to-bracket"></i> 輸入模組區
-                 </h3>
-                 {inputModules.length === 0 && (
-                   <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
-                      <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
-                      {appMode === 'challenge' ? '此關卡無輸入模組' : '請加入輸入模組'}
-                   </div>
-                 )}
-                 {inputModules.map(mod => renderModuleCard(mod))}
+                <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 mt-4">
+                   <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80">
+                      <i className="fa-solid fa-arrow-right-to-bracket"></i> 輸入模組區
+                   </h3>
+                   {inputModules.length === 0 && (
+                     <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
+                        <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
+                        {appMode === 'challenge' ? '此關卡無輸入模組' : '請加入輸入模組'}
+                     </div>
+                   )}
+                   {inputModules.map(mod => renderModuleCard(mod))}
+                </div>
+                
+                {/* 獨立固定在右下角的顯示模組 (LCD1602) */}
+                {fixedRightModules.length > 0 && (
+                  <div className="absolute bottom-10 right-10 z-30 flex flex-col gap-6 w-[260px]">
+                    <h3 className="text-ios-gray font-semibold text-[13px] tracking-widest uppercase flex items-center gap-2 opacity-80 self-center">
+                        <i className="fa-solid fa-display"></i> 顯示模組區
+                    </h3>
+                    {fixedRightModules.map(mod => renderModuleCard(mod))}
+                  </div>
+                )}
+
               </div>
-
-            </div>
-            
-          </main>
+              
+            </main>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  function PinButton({ type, id, pinColor, activePin, connections, onClick, disabled }) {
+    function PinButton({ type, id, pinColor, activePin, connections, onClick, disabled }) {
       const isActive = activePin?.type === type && activePin?.id === id;
       const isConnected = connections.some(c => c.shieldPin === id);
       
