@@ -582,6 +582,11 @@
       };
 
       const addModule = (taskTemplate) => {
+        // 防呆：如果工作區已經有這個模組，則不允許重複加入
+        if (workspaceModules.some(m => m.id === taskTemplate.id)) {
+          return;
+        }
+
         const newId = `${taskTemplate.id}_${Date.now()}`;
         let newPins = taskTemplate.pins.map(p => ({ ...p }));
         if (randomColorMode) {
@@ -758,33 +763,39 @@
         <div className="mb-6">
           <h3 className="text-[13px] font-semibold text-ios-gray uppercase tracking-wider mb-2 px-4">{title}</h3>
           <div className="bg-ios-card rounded-[10px] overflow-hidden border border-ios-grayLight mx-4 shadow-sm">
-            {TASKS.filter(t => t.type === type && t.id !== 'lcd1602_i2c').map((task, idx, arr) => (
+            {TASKS.filter(t => t.type === type && t.id !== 'lcd1602_i2c').map((task, idx, arr) => {
+              const isAdded = workspaceModules.some(m => m.id === task.id);
+              return (
               <button
                 key={task.id}
-                onClick={() => addModule(task)}
-                className={`w-full text-left px-4 py-3 flex justify-between items-center bg-ios-card active:bg-ios-grayLight/50 transition-colors ${
+                onClick={() => !isAdded && addModule(task)}
+                disabled={isAdded}
+                className={`w-full text-left px-4 py-3 flex justify-between items-center bg-ios-card transition-colors ${
                   idx !== arr.length - 1 ? 'border-b border-ios-grayLight' : ''
-                }`}
+                } ${isAdded ? 'opacity-40 cursor-not-allowed' : 'active:bg-ios-grayLight/50'}`}
               >
                 <span className="text-[15px] font-medium text-ios-text">{task.name}</span>
-                <div className="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue flex items-center justify-center font-bold text-sm">
-                  <i className="fa-solid fa-plus"></i>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${isAdded ? 'bg-ios-grayLight text-ios-gray' : 'bg-ios-blue/10 text-ios-blue'}`}>
+                  <i className={`fa-solid ${isAdded ? 'fa-check' : 'fa-plus'}`}></i>
                 </div>
               </button>
-            ))}
+            )})}
             {/* 特例：將 LCD1602 放回選單 */}
-            {TASKS.filter(t => t.type === type && t.id === 'lcd1602_i2c').map((task) => (
+            {TASKS.filter(t => t.type === type && t.id === 'lcd1602_i2c').map((task) => {
+              const isAdded = workspaceModules.some(m => m.id === task.id);
+              return (
               <button
                 key={task.id}
-                onClick={() => addModule(task)}
-                className="w-full text-left px-4 py-3 flex justify-between items-center bg-ios-card active:bg-ios-grayLight/50 transition-colors border-t border-ios-grayLight"
+                onClick={() => !isAdded && addModule(task)}
+                disabled={isAdded}
+                className={`w-full text-left px-4 py-3 flex justify-between items-center bg-ios-card transition-colors border-t border-ios-grayLight ${isAdded ? 'opacity-40 cursor-not-allowed' : 'active:bg-ios-grayLight/50'}`}
               >
                 <span className="text-[15px] font-medium text-ios-text">{task.name}</span>
-                <div className="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue flex items-center justify-center font-bold text-sm">
-                  <i className="fa-solid fa-plus"></i>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm ${isAdded ? 'bg-ios-grayLight text-ios-gray' : 'bg-ios-blue/10 text-ios-blue'}`}>
+                  <i className={`fa-solid ${isAdded ? 'fa-check' : 'fa-plus'}`}></i>
                 </div>
               </button>
-            ))}
+            )})}
           </div>
         </div>
       );
