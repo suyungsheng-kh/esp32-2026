@@ -104,36 +104,36 @@
     const TASKS = [
       // ================= 輸出模組 =================
       {
-        id: 'led_y', type: 'output', name: '🟡 LED (黃)', desc: '將 SIG 接 pin 4，並配對旁邊的 V 與 G。',
+        id: 'led_y', type: 'output', name: '🟡 LED (黃)', desc: '將 SIG 接 pin 17，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#FFCC00' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO4_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO4']);
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO17_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO17']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮黃色 LED。' };
-          if (!sig) return { success: false, msg: '訊號線請接在 pin 4 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: '訊號線請接在 pin 17 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 17 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
-        id: 'led_r', type: 'output', name: '🔴 LED (紅)', desc: '將 SIG 接 pin 5，並配對旁邊的 V 與 G。',
+        id: 'led_r', type: 'output', name: '🔴 LED (紅)', desc: '將 SIG 接 pin 18，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#FF3B30' }],
-        validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO5_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO5']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮紅色 LED。' };
-          if (!sig) return { success: false, msg: '訊號線請接在 pin 5 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 5 旁邊對應的 V 與 G 腳位。' };
-        }
-      },
-      {
-        id: 'led_g', type: 'output', name: '🟢 LED (綠)', desc: '將 SIG 接 pin 18，並配對旁邊的 V 與 G。',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#34C759' }],
         validate: (modConns) => {
           const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO18_S');
           const { vcc, gnd } = checkPower(modConns, ['IO18']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮綠色 LED。' };
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮紅色 LED。' };
           if (!sig) return { success: false, msg: '訊號線請接在 pin 18 的 S 腳位。' };
           return { success: false, msg: '請將 VCC 與 GND 接在 pin 18 旁邊對應的 V 與 G 腳位。' };
+        }
+      },
+      {
+        id: 'led_g', type: 'output', name: '🟢 LED (綠)', desc: '將 SIG 接 pin 16，並配對旁邊的 V 與 G。',
+        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'SIG', label: 'SIG', color: '#34C759' }],
+        validate: (modConns) => {
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO16_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO16']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！成功點亮綠色 LED。' };
+          if (!sig) return { success: false, msg: '訊號線請接在 pin 16 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 16 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -242,36 +242,36 @@
 
       // ================= 輸入模組 =================
       {
-        id: 'btn_y', type: 'input', name: '🟡 按鈕 (黃)', desc: '將 OUT 接 pin 12，並配對旁邊的 V 與 G。',
+        id: 'btn_y', type: 'input', name: '🟡 按鈕 (黃)', desc: '將 OUT 接 pin 34，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'OUT', label: 'OUT', color: '#FFCC00' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO12_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO12']);
+          const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO34_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO34']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！可以偵測按壓了。' };
-          if (!sig) return { success: false, msg: 'OUT 訊號請接在 pin 12 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 12 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'OUT 訊號請接在 pin 34 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 34 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
-        id: 'btn_r', type: 'input', name: '🔴 按鈕 (紅)', desc: '將 OUT 接 pin 13，並配對旁邊的 V 與 G。',
+        id: 'btn_r', type: 'input', name: '🔴 按鈕 (紅)', desc: '將 OUT 接 pin 35，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'OUT', label: 'OUT', color: '#FF3B30' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO13_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO13']);
+          const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO35_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO35']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！可以偵測按壓了。' };
-          if (!sig) return { success: false, msg: 'OUT 訊號請接在 pin 13 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 13 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'OUT 訊號請接在 pin 35 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 35 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
-        id: 'btn_g', type: 'input', name: '🟢 按鈕 (綠)', desc: '將 OUT 接 pin 14，並配對旁邊的 V 與 G。',
+        id: 'btn_g', type: 'input', name: '🟢 按鈕 (綠)', desc: '將 OUT 接 pin 33，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'OUT', label: 'OUT', color: '#34C759' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO14_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO14']);
+          const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO33_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO33']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！可以偵測按壓了。' };
-          if (!sig) return { success: false, msg: 'OUT 訊號請接在 pin 14 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 14 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'OUT 訊號請接在 pin 33 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 33 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
