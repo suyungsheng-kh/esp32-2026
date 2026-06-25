@@ -153,26 +153,25 @@
         }
       },
       {
-        id: 'ws2812', type: 'output', name: '⭕ WS2812 環狀燈', desc: '將 DIN 接 pin 19，並配對旁邊的 V 與 G。',
+        id: 'ws2812', type: 'output', name: '⭕ WS2812 環狀燈', desc: '將 DIN 接 pin 4，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'DIN', label: 'DIN', color: '#FFCC00' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'DIN' && c.shieldPin === 'IO19_S');
-          // 允許接 IO19 或 IO4 (特效關卡)
-          const { vcc, gnd } = checkPower(modConns, ['IO19', 'IO4']);
+          const sig = modConns.some(c => c.modulePin === 'DIN' && c.shieldPin === 'IO4_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO4']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！準備發出炫麗光芒。' };
-          if (!sig) return { success: false, msg: 'DIN 訊號請接在指定的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在訊號旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'DIN 訊號請接在 pin 4 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
-        id: 'buzzer', type: 'output', name: '🔔 蜂鳴器', desc: '將 I/O 接 pin 21，並配對旁邊的 V 與 G。',
+        id: 'buzzer', type: 'output', name: '🔔 蜂鳴器', desc: '將 I/O 接 pin 27，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IO', label: 'I/O', color: '#5856D6' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO21_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO21']);
+          const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO27_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO27']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！蜂鳴器已就緒。' };
-          if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 21 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 21 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 27 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 27 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -225,18 +224,18 @@
         }
       },
       {
-        id: 'servo', type: 'output', name: '⚙️ 伺服馬達', desc: '將 SIG(橘) 接 pin 18，並配對旁邊的 V 與 G。',
+        id: 'servo', type: 'output', name: '⚙️ 伺服馬達', desc: '將 SIG(橘) 接 pin 13，並配對旁邊的 V 與 G。',
         pins: [
           { id: 'GND', label: 'GND(棕)', color: '#A0522D' },
           { id: 'VCC', label: 'VCC(紅)', color: '#FF3B30' },
           { id: 'SIG', label: 'SIG(橘)', color: '#FF9500' }
         ],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO18_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO18']);
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO13_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO13']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！伺服馬達可以轉動了。' };
-          if (!sig) return { success: false, msg: 'SIG 訊號請接在 pin 18 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 18 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'SIG 訊號請接在 pin 13 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 13 旁邊對應的 V 與 G 腳位。' };
         }
       },
 
@@ -330,7 +329,7 @@
         }
       },
       {
-        id: 'ultrasonic', type: 'input', name: '🦇 超音波 (HC-SR04)', desc: 'Trig 接 pin 16，Echo 接 pin 17，GND 配對其中一組。',
+        id: 'ultrasonic', type: 'input', name: '🦇 超音波 (HC-SR04)', desc: 'Trig 接 pin 19，Echo 接 pin 23，VCC/GND 擇一配對。',
         pins: [
           { id: 'VCC', label: 'VCC', color: '#ef4444' },
           { id: 'Trig', label: 'Trig', color: '#007AFF' },
@@ -338,12 +337,12 @@
           { id: 'GND', label: 'GND', color: '#1f2937' }
         ],
         validate: (modConns) => {
-          const trig = modConns.some(c => c.modulePin === 'Trig' && c.shieldPin === 'IO16_S');
-          const echo = modConns.some(c => c.modulePin === 'Echo' && c.shieldPin === 'IO17_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO16', 'IO17']);
+          const trig = modConns.some(c => c.modulePin === 'Trig' && c.shieldPin === 'IO19_S');
+          const echo = modConns.some(c => c.modulePin === 'Echo' && c.shieldPin === 'IO23_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO19', 'IO23']);
           if (vcc && gnd && trig && echo) return { success: true, msg: '接線正確！可以開始測距了。' };
-          if (!(trig && echo)) return { success: false, msg: 'Trig 與 Echo 請分別接至 pin 16 與 17 的 S 腳位。' };
-          return { success: false, msg: 'VCC 與 GND 需接在 pin 16 或 17 同排的 V 與 G 腳位上。' };
+          if (!(trig && echo)) return { success: false, msg: 'Trig 與 Echo 請分別接至 pin 19 與 23 的 S 腳位。' };
+          return { success: false, msg: 'VCC 與 GND 需接在 pin 19 或 23 同排的 V 與 G 腳位上。' };
         }
       }
     ];
