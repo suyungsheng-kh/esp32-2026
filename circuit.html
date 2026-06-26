@@ -159,11 +159,19 @@
         id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: '將 IN 接 pin 22，並配對旁邊的 V 與 G。',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IN', label: 'IN', color: '#FF9500' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO22_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO22']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
-          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 22 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 22 旁邊對應的 V 與 G 腳位。' };
+          let valid = false;
+          
+          // 檢查下方擴充區塊的 22
+          const b1_sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'I2C_1_22');
+          const b1_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_1_V');
+          const b1_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_1_G');
+          if (b1_sig && b1_v && b1_g) valid = true;
+
+          const hasSig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'I2C_1_22');
+
+          if (valid) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
+          if (!hasSig) return { success: false, msg: 'IN 訊號請接在下方擴充區 pin 22 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 配對在 pin 22 同一區塊上。' };
         }
       },
       {
@@ -186,12 +194,6 @@
           if (b1_sda || modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'IO21_S')) hasSda = true;
           if (b1_scl || modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'IO22_S')) hasScl = true;
           if (b1_sda && b1_scl && b1_v && b1_g) valid = true;
-
-          const b2_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'I2C_2_21');
-          const b2_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'I2C_2_22');
-          const b2_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_2_V');
-          const b2_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_2_G');
-          if (b2_sda && b2_scl && b2_v && b2_g) valid = true;
 
           const std_sda = modConns.some(c => c.modulePin === 'SDA' && c.shieldPin === 'IO21_S');
           const std_scl = modConns.some(c => c.modulePin === 'SCL' && c.shieldPin === 'IO22_S');
@@ -464,10 +466,10 @@
 
     const RIGHT_PINS = [
       { id: 'IO23', label: '23', type: 'io' },
-      { id: 'IO22', label: '22', type: 'io' },
+      { id: 'IO22', label: '22', type: 'io', disabled: true },
       { id: 'TX0', label: 'TX0', type: 'io', disabled: true },
       { id: 'RX0', label: 'RX0', type: 'io', disabled: true },
-      { id: 'IO21', label: '21', type: 'io' },
+      { id: 'IO21', label: '21', type: 'io', disabled: true },
       { id: 'IO19', label: '19', type: 'io' },
       { id: 'IO18', label: '18', type: 'io' },
       { id: 'IO5', label: '5', type: 'io' },
@@ -1029,11 +1031,11 @@
               <div 
                 id="workspace-container"
                 ref={containerRef} 
-                className="flex-1 relative p-8 pt-24 pb-64 flex justify-center items-start gap-12 overflow-auto custom-scrollbar"
+                className="flex-1 relative p-8 pt-24 pb-12 flex justify-center items-stretch gap-12 overflow-hidden"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() => setActivePin(null)}
               >
-                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-20" style={{ minHeight: '100%', minWidth: '100%' }}>
+                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-20">
                   {wireCoords.map(wire => (
                     <g key={wire.id} className="pointer-events-auto cursor-pointer group" onClick={() => removeConnection(wire.id)}>
                       <path d={createCurve(wire.x1, wire.y1, wire.x2, wire.y2)} stroke="transparent" strokeWidth="20" fill="none" />
@@ -1053,12 +1055,16 @@
                   )}
                 </svg>
 
-                <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 mt-4">
-                   <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80">
+                {/* 左側：輸出模組區 (獨立捲動) */}
+                <div 
+                  className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 mt-4 overflow-y-auto custom-scrollbar pb-32 h-full"
+                  onScroll={updateCoords}
+                >
+                   <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80 shrink-0">
                       <i className="fa-solid fa-arrow-right-from-bracket"></i> 輸出模組區
                    </h3>
                    {outputModules.length === 0 && (
-                     <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
+                     <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium shrink-0">
                         <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
                         {appMode === 'challenge' ? '此關卡無一般輸出模組' : '請加入輸出模組'}
                      </div>
@@ -1066,7 +1072,7 @@
                    {outputModules.map(mod => renderModuleCard(mod))}
                 </div>
 
-                <div className="relative z-10 bg-[#1C1C1E] p-7 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.2)] border border-[#2C2C2E] flex flex-col items-center select-none w-[30rem] self-start shrink-0 sticky top-4 mt-4">
+                <div className="relative z-10 bg-[#1C1C1E] px-6 py-7 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.2)] border border-[#2C2C2E] flex flex-col items-center select-none w-fit min-w-[24rem] self-start shrink-0 sticky top-4 mt-4">
                   <div className="text-[#FFCC00] font-bold mb-5 tracking-widest text-xs uppercase flex items-center gap-2 opacity-90">
                     <span className="w-2 h-2 rounded-full bg-[#FF3B30] inline-block shadow-[0_0_8px_#FF3B30]"></span>
                     ESP32 Sensor Shield V1
@@ -1074,16 +1080,16 @@
                   
                   <div className="flex w-full justify-between items-stretch">
                     
-                    <div className="flex flex-col gap-1 w-[120px]">
+                    <div className="flex flex-col gap-1 w-fit">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
-                        <span className="w-[44px] text-right pr-2">GPIO</span>
+                        <span className="w-[42px] text-right pr-2">GPIO</span>
                         <span className="w-5">G</span>
                         <span className="w-5">V</span>
                         <span className="w-5">S</span>
                       </div>
                       {LEFT_PINS.map(pin => (
                         <div key={pin.id} className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[#F2F2F7] font-mono text-[10px] w-[44px] text-right pr-1 font-medium opacity-80 whitespace-nowrap tracking-tighter">{pin.label}</span>
+                          <span className="text-[#F2F2F7] font-mono text-[10px] w-[42px] text-right pr-1 font-medium opacity-80 whitespace-nowrap tracking-tighter">{pin.label}</span>
                           {pin.type === 'io' ? (
                             <React.Fragment>
                               <PinButton type="shield" id={`${pin.id}_G`} pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} />
@@ -1101,7 +1107,7 @@
                       ))}
                     </div>
 
-                    <div className="w-24 bg-[#D1D1D6] mx-5 border-4 border-[#3A3A3C] rounded-xl flex flex-col justify-between py-6 items-center shadow-inner relative flex-1">
+                    <div className="w-24 bg-[#D1D1D6] mx-3 border-4 border-[#3A3A3C] rounded-xl flex flex-col justify-between py-6 items-center shadow-inner relative shrink-0">
                       <div className="w-16 h-12 border-b-2 border-[#8E8E93] flex flex-col justify-evenly px-1 pb-1">
                         <div className="w-full h-1 bg-[#C68926] rounded-sm"></div>
                         <div className="w-10 h-1 bg-[#C68926] rounded-sm"></div>
@@ -1117,7 +1123,7 @@
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1 w-[120px]">
+                    <div className="flex flex-col gap-1 w-fit">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
                         <span className="w-5">G</span>
                         <span className="w-5">V</span>
@@ -1144,24 +1150,22 @@
                       ))}
 
                       {/* 另外空一行再加入的區域 */}
-                      <div className="mt-5 pt-4 border-t border-[#3A3A3C] flex justify-between gap-1.5 w-full">
-                        {[1, 2].map(num => (
-                          <div key={num} className="border border-[#48484A] rounded-lg py-2 px-2.5 flex flex-col items-center shadow-sm bg-[#2C2C2E]/40 flex-1">
-                            <div className="flex flex-col gap-1.5 w-full">
-                              {[
-                                { id: '22', color: 'blue' },
-                                { id: '21', color: 'blue' },
-                                { id: 'V', color: 'red' },
-                                { id: 'G', color: 'black' }
-                              ].map(pin => (
-                                <div key={pin.id} className="flex items-center justify-between w-full">
-                                  <PinButton type="shield" id={`I2C_${num}_${pin.id}`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
-                                  <span className="text-[#F2F2F7] font-mono text-[10px] font-bold opacity-80 text-right pr-0.5">{pin.id}</span>
-                                </div>
-                              ))}
-                            </div>
+                      <div className="mt-5 pt-4 border-t border-[#3A3A3C] flex justify-center w-full">
+                        <div className="border border-[#48484A] rounded-lg py-2 px-2.5 flex flex-col items-center shadow-sm bg-[#2C2C2E]/40 w-full">
+                          <div className="flex flex-col gap-1.5 w-full">
+                            {[
+                              { id: '22', color: 'blue' },
+                              { id: '21', color: 'blue' },
+                              { id: 'V', color: 'red' },
+                              { id: 'G', color: 'black' }
+                            ].map(pin => (
+                              <div key={pin.id} className="flex items-center justify-between w-full">
+                                <PinButton type="shield" id={`I2C_1_${pin.id}`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
+                                <span className="text-[#F2F2F7] font-mono text-[10px] font-bold opacity-80 text-right pr-0.5">{pin.id}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
                       </div>
 
                     </div>
@@ -1169,12 +1173,16 @@
                   </div>
                 </div>
 
-                <div className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 mt-4">
-                   <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80">
+                {/* 右側：輸入模組區 (獨立捲動) */}
+                <div 
+                  className="relative z-10 flex flex-col gap-6 items-center w-[260px] shrink-0 mt-4 overflow-y-auto custom-scrollbar pb-32 h-full"
+                  onScroll={updateCoords}
+                >
+                   <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80 shrink-0">
                       <i className="fa-solid fa-arrow-right-to-bracket"></i> 輸入模組區
                    </h3>
                    {inputModules.length === 0 && (
-                     <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium">
+                     <div className="w-full h-32 border-2 border-dashed border-ios-separator rounded-2xl flex flex-col items-center justify-center text-ios-gray font-medium shrink-0">
                         <i className="fa-solid fa-plus text-2xl mb-2 opacity-30"></i>
                         {appMode === 'challenge' ? '此關卡無輸入模組' : '請加入輸入模組'}
                      </div>
