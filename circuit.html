@@ -150,7 +150,7 @@
         validate: (modConns) => {
           const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO27_S');
           const { vcc, gnd } = checkPower(modConns, ['IO27']);
-          if (vcc && gnd && sig) return { success: true, msg: '接線正確！蜂鳴器已就緒。' };
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！點擊上方圖示可測試發聲。' };
           if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 27 的 S 腳位。' };
           return { success: false, msg: '請將 VCC 與 GND 接在 pin 27 旁邊對應的 V 與 G 腳位。' };
         }
@@ -375,7 +375,7 @@
           {
             id: 'd1-2',
             title: '2. 蜂鳴器發聲',
-            desc: '將蜂鳴器訊號接至 IO27。',
+            desc: '將蜂鳴器訊號接至 IO27。接妥後點擊圖示聽聽看！',
             setup: () => [
               createCustomModule('buzzer', 'IO27')
             ]
@@ -494,10 +494,49 @@
       
       // ================= 互動模擬引擎狀態 =================
       const [interactions, setInteractions] = useState({});
+      const [ws2812Angles, setWs2812Angles] = useState({}); // 新增：專門管理 WS2812 的旋轉角度
 
-      const handleInteraction = (instanceId, value) => {
-        setInteractions(prev => ({ ...prev, [instanceId]: value }));
+      const handleInteraction = (instanceId, value, type = 'default') => {
+        if (type === 'ws2812_trigger' && value === true) {
+          // 觸發 WS2812 輪盤特效：轉 5 圈 (1800度) + 隨機 0~11 個燈位 (每個 30 度)
+          setWs2812Angles(prev => {
+            const currentAngle = prev[instanceId] || 0;
+            // 為了每次都能轉動，目標角度必須累加
+            const targetAngle = currentAngle + 1800 + Math.floor(Math.random() * 12) * 30;
+            return { ...prev, [instanceId]: targetAngle };
+          });
+        } else {
+          setInteractions(prev => ({ ...prev, [instanceId]: value }));
+        }
       };
+
+      // ================= 音效產生器 (Web Audio API) =================
+      const playBeep = useCallback(() => {
+        try {
+          if (!window.audioCtx) {
+            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (window.audioCtx.state === 'suspended') {
+            window.audioCtx.resume();
+          }
+          const osc = window.audioCtx.createOscillator();
+          const gain = window.audioCtx.createGain();
+          
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(2000, window.audioCtx.currentTime); // 2000Hz 更像紅綠燈倒數蜂鳴器
+          
+          gain.gain.setValueAtTime(0.1, window.audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, window.audioCtx.currentTime + 0.1);
+          
+          osc.connect(gain);
+          gain.connect(window.audioCtx.destination);
+          
+          osc.start();
+          osc.stop(window.audioCtx.currentTime + 0.1);
+        } catch (e) {
+          console.warn("Audio play failed:", e);
+        }
+      }, []);
 
       const simulationState = useMemo(() => {
         const outStates = {};
@@ -506,7 +545,7 @@
         let inputs = {
           btn_g: false, btn_y: false, btn_r: false,
           any_btn: false,
-          pot: 0, temp: null, dist: null
+          pot: null, temp: null, dist: null, light: null // 新增 light 狀態
         };
 
         workspaceModules.forEach(mod => {
@@ -520,6 +559,7 @@
               if (mod.id === 'potentiometer') inputs.pot = val !== undefined ? Number(val) : mod.sensor?.default || 0;
               if (mod.id === 'dht') inputs.temp = val !== undefined ? Number(val) : mod.sensor?.default || 25;
               if (mod.id === 'ultrasonic') inputs.dist = val !== undefined ? Number(val) : mod.sensor?.default || 10;
+              if (mod.id === 'photoresistor') inputs.light = val !== undefined ? Number(val) : mod.sensor?.default || 2048; // 收集光敏數值
             }
           }
         });
@@ -539,24 +579,59 @@
               // 全彩 LED
               if (mod.id === 'led_rgb') {
                 let color = '#E5E5EA';
-                if (inputs.btn_r) color = '#FF3B30';
-                else if (inputs.btn_g) color = '#34C759';
-                else if (inputs.btn_y) color = '#FFCC00';
-                else if (inputs.any_btn) color = '#007AFF';
-                outStates[mod.instanceId] = { active: inputs.any_btn, color };
+                let active = false;
+                let opacity = 1;
+                
+                if (inputs.btn_r) { color = '#FF3B30'; active = true; }
+                else if (inputs.btn_g) { color = '#34C759'; active = true; }
+                else if (inputs.btn_y) { color = '#FFCC00'; active = true; }
+                else if (inputs.any_btn) { color = '#007AFF'; active = true; }
+                else if (inputs.pot !== null) {
+                  // 可變電阻連動：發出白光，且改變亮度
+                  active = true;
+                  color = '#FFFFFF';
+                  opacity = inputs.pot / 4095;
+                  if (opacity < 0.05) active = false; // 數值過低時關閉
+                }
+                else if (inputs.light !== null) {
+                  // 智慧路燈連動：光線數值 > 2900 時(天黑)開啟白光，否則關閉
+                  if (inputs.light > 2900) {
+                    active = true;
+                    color = '#FFFFFF';
+                    opacity = 1;
+                  } else {
+                    active = false;
+                  }
+                }
+                outStates[mod.instanceId] = { active, color, opacity };
               }
               
-              // 蜂鳴器 (按鈕 或 距離過近警告)
-              if (mod.id === 'buzzer') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.dist !== null && inputs.dist <= 15) };
+              // 蜂鳴器 (按鈕、距離過近警告，或直接點擊測試)
+              if (mod.id === 'buzzer') {
+                outStates[mod.instanceId] = { 
+                  active: inputs.any_btn || (inputs.dist !== null && inputs.dist <= 15) || interactions[mod.instanceId] 
+                };
+              }
               
               // 繼電器/風扇 (按鈕 或 溫度過高啟動)
               if (mod.id === 'relay') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.temp !== null && inputs.temp >= 30) };
               
-              // 伺服馬達 (對應可變電阻數值 0-4095 轉換為角度 0-180)
-              if (mod.id === 'servo') outStates[mod.instanceId] = { angle: Math.floor((inputs.pot / 4095) * 180) };
+              // 伺服馬達 (優先判斷超音波閘門邏輯，否則對應可變電阻)
+              if (mod.id === 'servo') {
+                let angle = 0;
+                if (inputs.dist !== null) {
+                  angle = inputs.dist < 10 ? 90 : 0; // 車子靠近 (<10cm) 開啟閘門 90 度
+                } else if (inputs.pot !== null) {
+                  angle = Math.floor((inputs.pot / 4095) * 180);
+                }
+                outStates[mod.instanceId] = { angle };
+              }
               
-              // WS2812 環狀燈特效
-              if (mod.id === 'ws2812') outStates[mod.instanceId] = { active: inputs.any_btn };
+              // WS2812 環狀燈特效 (讀取專屬的角度狀態)
+              if (mod.id === 'ws2812') outStates[mod.instanceId] = { 
+                active: inputs.any_btn,
+                angle: ws2812Angles[mod.instanceId] || 0 
+              };
               
               // LCD 1602 螢幕文字動態顯示
               if (mod.id === 'lcd1602_i2c') {
@@ -568,7 +643,16 @@
                 }
                 else if (inputs.dist !== null) { 
                   line1 = `Dist: ${inputs.dist} cm`; 
-                  line2 = inputs.dist <= 15 ? "Warning!" : "Safe."; 
+                  line2 = inputs.dist < 10 ? "Gate: OPEN" : "Gate: CLOSED"; 
+                }
+                else if (inputs.light !== null) {
+                  line1 = `Light: ${inputs.light}`;
+                  line2 = inputs.light > 2900 ? "Night: LED ON " : "Day: LED OFF";
+                }
+                else if (inputs.pot !== null) {
+                  let percent = Math.floor((inputs.pot / 4095) * 100);
+                  line1 = `ADC: ${inputs.pot}`;
+                  line2 = `Bright: ${percent}%`;
                 }
                 else if (inputs.any_btn) { 
                   line1 = "Button Pressed!"; 
@@ -581,7 +665,7 @@
         });
 
         return outStates;
-      }, [connections, interactions, workspaceModules]);
+      }, [connections, interactions, ws2812Angles, workspaceModules]);
 
       const containerRef = useRef(null);
 
@@ -609,6 +693,23 @@
         
         setWireCoords(newCoords);
       }, [connections, workspaceModules]);
+
+      // 監控 buzzer 狀態並產生循環滴聲
+      useEffect(() => {
+        let interval;
+        const hasActiveBuzzer = Object.entries(simulationState).some(([id, state]) => 
+          state.active && workspaceModules.find(m => m.instanceId === id)?.id === 'buzzer'
+        );
+
+        if (hasActiveBuzzer) {
+          playBeep(); // 立即觸發第一聲
+          interval = setInterval(playBeep, 400); // 每 400ms 滴一聲 (紅綠燈倒數節奏)
+        }
+
+        return () => {
+          if (interval) clearInterval(interval);
+        };
+      }, [simulationState, workspaceModules, playBeep]);
 
       useEffect(() => {
         window.addEventListener('resize', updateCoords);
@@ -771,13 +872,13 @@
       const inputModules = workspaceModules.filter(m => m.type === 'input');
       const fixedRightModules = workspaceModules.filter(m => m.id === 'lcd1602_i2c');
 
-      // 新增：計算左側 (輸出) 模組的兩欄配置：靠近主板 (內側/右邊) 先排，由上到下
-      const outMid = Math.ceil(outputModules.length / 2);
+      // 優化：計算左側 (輸出) 模組的兩欄配置：最多 3 個時不換列，全部排在靠近主板的內側
+      const outMid = outputModules.length <= 3 ? outputModules.length : Math.ceil(outputModules.length / 2);
       const outInner = outputModules.slice(0, outMid);
       const outOuter = outputModules.slice(outMid);
 
-      // 新增：計算右側 (輸入) 模組的兩欄配置：靠近主板 (內側/左邊) 先排，由上到下
-      const inMid = Math.ceil(inputModules.length / 2);
+      // 優化：計算右側 (輸入) 模組的兩欄配置：最多 3 個時不換列，全部排在靠近主板的內側
+      const inMid = inputModules.length <= 3 ? inputModules.length : Math.ceil(inputModules.length / 2);
       const inInner = inputModules.slice(0, inMid);
       const inOuter = inputModules.slice(inMid);
 
@@ -863,31 +964,46 @@
                 </div>
               )}
 
-              {/* 全彩 LED (RGB) */}
-              {mod.id === 'led_rgb' && (
-                <div
-                  className="w-7 h-7 rounded-full transition-all duration-300 border border-black/10 flex overflow-hidden relative shrink-0"
-                  style={{
-                    backgroundColor: simulationState[mod.instanceId]?.active ? simulationState[mod.instanceId]?.color : '#E5E5EA',
-                    boxShadow: simulationState[mod.instanceId]?.active ? `0 0 15px 2px ${simulationState[mod.instanceId]?.color}` : 'none'
-                  }}
-                >
-                  {!simulationState[mod.instanceId]?.active && (
-                    <div className="w-full h-full flex">
+              {/* 全彩 LED (RGB) 動態亮度渲染 */}
+              {mod.id === 'led_rgb' && (() => {
+                const isActive = simulationState[mod.instanceId]?.active;
+                const color = simulationState[mod.instanceId]?.color || '#E5E5EA';
+                const opacity = simulationState[mod.instanceId]?.opacity !== undefined ? simulationState[mod.instanceId].opacity : 1;
+                return (
+                  <div className="w-7 h-7 rounded-full transition-all duration-300 border border-black/10 flex overflow-hidden relative shrink-0">
+                    {/* 背景 RGB 條紋 */}
+                    <div className="w-full h-full flex absolute inset-0">
                       <div className="flex-1 bg-[#FF3B30]/30"></div>
                       <div className="flex-1 bg-[#34C759]/30"></div>
                       <div className="flex-1 bg-[#007AFF]/30"></div>
                     </div>
-                  )}
-                  <div className="absolute w-full h-full rounded-full bg-gradient-to-br from-white/50 to-transparent"></div>
-                </div>
-              )}
+                    {/* 發光層 */}
+                    <div 
+                      className="absolute inset-0 transition-all duration-150"
+                      style={{
+                        backgroundColor: color,
+                        opacity: isActive ? opacity : 0,
+                        boxShadow: isActive ? `0 0 ${15 * opacity}px ${2 * opacity}px ${color}` : 'none'
+                      }}
+                    ></div>
+                    <div className="absolute w-full h-full rounded-full bg-gradient-to-br from-white/50 to-transparent z-10 pointer-events-none"></div>
+                  </div>
+                );
+              })()}
 
               {/* 蜂鳴器 */}
               {mod.id === 'buzzer' && (
-                <div className={`text-xl transition-all flex items-center justify-center h-7 ${simulationState[mod.instanceId]?.active ? 'text-[#AF52DE] animate-bounce' : 'text-ios-grayLight'}`}>
+                <button 
+                  className={`w-full text-xl transition-all flex items-center justify-center h-7 rounded-md ${simulationState[mod.instanceId]?.active ? 'text-[#AF52DE] animate-bounce' : 'text-ios-grayLight'} ${isWiredCorrectly ? 'cursor-pointer hover:bg-black/5' : 'cursor-not-allowed'}`}
+                  onMouseDown={() => isWiredCorrectly && handleInteraction(mod.instanceId, true)}
+                  onMouseUp={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
+                  onMouseLeave={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
+                  onTouchStart={() => isWiredCorrectly && handleInteraction(mod.instanceId, true)}
+                  onTouchEnd={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
+                  title={isWiredCorrectly ? "點擊測試發聲" : "請先完成接線"}
+                >
                   <i className={`fa-solid ${simulationState[mod.instanceId]?.active ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
-                </div>
+                </button>
               )}
 
               {/* 繼電器與風扇 */}
@@ -909,20 +1025,25 @@
                 </div>
               )}
 
-              {/* WS2812 環狀燈 */}
+              {/* WS2812 環狀燈 (支援點擊觸發輪盤旋轉) */}
               {mod.id === 'ws2812' && (
-                <div 
-                  className={`w-7 h-7 rounded-full border-[3px] border-ios-grayLight flex items-center justify-center transition-all shrink-0 ${simulationState[mod.instanceId]?.active ? 'animate-spin' : ''}`}
+                <button 
+                  className={`relative w-7 h-7 rounded-full border-[3px] border-ios-grayLight flex items-center justify-center shrink-0 ${isWiredCorrectly ? 'cursor-pointer hover:shadow-md' : 'cursor-not-allowed opacity-50'}`}
                   style={{
-                    borderTopColor: simulationState[mod.instanceId]?.active ? '#FF3B30' : '',
-                    borderRightColor: simulationState[mod.instanceId]?.active ? '#FFCC00' : '',
-                    borderBottomColor: simulationState[mod.instanceId]?.active ? '#34C759' : '',
-                    borderLeftColor: simulationState[mod.instanceId]?.active ? '#007AFF' : '',
-                    boxShadow: simulationState[mod.instanceId]?.active ? '0 0 10px rgba(0,0,0,0.1)' : 'none'
+                    borderTopColor: '#FF3B30',
+                    borderRightColor: '#FFCC00',
+                    borderBottomColor: '#34C759',
+                    borderLeftColor: '#007AFF',
+                    transform: `rotate(${simulationState[mod.instanceId]?.angle || 0}deg)`,
+                    transition: 'transform 3s cubic-bezier(0.2, 0.8, 0.2, 1)' // 快速啟動、緩慢停止的物理減速效果
                   }}
+                  onMouseDown={() => isWiredCorrectly && handleInteraction(mod.instanceId, true, 'ws2812_trigger')}
+                  title={isWiredCorrectly ? "點擊觸發輪盤特效" : "請先完成接線"}
                 >
-                   <div className="w-3 h-3 bg-ios-bg rounded-full shadow-inner"></div>
-                </div>
+                   <div className="w-3 h-3 bg-ios-bg rounded-full shadow-inner relative z-10"></div>
+                   {/* 亮點指示器 (代表 1/12 位置) */}
+                   <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_5px_white]"></div>
+                </button>
               )}
 
               {/* LCD 1602 */}
