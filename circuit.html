@@ -8,23 +8,16 @@
   <!-- 載入 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- 自訂 Tailwind 設定 (加入 iOS 標準色票) -->
+  <!-- 自訂 Tailwind 設定 -->
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
             ios: {
-              bg: '#F2F2F7',
-              card: '#FFFFFF',
-              blue: '#007AFF',
-              green: '#34C759',
-              red: '#FF3B30',
-              yellow: '#FFCC00',
-              gray: '#8E8E93',
-              grayLight: '#E5E5EA',
-              separator: '#C6C6C8',
-              text: '#1C1C1E'
+              bg: '#F2F2F7', card: '#FFFFFF', blue: '#007AFF', green: '#34C759',
+              red: '#FF3B30', yellow: '#FFCC00', gray: '#8E8E93', grayLight: '#E5E5EA',
+              separator: '#C6C6C8', text: '#1C1C1E'
             }
           },
           fontFamily: {
@@ -38,7 +31,7 @@
   <!-- 載入 FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- 使用 Import Map 設定 React 的 ES Modules 來源 -->
+  <!-- 使用 Import Map 設定 React -->
   <script type="importmap">
     {
       "imports": {
@@ -49,46 +42,30 @@
     }
   </script>
 
-  <!-- 載入 Babel 讓瀏覽器可以直接編譯 JSX -->
+  <!-- 載入 Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* iOS 風格的隱藏或極簡捲軸 */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent; 
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(142, 142, 147, 0.3); 
-      border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(142, 142, 147, 0.6); 
-    }
-    /* 移除所有按鈕的點擊虛線框 */
-    button:focus {
-      outline: none;
-    }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(142, 142, 147, 0.3); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(142, 142, 147, 0.6); }
+    button:focus { outline: none; }
   </style>
 </head>
 <body class="bg-ios-bg text-ios-text antialiased">
   <div id="root"></div>
 
   <script type="text/babel" data-type="module" data-presets="react">
-    import React, { useState, useEffect, useRef, useCallback } from 'react';
+    import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
     import { createRoot } from 'react-dom/client';
 
-    // 定義深中淺的隨機配色組合
     const WIRE_SETS = [
       { name: '黃綠藍', GND: { hex: '#007AFF', name: '藍' }, VCC: { hex: '#34C759', name: '綠' }, SIG: { hex: '#FFCC00', name: '黃' } },
       { name: '棕紅橘', GND: { hex: '#A0522D', name: '棕' }, VCC: { hex: '#FF3B30', name: '紅' }, SIG: { hex: '#FF9500', name: '橘' } },
       { name: '黑紫白', GND: { hex: '#1C1C1E', name: '黑' }, VCC: { hex: '#AF52DE', name: '紫' }, SIG: { hex: '#E5E5EA', name: '白' } }
     ];
 
-    // 更新：嚴格檢查電源與接地是否與訊號 (targetPins) 在「同一排」
     const checkPower = (modConns, targetPins, vccPin = 'VCC', gndPin = 'GND') => {
       let vcc = false, gnd = false;
       const allowedV = targetPins.map(p => `${p}_V`);
@@ -187,7 +164,6 @@
       },
       {
         id: 'lcd1602_i2c', type: 'output', name: '📟 LCD 1602 (I2C)', desc: '將 SDA 接 21，SCL 接 22，並配對同排的 V 與 G。',
-        // 依照要求重新排序：SCL, SDA, VCC, GND
         pins: [
           { id: 'SCL', label: 'SCL', color: '#FFCC00' },
           { id: 'SDA', label: 'SDA', color: '#007AFF' },
@@ -506,6 +482,46 @@
       const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
       const [randomColorMode, setRandomColorMode] = useState(false);
       
+      // ================= 互動模擬引擎狀態 =================
+      const [interactions, setInteractions] = useState({});
+
+      const handleInteraction = (instanceId, value) => {
+        setInteractions(prev => ({ ...prev, [instanceId]: value }));
+      };
+
+      // 虛擬 ESP32 韌體：根據輸入元件與接線狀態，決定輸出元件的模擬結果
+      const simulationState = useMemo(() => {
+        const outStates = {};
+        let btnG_pressed = false, btnY_pressed = false, btnR_pressed = false;
+
+        // 1. 讀取輸入感測器的狀態 (必須接線正確才會送出訊號給虛擬 ESP32)
+        workspaceModules.forEach(mod => {
+          if (mod.type === 'input' && mod.id.startsWith('btn_')) {
+            const modConns = connections.filter(c => c.moduleId === mod.instanceId);
+            // 檢查該模組是否已經完整接好 V/G/S
+            if (mod.validate(modConns).success && interactions[mod.instanceId]) {
+              if (mod.id === 'btn_g') btnG_pressed = true;
+              if (mod.id === 'btn_y') btnY_pressed = true;
+              if (mod.id === 'btn_r') btnR_pressed = true;
+            }
+          }
+        });
+
+        // 2. 將輸入狀態寫入到對應的輸出元件 (必須接線正確才會亮起)
+        workspaceModules.forEach(mod => {
+          if (mod.type === 'output' && mod.id.startsWith('led_') && mod.id !== 'led_rgb') {
+            const modConns = connections.filter(c => c.moduleId === mod.instanceId);
+            if (mod.validate(modConns).success) {
+              if (mod.id === 'led_g' && btnG_pressed) outStates[mod.instanceId] = true;
+              if (mod.id === 'led_y' && btnY_pressed) outStates[mod.instanceId] = true;
+              if (mod.id === 'led_r' && btnR_pressed) outStates[mod.instanceId] = true;
+            }
+          }
+        });
+
+        return outStates;
+      }, [connections, interactions, workspaceModules]);
+
       const containerRef = useRef(null);
 
       const updateCoords = useCallback(() => {
@@ -539,7 +555,6 @@
         return () => { window.removeEventListener('resize', updateCoords); clearTimeout(timer); };
       }, [updateCoords]);
 
-      // 當切換深中淺模式時，如果是挑戰模式，重新載入關卡以套用顏色
       useEffect(() => {
         if (appMode === 'challenge' && activeChallenge) {
           loadChallenge(activeChallenge);
@@ -553,7 +568,6 @@
         }
       };
 
-      // 載入關卡
       const loadChallenge = (level) => {
         setConnections([]);
         setFeedbacks(null);
@@ -563,7 +577,6 @@
         
         let mods = level.setup();
         
-        // 如果開啟了「深中淺模式」，隨機套用顏色組合
         if (randomColorMode) {
           mods = mods.map(mod => {
             const randomSet = WIRE_SETS[Math.floor(Math.random() * WIRE_SETS.length)];
@@ -582,10 +595,7 @@
       };
 
       const addModule = (taskTemplate) => {
-        // 防呆：如果工作區已經有這個模組，則不允許重複加入
-        if (workspaceModules.some(m => m.id === taskTemplate.id)) {
-          return;
-        }
+        if (workspaceModules.some(m => m.id === taskTemplate.id)) return;
 
         const newId = `${taskTemplate.id}_${Date.now()}`;
         let newPins = taskTemplate.pins.map(p => ({ ...p }));
@@ -665,7 +675,6 @@
         });
         setFeedbacks(results);
         
-        // 若在挑戰模式下全部模組皆驗證成功，則觸發通關狀態
         if (appMode === 'challenge' && results.every(r => r.success)) {
           setChallengeSuccess(true);
         } else {
@@ -676,7 +685,6 @@
       const createCurve = (x1, y1, x2, y2) => {
         const dx = Math.abs(x2 - x1);
         const offset = Math.max(dx * 0.4, 50);
-        // 自動判斷左右關係，確保曲線向內彎折，不會產生反向突起
         const cp1x = x1 < x2 ? x1 + offset : x1 - offset;
         const cp2x = x1 < x2 ? x2 - offset : x2 + offset;
         return `M ${x1} ${y1} C ${cp1x} ${y1}, ${cp2x} ${y2}, ${x2} ${y2}`;
@@ -698,22 +706,19 @@
 
       const activeCoords = getActivePinCoords();
 
-      // LCD 1602 由於要固定在右下角，我們將它從常規排版中濾出
       const outputModules = workspaceModules.filter(m => m.type === 'output' && m.id !== 'lcd1602_i2c');
       const inputModules = workspaceModules.filter(m => m.type === 'input');
       const fixedRightModules = workspaceModules.filter(m => m.id === 'lcd1602_i2c');
 
       const renderModuleCard = (mod) => {
-        // 判斷該模組是否位於右側 (輸入模組或 LCD 1602)，以決定孔位是否要對調到左邊
         const isRightSideModule = mod.type === 'input' || mod.id === 'lcd1602_i2c';
         
         return (
           <div key={mod.instanceId} className="bg-ios-card p-5 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-ios-grayLight flex flex-col items-center relative w-full shrink-0">
-            {/* 沙盒模式才允許刪除單一模組 */}
             {appMode === 'sandbox' && (
               <button 
                 onClick={() => removeModule(mod.instanceId)} 
-                className="absolute -top-2 -right-2 bg-ios-grayLight text-ios-gray hover:bg-ios-red hover:text-white w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors shadow-sm"
+                className="absolute -top-2 -right-2 bg-ios-grayLight text-ios-gray hover:bg-ios-red hover:text-white w-7 h-7 rounded-full flex items-center justify-center text-sm transition-colors shadow-sm z-10"
                 title="刪除模組"
               ><i className="fa-solid fa-xmark"></i></button>
             )}
@@ -721,16 +726,48 @@
             <div className="text-ios-text font-semibold mb-1 text-[15px] tracking-tight">
               {mod.name}
             </div>
-            <div className="text-[12px] text-ios-gray mb-5 text-center leading-snug px-2">
+            <div className="text-[12px] text-ios-gray mb-3 text-center leading-snug px-2">
               {mod.desc}
             </div>
+
+            {/* ================= 加入互動視覺元件 ================= */}
+            <div className="flex justify-center w-full mb-3 min-h-[44px]">
+              {/* 如果是按鈕，顯示可點擊的 UI */}
+              {mod.id.startsWith('btn_') && (
+                <button
+                  className="w-[44px] h-[44px] rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.15)] active:shadow-inner active:scale-90 transition-all border border-black/10 cursor-pointer"
+                  style={{ backgroundColor: mod.pins.find(p=>p.id==='OUT').color }}
+                  onMouseDown={() => handleInteraction(mod.instanceId, true)}
+                  onMouseUp={() => handleInteraction(mod.instanceId, false)}
+                  onMouseLeave={() => handleInteraction(mod.instanceId, false)}
+                  onTouchStart={() => handleInteraction(mod.instanceId, true)}
+                  onTouchEnd={() => handleInteraction(mod.instanceId, false)}
+                >
+                  <div className="w-full h-full rounded-full bg-gradient-to-b from-white/30 to-transparent"></div>
+                </button>
+              )}
+
+              {/* 如果是單一 LED，顯示發光狀態 */}
+              {mod.id.startsWith('led_') && mod.id !== 'led_rgb' && (
+                <div
+                  className="w-[44px] h-[44px] rounded-full transition-all duration-150 border border-black/10"
+                  style={{
+                    backgroundColor: mod.pins.find(p=>p.id==='SIG').color,
+                    opacity: simulationState[mod.instanceId] ? 1 : 0.25,
+                    boxShadow: simulationState[mod.instanceId] ? `0 0 20px 2px ${mod.pins.find(p=>p.id==='SIG').color}` : 'none'
+                  }}
+                >
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
+                </div>
+              )}
+            </div>
+            {/* =================================================== */}
             
             <div className="flex flex-col gap-3 w-full px-2">
               {mod.pins.map(pin => {
                 const isActive = activePin?.type === 'module' && activePin?.id === pin.id && activePin?.moduleId === mod.instanceId;
                 const isConnected = connections.some(c => c.moduleId === mod.instanceId && c.modulePin === pin.id);
                 return (
-                  // 根據 isRightSideModule 動態反轉排列順序 (flex-row-reverse)
                   <div key={pin.id} className={`flex items-center justify-between ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
                     <span className={`text-ios-gray font-mono text-[13px] font-medium flex items-center ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
                       {pin.label}
@@ -780,7 +817,6 @@
                 </div>
               </button>
             )})}
-            {/* 特例：將 LCD1602 放回選單 */}
             {TASKS.filter(t => t.type === type && t.id === 'lcd1602_i2c').map((task) => {
               const isAdded = workspaceModules.some(m => m.id === task.id);
               return (
@@ -807,8 +843,9 @@
             <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
               <i className="fa-solid fa-bolt text-ios-yellow"></i> ESP32 接線練習 {appMode === 'challenge' && activeChallenge ? ` - ${activeChallenge.title}` : ''}
             </h1>
-            <div className="text-[13px] font-medium text-ios-gray">
-              {appMode === 'sandbox' ? '點擊列表加入模組，連接對應腳位' : '請依照關卡指示完成精準接線'}
+            <div className="text-[13px] font-medium text-ios-gray flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-ios-green animate-pulse"></span>
+              模擬引擎啟動中：接線正確後即可點擊元件互動！
             </div>
           </header>
 
@@ -920,7 +957,7 @@
                 {challengeSuccess && (
                   <div className="pointer-events-auto bg-[#E8F5E9] border border-[#A5D6A7] text-[#2E7D32] shadow-lg rounded-2xl w-full max-w-2xl p-4 flex items-center justify-center gap-3 animate-bounce">
                     <i className="fa-solid fa-trophy text-2xl text-[#FFB300]"></i>
-                    <span className="font-bold text-[16px]">太棒了！你已完美完成本關卡的所有接線挑戰！</span>
+                    <span className="font-bold text-[16px]">太棒了！你已完美完成本關卡的所有接線挑戰！快試著按按看開關吧！</span>
                   </div>
                 )}
 
