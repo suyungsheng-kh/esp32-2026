@@ -501,26 +501,81 @@
 
       const simulationState = useMemo(() => {
         const outStates = {};
-        let btnG_pressed = false, btnY_pressed = false, btnR_pressed = false;
+        
+        // 1. 統一收集所有輸入感測器的狀態
+        let inputs = {
+          btn_g: false, btn_y: false, btn_r: false,
+          any_btn: false,
+          pot: 0, temp: null, dist: null
+        };
 
         workspaceModules.forEach(mod => {
-          if (mod.type === 'input' && mod.id.startsWith('btn_')) {
+          if (mod.type === 'input') {
             const modConns = connections.filter(c => c.moduleId === mod.instanceId);
-            if (mod.validate(modConns).success && interactions[mod.instanceId]) {
-              if (mod.id === 'btn_g') btnG_pressed = true;
-              if (mod.id === 'btn_y') btnY_pressed = true;
-              if (mod.id === 'btn_r') btnR_pressed = true;
+            if (mod.validate(modConns).success) {
+              const val = interactions[mod.instanceId];
+              if (mod.id === 'btn_g' && val) inputs.btn_g = true;
+              if (mod.id === 'btn_y' && val) inputs.btn_y = true;
+              if (mod.id === 'btn_r' && val) inputs.btn_r = true;
+              if (mod.id === 'potentiometer') inputs.pot = val !== undefined ? Number(val) : mod.sensor?.default || 0;
+              if (mod.id === 'dht') inputs.temp = val !== undefined ? Number(val) : mod.sensor?.default || 25;
+              if (mod.id === 'ultrasonic') inputs.dist = val !== undefined ? Number(val) : mod.sensor?.default || 10;
             }
           }
         });
 
+        inputs.any_btn = inputs.btn_g || inputs.btn_y || inputs.btn_r;
+
+        // 2. 根據輸入狀態，計算各個輸出模組的模擬反應
         workspaceModules.forEach(mod => {
-          if (mod.type === 'output' && mod.id.startsWith('led_') && mod.id !== 'led_rgb') {
+          if (mod.type === 'output') {
             const modConns = connections.filter(c => c.moduleId === mod.instanceId);
             if (mod.validate(modConns).success) {
-              if (mod.id === 'led_g' && btnG_pressed) outStates[mod.instanceId] = true;
-              if (mod.id === 'led_y' && btnY_pressed) outStates[mod.instanceId] = true;
-              if (mod.id === 'led_r' && btnR_pressed) outStates[mod.instanceId] = true;
+              // 單色 LED
+              if (mod.id === 'led_g') outStates[mod.instanceId] = { active: inputs.btn_g };
+              if (mod.id === 'led_y') outStates[mod.instanceId] = { active: inputs.btn_y };
+              if (mod.id === 'led_r') outStates[mod.instanceId] = { active: inputs.btn_r };
+              
+              // 全彩 LED
+              if (mod.id === 'led_rgb') {
+                let color = '#E5E5EA';
+                if (inputs.btn_r) color = '#FF3B30';
+                else if (inputs.btn_g) color = '#34C759';
+                else if (inputs.btn_y) color = '#FFCC00';
+                else if (inputs.any_btn) color = '#007AFF';
+                outStates[mod.instanceId] = { active: inputs.any_btn, color };
+              }
+              
+              // 蜂鳴器 (按鈕 或 距離過近警告)
+              if (mod.id === 'buzzer') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.dist !== null && inputs.dist <= 15) };
+              
+              // 繼電器/風扇 (按鈕 或 溫度過高啟動)
+              if (mod.id === 'relay') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.temp !== null && inputs.temp >= 30) };
+              
+              // 伺服馬達 (對應可變電阻數值 0-4095 轉換為角度 0-180)
+              if (mod.id === 'servo') outStates[mod.instanceId] = { angle: Math.floor((inputs.pot / 4095) * 180) };
+              
+              // WS2812 環狀燈特效
+              if (mod.id === 'ws2812') outStates[mod.instanceId] = { active: inputs.any_btn };
+              
+              // LCD 1602 螢幕文字動態顯示
+              if (mod.id === 'lcd1602_i2c') {
+                let line1 = "ESP32 Ready!";
+                let line2 = "Waiting input...";
+                if (inputs.temp !== null) { 
+                  line1 = `Temp: ${inputs.temp} C`; 
+                  line2 = inputs.temp >= 30 ? "Fan: ON" : "Fan: OFF"; 
+                }
+                else if (inputs.dist !== null) { 
+                  line1 = `Dist: ${inputs.dist} cm`; 
+                  line2 = inputs.dist <= 15 ? "Warning!" : "Safe."; 
+                }
+                else if (inputs.any_btn) { 
+                  line1 = "Button Pressed!"; 
+                  line2 = "LED is ON"; 
+                }
+                outStates[mod.instanceId] = { active: true, line1, line2 };
+              }
             }
           }
         });
@@ -716,6 +771,16 @@
       const inputModules = workspaceModules.filter(m => m.type === 'input');
       const fixedRightModules = workspaceModules.filter(m => m.id === 'lcd1602_i2c');
 
+      // 新增：計算左側 (輸出) 模組的兩欄配置：靠近主板 (內側/右邊) 先排，由上到下
+      const outMid = Math.ceil(outputModules.length / 2);
+      const outInner = outputModules.slice(0, outMid);
+      const outOuter = outputModules.slice(outMid);
+
+      // 新增：計算右側 (輸入) 模組的兩欄配置：靠近主板 (內側/左邊) 先排，由上到下
+      const inMid = Math.ceil(inputModules.length / 2);
+      const inInner = inputModules.slice(0, inMid);
+      const inOuter = inputModules.slice(inMid);
+
       // 重新設計的「微縮版」模組卡片
       const renderModuleCard = (mod) => {
         const isRightSideModule = mod.type === 'input' || mod.id === 'lcd1602_i2c';
@@ -741,10 +806,11 @@
             {/* 微縮版互動視覺元件 */}
             <div className="flex flex-col items-center justify-center w-full mb-1.5 min-h-[28px]">
               
+              {/* === 1. 輸入模組區 === */}
               {/* 微縮按鈕 */}
               {mod.id.startsWith('btn_') && (
                 <button
-                  className="w-7 h-7 rounded-full shadow-sm active:shadow-inner active:scale-90 transition-all border border-black/10 cursor-pointer"
+                  className="w-7 h-7 rounded-full shadow-sm active:shadow-inner active:scale-90 transition-all border border-black/10 cursor-pointer shrink-0"
                   style={{ backgroundColor: mod.pins.find(p=>p.id==='OUT').color }}
                   onMouseDown={() => handleInteraction(mod.instanceId, true)}
                   onMouseUp={() => handleInteraction(mod.instanceId, false)}
@@ -754,20 +820,6 @@
                 >
                   <div className="w-full h-full rounded-full bg-gradient-to-b from-white/30 to-transparent"></div>
                 </button>
-              )}
-
-              {/* 微縮 LED */}
-              {mod.id.startsWith('led_') && mod.id !== 'led_rgb' && (
-                <div
-                  className="w-7 h-7 rounded-full transition-all duration-150 border border-black/10"
-                  style={{
-                    backgroundColor: mod.pins.find(p=>p.id==='SIG').color,
-                    opacity: simulationState[mod.instanceId] ? 1 : 0.25,
-                    boxShadow: simulationState[mod.instanceId] ? `0 0 15px 2px ${mod.pins.find(p=>p.id==='SIG').color}` : 'none'
-                  }}
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
-                </div>
               )}
 
               {/* 微縮感測器滑桿 */}
@@ -794,6 +846,97 @@
               {mod.sensor && !isWiredCorrectly && (
                 <div className="w-full px-1 flex items-center justify-center h-[32px] bg-ios-grayLight/30 border border-ios-separator border-dashed rounded-lg text-[9px] text-ios-gray font-medium">
                   🔌 需接線
+                </div>
+              )}
+
+              {/* === 2. 輸出模組模擬區 === */}
+              {/* 微縮單色 LED */}
+              {mod.id.startsWith('led_') && mod.id !== 'led_rgb' && (
+                <div
+                  className="w-7 h-7 rounded-full transition-all duration-150 border border-black/10 shrink-0"
+                  style={{
+                    backgroundColor: mod.pins.find(p=>p.id==='SIG').color,
+                    opacity: simulationState[mod.instanceId]?.active ? 1 : 0.25,
+                    boxShadow: simulationState[mod.instanceId]?.active ? `0 0 15px 2px ${mod.pins.find(p=>p.id==='SIG').color}` : 'none'
+                  }}
+                >
+                  <div className="w-full h-full rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
+                </div>
+              )}
+
+              {/* 全彩 LED (RGB) */}
+              {mod.id === 'led_rgb' && (
+                <div
+                  className="w-7 h-7 rounded-full transition-all duration-300 border border-black/10 flex overflow-hidden relative shrink-0"
+                  style={{
+                    backgroundColor: simulationState[mod.instanceId]?.active ? simulationState[mod.instanceId]?.color : '#E5E5EA',
+                    boxShadow: simulationState[mod.instanceId]?.active ? `0 0 15px 2px ${simulationState[mod.instanceId]?.color}` : 'none'
+                  }}
+                >
+                  {!simulationState[mod.instanceId]?.active && (
+                    <div className="w-full h-full flex">
+                      <div className="flex-1 bg-[#FF3B30]/30"></div>
+                      <div className="flex-1 bg-[#34C759]/30"></div>
+                      <div className="flex-1 bg-[#007AFF]/30"></div>
+                    </div>
+                  )}
+                  <div className="absolute w-full h-full rounded-full bg-gradient-to-br from-white/50 to-transparent"></div>
+                </div>
+              )}
+
+              {/* 蜂鳴器 */}
+              {mod.id === 'buzzer' && (
+                <div className={`text-xl transition-all flex items-center justify-center h-7 ${simulationState[mod.instanceId]?.active ? 'text-[#AF52DE] animate-bounce' : 'text-ios-grayLight'}`}>
+                  <i className={`fa-solid ${simulationState[mod.instanceId]?.active ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
+                </div>
+              )}
+
+              {/* 繼電器與風扇 */}
+              {mod.id === 'relay' && (
+                <div className={`text-xl transition-all flex items-center justify-center h-7 ${simulationState[mod.instanceId]?.active ? 'text-[#FF9500]' : 'text-ios-grayLight'}`}>
+                  <i className={`fa-solid fa-fan ${simulationState[mod.instanceId]?.active ? 'fa-spin' : ''}`}></i>
+                </div>
+              )}
+
+              {/* 伺服馬達 */}
+              {mod.id === 'servo' && (
+                <div className="relative w-8 h-8 rounded-full border-2 border-ios-separator bg-white flex items-center justify-center shrink-0">
+                   <div 
+                     className="absolute w-1 h-3.5 bg-[#FF9500] rounded-full origin-bottom bottom-4 transition-all duration-200"
+                     style={{ transform: `rotate(${simulationState[mod.instanceId]?.angle || 0}deg)` }}
+                   ></div>
+                   <div className="w-2 h-2 bg-ios-text rounded-full z-10 shadow-sm"></div>
+                   <span className="absolute -bottom-3 text-[8px] font-bold text-ios-gray bg-ios-bg px-0.5 rounded">{simulationState[mod.instanceId]?.angle || 0}°</span>
+                </div>
+              )}
+
+              {/* WS2812 環狀燈 */}
+              {mod.id === 'ws2812' && (
+                <div 
+                  className={`w-7 h-7 rounded-full border-[3px] border-ios-grayLight flex items-center justify-center transition-all shrink-0 ${simulationState[mod.instanceId]?.active ? 'animate-spin' : ''}`}
+                  style={{
+                    borderTopColor: simulationState[mod.instanceId]?.active ? '#FF3B30' : '',
+                    borderRightColor: simulationState[mod.instanceId]?.active ? '#FFCC00' : '',
+                    borderBottomColor: simulationState[mod.instanceId]?.active ? '#34C759' : '',
+                    borderLeftColor: simulationState[mod.instanceId]?.active ? '#007AFF' : '',
+                    boxShadow: simulationState[mod.instanceId]?.active ? '0 0 10px rgba(0,0,0,0.1)' : 'none'
+                  }}
+                >
+                   <div className="w-3 h-3 bg-ios-bg rounded-full shadow-inner"></div>
+                </div>
+              )}
+
+              {/* LCD 1602 */}
+              {mod.id === 'lcd1602_i2c' && (
+                <div className="w-full h-[36px] bg-[#8BC34A] border-2 border-[#558B2F] rounded shadow-inner p-1 font-mono text-[#1B5E20] leading-none overflow-hidden flex flex-col justify-center">
+                   {simulationState[mod.instanceId]?.active ? (
+                     <>
+                       <div className="text-[9px] font-bold whitespace-nowrap">{simulationState[mod.instanceId]?.line1}</div>
+                       <div className="text-[9px] font-bold whitespace-nowrap mt-0.5">{simulationState[mod.instanceId]?.line2}</div>
+                     </>
+                   ) : (
+                     <div className="text-[8px] text-[#33691E]/50 font-bold text-center mt-1">NO POWER</div>
+                   )}
                 </div>
               )}
 
@@ -1074,8 +1217,15 @@
                         {appMode === 'challenge' ? '此關卡無一般輸出模組' : '請加入輸出模組'}
                      </div>
                    )}
-                   <div className="w-full grid grid-cols-2 gap-3 items-start">
-                     {outputModules.map(mod => renderModuleCard(mod))}
+                   <div className="w-full flex gap-3 items-start">
+                     {/* 左側面板的外側 (遠離主板)：放後續換列的模組 */}
+                     <div className="flex-1 flex flex-col gap-3">
+                       {outOuter.map(mod => renderModuleCard(mod))}
+                     </div>
+                     {/* 左側面板的內側 (靠近主板)：優先由上到下排列 */}
+                     <div className="flex-1 flex flex-col gap-3">
+                       {outInner.map(mod => renderModuleCard(mod))}
+                     </div>
                    </div>
                 </div>
 
@@ -1194,8 +1344,15 @@
                         {appMode === 'challenge' ? '此關卡無輸入模組' : '請加入輸入模組'}
                      </div>
                    )}
-                   <div className="w-full grid grid-cols-2 gap-3 items-start">
-                     {inputModules.map(mod => renderModuleCard(mod))}
+                   <div className="w-full flex gap-3 items-start">
+                     {/* 右側面板的內側 (靠近主板)：優先由上到下排列 */}
+                     <div className="flex-1 flex flex-col gap-3">
+                       {inInner.map(mod => renderModuleCard(mod))}
+                     </div>
+                     {/* 右側面板的外側 (遠離主板)：放後續換列的模組 */}
+                     <div className="flex-1 flex flex-col gap-3">
+                       {inOuter.map(mod => renderModuleCard(mod))}
+                     </div>
                    </div>
                 </div>
                 
