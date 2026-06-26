@@ -136,8 +136,8 @@
           const sig = modConns.some(c => c.modulePin === 'DIN' && c.shieldPin === 'IO4_S');
           const { vcc, gnd } = checkPower(modConns, ['IO4']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！準備發出炫麗光芒。' };
-          if (!sig) return { success: false, msg: 'DIN 訊號請接在 pin 4 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'DIN 訊號請接在指定的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在訊號旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
