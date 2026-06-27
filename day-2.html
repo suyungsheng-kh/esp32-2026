@@ -38,7 +38,7 @@
                 
                 <!-- 桌面版選單 -->
                 <div class="hidden md:flex items-center space-x-2">
-                    <a href="c" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">前導課程</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">前導課程</a>
                     <a href="https://suyungsheng-kh.github.io/esp32-2026/day-1.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 1: 有聲紅綠燈</a>
                     <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="text-maker font-bold bg-maker-light px-4 py-2 rounded-lg transition-colors">Day 2: 光影與閘門</a>
                     <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 3: 觀測與整合</a>
@@ -215,7 +215,7 @@
                             <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
                                 <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
                                 <li><span class="text-slate-800 font-bold">超音波：</span>Trig(19), Echo(23)</li>
-                                <li><span class="text-slate-800 font-bold">伺服馬達：</span>Pin 13</li>
+                                <li><span class="text-slate-800 font-bold">伺服馬達：</span>Pin 32</li>
                             </ul>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
@@ -316,7 +316,7 @@
 
                 <!-- 程式邏輯挑戰與停車計費模擬器 (左右並排) -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <!-- 左側：程式邏輯挑戰 (話流程圖) -->
+                    <!-- 左側：程式邏輯挑戰 (計費公式) -->
                     <div class="bg-blue-50 rounded-xl p-5 border border-blue-100 flex flex-col h-full shadow-sm">
                         <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-blue-600 mr-2"></i>程式邏輯挑戰 (計費公式)</h4>
                         <p class="text-sm text-slate-700 italic mb-4 leading-relaxed">「車子離開時，我們需要根據停車的『分鐘數』來計算費用。規則是：<strong>10 分鐘內免費</strong>；超過 10 分鐘後，<strong>每 30 分鐘收費 15 元</strong> (未滿 30 分鐘以 30 分鐘計)。」</p>
@@ -384,8 +384,9 @@
                                 <div class="text-sm text-slate-600 space-y-2">
                                     <p><strong>🎯 任務目標：</strong> 完成任務 1 (調光燈與調色) 及任務 2 (智慧路燈)。</p>
                                     <ul class="list-disc list-inside pl-2 space-y-1">
-                                        <li>讀取可變電阻，並使用 LCD 顯示數值，再將數值對應到 LED 亮度或顏色。</li>
-                                        <li>利用光敏電阻控制 LED 開關，找到適當的「天黑閥值」。</li>
+                                        <li>認識類比訊號並學習接線，將可變電阻與光敏電阻數值顯示在 1602A LCD 上觀察。</li>
+                                        <li>利用可變電阻控制 LED 亮度；設定「天黑閥值」讓光敏電阻控制路燈自動開關。</li>
+                                        <li><strong>老師檢核點：</strong>提醒學生光敏電阻「越暗數值越高」的反直覺特性。</li>
                                     </ul>
                                 </div>
                             </div>
@@ -399,10 +400,10 @@
                             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex-1 mb-2 hover:border-maker transition-colors">
                                 <h5 class="font-bold text-lg text-slate-800 mb-2">第 2 小時：炫彩舞台與時間魔法</h5>
                                 <div class="text-sm text-slate-600 space-y-2">
-                                    <p><strong>🎯 任務目標：</strong> 突破「挑戰一」，控制 WS2812 環形燈。</p>
+                                    <p><strong>🎯 任務目標：</strong> 突破「挑戰一」，控制 WS2812 環狀燈。</p>
                                     <ul class="list-disc list-inside pl-2 space-y-1">
                                         <li>了解陣列概念，利用迴圈與變數控制「第 N 顆燈」。</li>
-                                        <li>實作電子時鐘(每秒亮下一顆)，或是結合按鈕製作幸運轉盤抽獎遊戲。</li>
+                                        <li>實作電子時鐘 (每秒亮下一顆)，或是挑戰「幸運轉盤」(燈光快速旋轉 5 次後隨機停止)。</li>
                                     </ul>
                                 </div>
                             </div>
@@ -515,6 +516,74 @@
             document.body.style.overflow = 'auto';
         }
 
+        // --- Day 2: 智慧路燈 光敏電阻小模擬器 ---
+        const task2Slider = document.getElementById('sim-task2-slider');
+        const task2Bg = document.getElementById('sim-task2-bg');
+        const task2Sky = document.getElementById('sim-task2-sky');
+        const task2ValText = document.getElementById('sim-task2-val-text');
+        const task2Val = document.getElementById('sim-task2-val');
+        const task2Led = document.getElementById('sim-task2-led');
+
+        if (task2Slider) {
+            task2Slider.addEventListener('input', (e) => {
+                const darkLevel = parseInt(e.target.value); 
+                
+                const sensorValue = 200 + Math.floor((darkLevel / 100) * 3895);
+                task2Val.textContent = sensorValue;
+                
+                if (darkLevel < 35) {
+                    task2Bg.className = 'bg-sky-50 p-3 rounded-lg border border-sky-100 mt-auto transition-colors duration-500 shadow-inner';
+                    task2Sky.className = 'text-xs font-bold text-sky-800 transition-colors duration-500';
+                    task2Sky.innerHTML = '<i class="fa-solid fa-sun text-yellow-500 mr-1"></i>大晴天';
+                    task2ValText.className = 'text-sky-800 transition-colors duration-500';
+                } else if (darkLevel < 70) {
+                    task2Bg.className = 'bg-indigo-100 p-3 rounded-lg border border-indigo-200 mt-auto transition-colors duration-500 shadow-inner';
+                    task2Sky.className = 'text-xs font-bold text-indigo-800 transition-colors duration-500';
+                    task2Sky.innerHTML = '<i class="fa-solid fa-cloud-sun text-slate-500 mr-1"></i>傍晚';
+                    task2ValText.className = 'text-indigo-800 transition-colors duration-500';
+                } else {
+                    task2Bg.className = 'bg-slate-800 p-3 rounded-lg border border-slate-700 mt-auto transition-colors duration-500 shadow-inner';
+                    task2Sky.className = 'text-xs font-bold text-slate-300 transition-colors duration-500';
+                    task2Sky.innerHTML = '<i class="fa-solid fa-moon text-yellow-300 mr-1"></i>黑夜';
+                    task2ValText.className = 'text-slate-300 transition-colors duration-500';
+                }
+
+                if (sensorValue > 2900) {
+                    task2Led.className = 'fa-solid fa-lightbulb text-yellow-400 text-xl transition-all duration-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]';
+                    task2Val.className = 'text-sm text-yellow-400';
+                } else {
+                    task2Led.className = 'fa-solid fa-lightbulb text-slate-400/50 text-lg transition-all duration-300';
+                    task2Val.className = 'text-sm';
+                }
+            });
+        }
+
+        // --- Day 2: 停車場閘門 小模擬器 ---
+        const task3Slider = document.getElementById('sim-task3-slider');
+        const task3Val = document.getElementById('sim-task3-val');
+        const task3Gate = document.getElementById('sim-task3-gate');
+        const task3Status = document.getElementById('sim-task3-status');
+        const task3Bg = document.getElementById('sim-task3-bg');
+        
+        if(task3Slider) {
+            task3Slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                task3Val.textContent = val;
+                
+                if(val < 10) {
+                    task3Gate.style.transform = 'rotate(-90deg)';
+                    task3Status.innerHTML = '<i class="fa-solid fa-check-circle mr-1"></i>閘門開啟 (90°)';
+                    task3Status.className = 'text-xs font-bold text-green-600 transition-colors duration-300';
+                    task3Bg.className = 'bg-green-50 p-3 rounded-lg border border-green-100 mt-auto transition-colors duration-300 shadow-inner';
+                } else {
+                    task3Gate.style.transform = 'rotate(0deg)';
+                    task3Status.innerHTML = '<i class="fa-solid fa-ban mr-1"></i>閘門關閉 (0°)';
+                    task3Status.className = 'text-xs font-bold text-red-600 transition-colors duration-300';
+                    task3Bg.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 mt-auto transition-colors duration-300 shadow-inner';
+                }
+            });
+        }
+
         // --- Day 2: WS2812 環狀燈模擬器 ---
         const wsRing = document.getElementById('sim-ws-ring');
         const wsLeds = [];
@@ -605,74 +674,6 @@
                 }
             }
             spin(); // 啟動轉盤
-        }
-
-        // --- Day 2: 智慧路燈 光敏電阻小模擬器 ---
-        const task2Slider = document.getElementById('sim-task2-slider');
-        const task2Bg = document.getElementById('sim-task2-bg');
-        const task2Sky = document.getElementById('sim-task2-sky');
-        const task2ValText = document.getElementById('sim-task2-val-text');
-        const task2Val = document.getElementById('sim-task2-val');
-        const task2Led = document.getElementById('sim-task2-led');
-
-        if (task2Slider) {
-            task2Slider.addEventListener('input', (e) => {
-                const darkLevel = parseInt(e.target.value); 
-                
-                const sensorValue = 200 + Math.floor((darkLevel / 100) * 3895);
-                task2Val.textContent = sensorValue;
-                
-                if (darkLevel < 35) {
-                    task2Bg.className = 'bg-sky-50 p-3 rounded-lg border border-sky-100 mt-auto transition-colors duration-500 shadow-inner';
-                    task2Sky.className = 'text-xs font-bold text-sky-800 transition-colors duration-500';
-                    task2Sky.innerHTML = '<i class="fa-solid fa-sun text-yellow-500 mr-1"></i>大晴天';
-                    task2ValText.className = 'text-sky-800 transition-colors duration-500';
-                } else if (darkLevel < 70) {
-                    task2Bg.className = 'bg-indigo-100 p-3 rounded-lg border border-indigo-200 mt-auto transition-colors duration-500 shadow-inner';
-                    task2Sky.className = 'text-xs font-bold text-indigo-800 transition-colors duration-500';
-                    task2Sky.innerHTML = '<i class="fa-solid fa-cloud-sun text-slate-500 mr-1"></i>傍晚';
-                    task2ValText.className = 'text-indigo-800 transition-colors duration-500';
-                } else {
-                    task2Bg.className = 'bg-slate-800 p-3 rounded-lg border border-slate-700 mt-auto transition-colors duration-500 shadow-inner';
-                    task2Sky.className = 'text-xs font-bold text-slate-300 transition-colors duration-500';
-                    task2Sky.innerHTML = '<i class="fa-solid fa-moon text-yellow-300 mr-1"></i>黑夜';
-                    task2ValText.className = 'text-slate-300 transition-colors duration-500';
-                }
-
-                if (sensorValue > 2900) {
-                    task2Led.className = 'fa-solid fa-lightbulb text-yellow-400 text-xl transition-all duration-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]';
-                    task2Val.className = 'text-sm text-yellow-400';
-                } else {
-                    task2Led.className = 'fa-solid fa-lightbulb text-slate-400/50 text-lg transition-all duration-300';
-                    task2Val.className = 'text-sm';
-                }
-            });
-        }
-
-        // --- Day 2: 停車場閘門 小模擬器 ---
-        const task3Slider = document.getElementById('sim-task3-slider');
-        const task3Val = document.getElementById('sim-task3-val');
-        const task3Gate = document.getElementById('sim-task3-gate');
-        const task3Status = document.getElementById('sim-task3-status');
-        const task3Bg = document.getElementById('sim-task3-bg');
-        
-        if(task3Slider) {
-            task3Slider.addEventListener('input', (e) => {
-                const val = parseInt(e.target.value);
-                task3Val.textContent = val;
-                
-                if(val < 10) {
-                    task3Gate.style.transform = 'rotate(-90deg)';
-                    task3Status.innerHTML = '<i class="fa-solid fa-check-circle mr-1"></i>閘門開啟 (90°)';
-                    task3Status.className = 'text-xs font-bold text-green-600 transition-colors duration-300';
-                    task3Bg.className = 'bg-green-50 p-3 rounded-lg border border-green-100 mt-auto transition-colors duration-300 shadow-inner';
-                } else {
-                    task3Gate.style.transform = 'rotate(0deg)';
-                    task3Status.innerHTML = '<i class="fa-solid fa-ban mr-1"></i>閘門關閉 (0°)';
-                    task3Status.className = 'text-xs font-bold text-red-600 transition-colors duration-300';
-                    task3Bg.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 mt-auto transition-colors duration-300 shadow-inner';
-                }
-            });
         }
 
         // --- Day 2: 停車計費 模擬器 ---
