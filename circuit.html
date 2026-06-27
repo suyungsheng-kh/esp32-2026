@@ -440,7 +440,44 @@
       {
         day: 'Day-3',
         title: '智慧物聯網應用',
-        levels: []
+        levels: [
+          {
+            id: 'd3-1',
+            title: '1. 氣象台',
+            desc: 'DHT11 (DATA ➜ IO13)，LCD (SDA:21, SCL:22 擴充區)。',
+            setup: () => [
+              createCustomModule('dht', 'IO13'),
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
+            ]
+          },
+          {
+            id: 'd3-2',
+            title: '2. 泥土醫生',
+            desc: '土壤濕度 (AO ➜ IO32)，LCD (SDA:21, SCL:22 擴充區)。找出太乾的閥值！',
+            setup: () => [
+              createCustomModule('soil', 'IO32'),
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
+            ]
+          },
+          {
+            id: 'd3-3',
+            title: '3. 水溫計',
+            desc: '水溫感測 (DATA ➜ IO16)，LCD (SDA:21, SCL:22 擴充區)。',
+            setup: () => [
+              createCustomModule('water_temp', 'IO16'),
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
+            ]
+          },
+          {
+            id: 'd3-4',
+            title: '4. 風暴製造機',
+            desc: '繼電器 (IN ➜ IO12)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
+            setup: () => [
+              createCustomModule('relay', 'IO12'),
+              { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
+            ]
+          }
+        ]
       }
     ];
 
@@ -491,6 +528,7 @@
       const [feedbacks, setFeedbacks] = useState(null); 
       const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
       const [randomColorMode, setRandomColorMode] = useState(false);
+      const [tick, setTick] = useState(0); // 新增：用於產生循環的計時器狀態
       
       // ================= 互動模擬引擎狀態 =================
       const [interactions, setInteractions] = useState({});
@@ -538,6 +576,12 @@
         }
       }, []);
 
+      // 每秒更新計時器，讓繼電器等設備可以定時切換狀態
+      useEffect(() => {
+        const interval = setInterval(() => setTick(t => t + 1), 1000);
+        return () => clearInterval(interval);
+      }, []);
+
       const simulationState = useMemo(() => {
         const outStates = {};
         
@@ -545,7 +589,7 @@
         let inputs = {
           btn_g: false, btn_y: false, btn_r: false,
           any_btn: false,
-          pot: null, temp: null, dist: null, light: null // 新增 light 狀態
+          pot: null, temp: null, dist: null, light: null, soil: null, water: null
         };
 
         workspaceModules.forEach(mod => {
@@ -559,12 +603,17 @@
               if (mod.id === 'potentiometer') inputs.pot = val !== undefined ? Number(val) : mod.sensor?.default || 0;
               if (mod.id === 'dht') inputs.temp = val !== undefined ? Number(val) : mod.sensor?.default || 25;
               if (mod.id === 'ultrasonic') inputs.dist = val !== undefined ? Number(val) : mod.sensor?.default || 10;
-              if (mod.id === 'photoresistor') inputs.light = val !== undefined ? Number(val) : mod.sensor?.default || 2048; // 收集光敏數值
+              if (mod.id === 'photoresistor') inputs.light = val !== undefined ? Number(val) : mod.sensor?.default || 2048;
+              if (mod.id === 'soil') inputs.soil = val !== undefined ? Number(val) : mod.sensor?.default || 50;
+              if (mod.id === 'water_temp') inputs.water = val !== undefined ? Number(val) : mod.sensor?.default || 20;
             }
           }
         });
 
         inputs.any_btn = inputs.btn_g || inputs.btn_y || inputs.btn_r;
+
+        // 定義自動繼電器的每 2 秒開關狀態 (tick / 2 取整數判斷偶數)
+        const autoRelay = Math.floor(tick / 2) % 2 === 0;
 
         // 2. 根據輸入狀態，計算各個輸出模組的模擬反應
         workspaceModules.forEach(mod => {
@@ -613,8 +662,10 @@
                 };
               }
               
-              // 繼電器/風扇 (按鈕 或 溫度過高啟動)
-              if (mod.id === 'relay') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.temp !== null && inputs.temp >= 30) };
+              // 繼電器/風扇 (按鈕 或 溫度過高啟動 或 自動切換模式)
+              if (mod.id === 'relay') {
+                outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.temp !== null && inputs.temp >= 30) || autoRelay };
+              }
               
               // 伺服馬達 (優先判斷超音波閘門邏輯，否則對應可變電阻)
               if (mod.id === 'servo') {
@@ -637,9 +688,18 @@
               if (mod.id === 'lcd1602_i2c') {
                 let line1 = "ESP32 Ready!";
                 let line2 = "Waiting input...";
+                
                 if (inputs.temp !== null) { 
-                  line1 = `Temp: ${inputs.temp} C`; 
-                  line2 = inputs.temp >= 30 ? "Fan: ON" : "Fan: OFF"; 
+                  line1 = `T: ${inputs.temp}C`; 
+                  line2 = `H: ${Math.min(100, inputs.temp + 35)}%`; // 模擬濕度為溫度+35
+                }
+                else if (inputs.soil !== null) {
+                  line1 = `Soil: ${inputs.soil}%`;
+                  line2 = inputs.soil < 30 ? "Status: DRY!" : "Status: OK";
+                }
+                else if (inputs.water !== null) {
+                  line1 = `Water Temp:`;
+                  line2 = `${inputs.water} C`;
                 }
                 else if (inputs.dist !== null) { 
                   line1 = `Dist: ${inputs.dist} cm`; 
@@ -654,10 +714,15 @@
                   line1 = `ADC: ${inputs.pot}`;
                   line2 = `Bright: ${percent}%`;
                 }
+                else if (workspaceModules.some(m => m.id.startsWith('relay'))) {
+                  line1 = "Storm Maker";
+                  line2 = autoRelay ? "Relay: ON" : "Relay: OFF";
+                }
                 else if (inputs.any_btn) { 
                   line1 = "Button Pressed!"; 
                   line2 = "LED is ON"; 
                 }
+                
                 outStates[mod.instanceId] = { active: true, line1, line2 };
               }
             }
@@ -665,7 +730,7 @@
         });
 
         return outStates;
-      }, [connections, interactions, ws2812Angles, workspaceModules]);
+      }, [connections, interactions, ws2812Angles, workspaceModules, tick]); // 加入 tick 依賴，每秒重新計算
 
       const containerRef = useRef(null);
 
