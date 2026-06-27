@@ -1205,9 +1205,17 @@
         <div className="h-screen w-full bg-ios-bg text-ios-text font-sans flex flex-col overflow-hidden">
           
           <header className="bg-ios-card/80 backdrop-blur-xl px-6 py-4 flex justify-between items-center shrink-0 z-30">
-            <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
-              <i className="fa-solid fa-bolt text-ios-yellow"></i> ESP32 接線練習 {appMode === 'challenge' && activeChallenge ? ` - ${activeChallenge.title}` : ''}
-            </h1>
+            <div className="flex items-center">
+              <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
+                <i className="fa-solid fa-bolt text-ios-yellow"></i> ESP32 接線練習 {appMode === 'challenge' && activeChallenge ? ` - ${activeChallenge.title}` : ''}
+              </h1>
+              <a 
+                href="https://suyungsheng-kh.github.io/esp32-2026/" 
+                className="ml-4 text-[13px] font-bold text-ios-blue bg-ios-blue/10 px-3 py-1.5 rounded-full hover:bg-ios-blue/20 transition-colors flex items-center gap-1.5"
+              >
+                <i className="fa-solid fa-house"></i> 回到課程首頁
+              </a>
+            </div>
             <div className="text-[13px] font-medium text-ios-gray flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-ios-green animate-pulse"></span>
               模擬引擎啟動中：接線正確後即可點擊元件互動！
