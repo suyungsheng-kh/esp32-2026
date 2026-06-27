@@ -205,18 +205,18 @@
         }
       },
       {
-        id: 'servo', type: 'output', name: '⚙️ 伺服馬達', desc: 'SIG(橘) ➜ IO13',
+        id: 'servo', type: 'output', name: '⚙️ 伺服馬達', desc: 'SIG(橘) ➜ IO32',
         pins: [
           { id: 'GND', label: 'GND(棕)', color: '#A0522D' },
           { id: 'VCC', label: 'VCC(紅)', color: '#FF3B30' },
           { id: 'SIG', label: 'SIG(橘)', color: '#FF9500' }
         ],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO13_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO13']);
+          const sig = modConns.some(c => c.modulePin === 'SIG' && c.shieldPin === 'IO32_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO32']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！伺服馬達可以轉動了。' };
-          if (!sig) return { success: false, msg: 'SIG 訊號請接在 pin 13 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 13 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'SIG 訊號請接在 pin 32 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 32 旁邊對應的 V 與 G 腳位。' };
         }
       },
 
@@ -409,7 +409,7 @@
           {
             id: 'd2-3',
             title: '3. 停車場閘門',
-            desc: 'LCD(SDA:21, SCL:22)，超音波(Trig:19, Echo:23)，伺服馬達(13)。',
+            desc: 'LCD(SDA:21, SCL:22)，超音波(Trig:19, Echo:23)，伺服馬達(32)。',
             setup: () => [
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' },
               {
@@ -424,7 +424,7 @@
                   return { success: false, msg: '❌ VCC 與 GND 需接在 pin 19 或 23 同排。' };
                 }
               },
-              createCustomModule('servo', 'IO13')
+              createCustomModule('servo', 'IO32')
             ]
           },
           {
