@@ -188,7 +188,7 @@
             return seq;
         }
 
-        function buildAnalyzer(templateXmlText) {
+        function buildAnalyzer(templateXmlText, isStrictCheck = false) {
             return function(studentXmlDoc) {
                 const parser = new DOMParser();
                 const templateXmlDoc = parser.parseFromString(templateXmlText, "text/xml");
@@ -307,7 +307,8 @@
                 results.structureStatus = 'pass'; 
 
                 if (paramWarnings.length > 0) {
-                    results.paramStatus = 'warning';
+                    results.paramStatus = isStrictCheck ? 'fail' : 'warning';
+                    
                     let html = '<div class="grid grid-cols-1 gap-3 w-full">';
                     paramWarnings.forEach(w => {
                         let fieldName = w.field;
@@ -317,8 +318,10 @@
                         else if (w.field === 'OP') fieldName = '判斷邏輯';
                         
                         html += `
-                            <div class="bg-white p-4 rounded-lg shadow-sm border border-amber-300">
-                                <p class="font-bold text-amber-800 border-b border-amber-100 pb-2 mb-2">⚠️ 參數差異 (${w.path} -> ${w.type})</p>
+                            <div class="bg-white p-4 rounded-lg shadow-sm border ${isStrictCheck ? 'border-rose-300' : 'border-amber-300'}">
+                                <p class="font-bold ${isStrictCheck ? 'text-rose-800 border-rose-100' : 'text-amber-800 border-amber-100'} border-b pb-2 mb-2">
+                                    ${isStrictCheck ? '❌ 參數錯誤' : '⚠️ 參數差異'} (${w.path} -> ${w.type})
+                                </p>
                                 <p class="text-slate-600 text-sm mb-1">${fieldName}設定：</p>
                                 <div class="flex items-center text-sm font-mono mt-2">
                                     <span class="bg-rose-100 text-rose-700 px-2 py-1 rounded">你的輸入: ${w.act}</span>
@@ -328,7 +331,12 @@
                             </div>
                         `;
                     });
-                    html += `</div><div class="col-span-1 sm:col-span-2 bg-blue-50 border-l-4 border-blue-400 p-3 mt-4 text-sm text-blue-800 rounded-r-lg"><b>💡 提醒：</b>以上是與「解答範本」參數不同的地方。若為自行設計的數值則不影響通關；若是打錯字請記得修正！</div>`;
+                    
+                    if (isStrictCheck) {
+                        html += `<div class="col-span-1 sm:col-span-2 bg-rose-50 border-l-4 border-rose-400 p-3 mt-4 text-sm text-rose-800 rounded-r-lg"><b>❌ 嚴格檢查未達標：</b>本關卡已啟用嚴格檢查，你的腳位或狀態設定必須與解答完全一致，請修正後重新上傳！</div>`;
+                    } else {
+                        html += `<div class="col-span-1 sm:col-span-2 bg-blue-50 border-l-4 border-blue-400 p-3 mt-4 text-sm text-blue-800 rounded-r-lg"><b>💡 提醒：</b>以上是與「解答範本」參數不同的地方。若為自行設計的數值則不影響通關；若是打錯字請記得修正！</div>`;
+                    }
                     results.paramsHTML = html;
                 } else {
                     results.paramStatus = 'pass';
@@ -347,10 +355,11 @@
                 description: '請實作一個能讓 LED 燈持續閃爍的程式（亮 1 秒，滅 1 秒）。',
                 basicRequirement: '數量將依據教師解答範本自動檢測。',
                 structRequirement: '結構將嚴格比對教師解答範本。',
-                paramRequirement: '腳位、HIGH/LOW 狀態將與解答範本深度比對。',
+                paramRequirement: '腳位、HIGH/LOW 狀態將與解答範本深度比對 (嚴格模式)。',
                 isLoaded: true, 
                 templateXml: LEVEL0_TEMPLATE_XML,
-                analyze: buildAnalyzer(LEVEL0_TEMPLATE_XML)
+                isStrict: true,
+                analyze: buildAnalyzer(LEVEL0_TEMPLATE_XML, true)
             }
         };
 
@@ -400,7 +409,8 @@
                             name: data.name,
                             description: '請稍候，正在讀取關卡資訊...',
                             isCustom: true,
-                            isLoaded: false 
+                            isLoaded: false,
+                            isStrict: data.isStrict || false
                         };
                     }
                     if (levelSelect) {
@@ -436,9 +446,10 @@
                         config.description = data.description;
                         config.basicRequirement = '數量將依據教師解答範本自動檢測。';
                         config.structRequirement = '結構與 IF 判斷將嚴格比對解答範本。';
-                        config.paramRequirement = '腳位、狀態將與解答範本深度比對。';
+                        config.paramRequirement = data.isStrict ? '已啟用嚴格參數檢查，錯字或數值不符即未達標。' : '腳位、狀態將與解答範本深度比對。';
                         config.templateXml = data.templateXml;
-                        config.analyze = buildAnalyzer(data.templateXml);
+                        config.isStrict = data.isStrict || false;
+                        config.analyze = buildAnalyzer(data.templateXml, config.isStrict);
                         config.isLoaded = true; 
                     }
                 } catch(error) {
