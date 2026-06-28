@@ -156,21 +156,14 @@
         }
       },
       {
-        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ 擴充 IO22',
+        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO14',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IN', label: 'IN', color: '#FF9500' }],
         validate: (modConns) => {
-          let valid = false;
-          
-          const b1_sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'I2C_1_22');
-          const b1_v = modConns.some(c => c.modulePin === 'VCC' && c.shieldPin === 'I2C_1_V');
-          const b1_g = modConns.some(c => c.modulePin === 'GND' && c.shieldPin === 'I2C_1_G');
-          if (b1_sig && b1_v && b1_g) valid = true;
-
-          const hasSig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'I2C_1_22');
-
-          if (valid) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
-          if (!hasSig) return { success: false, msg: 'IN 訊號請接在下方擴充區 pin 22 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 配對在 pin 22 同一區塊上。' };
+          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO14_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO14']);
+          if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
+          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 14 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 14 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -471,9 +464,9 @@
           {
             id: 'd3-4',
             title: '4. 風暴製造機',
-            desc: '繼電器 (IN ➜ IO12)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
+            desc: '繼電器 (IN ➜ IO14)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
             setup: () => [
-              createCustomModule('relay', 'IO12'),
+              createCustomModule('relay', 'IO14'),
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           }
