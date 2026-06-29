@@ -156,8 +156,12 @@
         }
       },
       {
-        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO4',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IN', label: 'IN', color: '#FF9500' }],
+        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO4 (⚠️ 腳位: GND, IN, VCC)',
+        pins: [
+          { id: 'GND', label: 'GND', color: '#1f2937' },
+          { id: 'IN', label: 'IN', color: '#FF9500' },
+          { id: 'VCC', label: 'VCC', color: '#ef4444' }
+        ],
         validate: (modConns) => {
           const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO4_S');
           const { vcc, gnd } = checkPower(modConns, ['IO4']);
@@ -464,9 +468,12 @@
           {
             id: 'd3-4',
             title: '4. 風暴製造機',
-            desc: '繼電器 (IN ➜ IO4)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
+            desc: '繼電器 (IN ➜ IO4)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。注意繼電器腳位順序！',
             setup: () => [
-              createCustomModule('relay', 'IO4'),
+              { 
+                ...createCustomModule('relay', 'IO4'), 
+                desc: '【指定】IN ➜ IO4 (⚠️ 腳位: GND, IN, VCC)' 
+              },
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           }
@@ -1120,21 +1127,30 @@
 
             </div>
             
-            {/* 微縮版排針 */}
-            <div className="flex flex-col gap-1 w-full px-1">
+            {/* 微縮版排針 - 升級彩色底色標籤 */}
+            <div className="flex flex-col gap-1.5 w-full px-1">
               {mod.pins.map(pin => {
                 const isActive = activePin?.type === 'module' && activePin?.id === pin.id && activePin?.moduleId === mod.instanceId;
                 const isConnected = connections.some(c => c.moduleId === mod.instanceId && c.modulePin === pin.id);
+                
+                // 為了在白底上更好看，讓 GND 稍微調亮成深灰色
+                const badgeBgColor = pin.color === '#1f2937' ? '#475569' : pin.color;
+
                 return (
                   <div key={pin.id} className={`flex items-center justify-between ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
-                    <span className={`text-ios-gray font-mono text-[10px] font-medium flex items-center ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
-                      {pin.label}
+                    <div className={`flex items-center ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
+                      <span 
+                        className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded text-white shadow-sm tracking-wide"
+                        style={{ backgroundColor: badgeBgColor }}
+                      >
+                        {pin.label}
+                      </span>
                       {pin.colorName && (
-                        <span className={`text-[8px] ${isRightSideModule ? 'mr-1' : 'ml-1'} px-1 py-0.5 rounded bg-ios-bg border border-ios-grayLight text-ios-text shadow-sm whitespace-nowrap`}>
+                        <span className={`text-[9px] ${isRightSideModule ? 'mr-1' : 'ml-1'} px-1 py-0.5 rounded bg-ios-bg border border-ios-grayLight text-ios-gray font-bold shadow-sm whitespace-nowrap`}>
                           {pin.colorName}
                         </span>
                       )}
-                    </span>
+                    </div>
                     <button
                       id={`pin-module-${mod.instanceId}-${pin.id}`}
                       onClick={() => handlePinClick('module', pin.id, pin.color, mod.instanceId)}
