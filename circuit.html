@@ -72,12 +72,12 @@
 
     const checkPower = (modConns, targetPins, vccPin = 'VCC', gndPin = 'GND') => {
       let vcc = false, gnd = false;
-      const allowedV = targetPins.map(p => `${p}_V`);
-      const allowedG = targetPins.map(p => `${p}_G`);
+      const allowedV = targetPins ? targetPins.map(p => `${p}_V`) : [];
+      const allowedG = targetPins ? targetPins.map(p => `${p}_G`) : [];
       
       modConns.forEach(c => {
-        if (vccPin && c.modulePin === vccPin && allowedV.includes(c.shieldPin)) vcc = true;
-        if (gndPin && c.modulePin === gndPin && allowedG.includes(c.shieldPin)) gnd = true;
+        if (vccPin && c.modulePin === vccPin && (allowedV.includes(c.shieldPin) || ['I2C_1_V', '5V_S', '3V3_S'].includes(c.shieldPin))) vcc = true;
+        if (gndPin && c.modulePin === gndPin && (allowedG.includes(c.shieldPin) || ['I2C_1_G', 'GND_L_S', 'GND_R1_S', 'GND_R2_S'].includes(c.shieldPin))) gnd = true;
       });
       return { vcc: vccPin ? vcc : true, gnd: gndPin ? gnd : true };
     };
@@ -156,18 +156,18 @@
         }
       },
       {
-        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO4 (⚠️ 腳位: GND, IN, VCC)',
+        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO14 (⚠️ 腳位: GND, IN, VCC)',
         pins: [
           { id: 'GND', label: 'GND', color: '#1f2937' },
           { id: 'IN', label: 'IN', color: '#FF9500' },
           { id: 'VCC', label: 'VCC', color: '#ef4444' }
         ],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO4_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO4']);
+          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO14_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO14']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
-          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 4 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 14 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 14 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -217,7 +217,7 @@
         }
       },
 
-      // ================= 輸入模組 (包含 Sensor 滑桿設定) =================
+      // ================= 輸入模組 =================
       {
         id: 'btn_y', type: 'input', name: '🟡 按鈕 (黃)', desc: 'OUT ➜ IO34',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'OUT', label: 'OUT', color: '#FFCC00' }],
@@ -252,8 +252,12 @@
         }
       },
       {
-        id: 'potentiometer', type: 'input', name: '🎛️ 可變電阻', desc: 'OUT ➜ IO32',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'OUT', label: 'OUT', color: '#007AFF' }],
+        id: 'potentiometer', type: 'input', name: '🎛️ 可變電阻', desc: 'OUT ➜ IO32 (⚠️ 腳位: VCC, OUT, GND)',
+        pins: [
+          { id: 'VCC', label: 'VCC', color: '#ef4444' },
+          { id: 'OUT', label: 'OUT', color: '#007AFF' },
+          { id: 'GND', label: 'GND', color: '#1f2937' }
+        ],
         sensor: { min: 0, max: 4095, default: 0, unit: '' },
         validate: (modConns) => {
           const sig = modConns.some(c => c.modulePin === 'OUT' && c.shieldPin === 'IO32_S');
@@ -276,8 +280,12 @@
         }
       },
       {
-        id: 'dht', type: 'input', name: '🌡️ 溫濕度', desc: 'DATA ➜ IO33',
-        pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'DATA', label: 'DATA', color: '#5AC8FA' }],
+        id: 'dht', type: 'input', name: '🌡️ 溫濕度', desc: 'DATA ➜ IO33 (⚠️ 腳位: GND, DATA, VCC)',
+        pins: [
+          { id: 'GND', label: 'GND', color: '#1f2937' },
+          { id: 'DATA', label: 'DATA', color: '#5AC8FA' },
+          { id: 'VCC', label: 'VCC', color: '#ef4444' }
+        ],
         sensor: { min: 0, max: 50, default: 25, unit: ' °C' },
         validate: (modConns) => {
           const sig = modConns.some(c => c.modulePin === 'DATA' && c.shieldPin === 'IO33_S');
@@ -386,9 +394,9 @@
           {
             id: 'd2-1',
             title: '1. 可調亮度的燈',
-            desc: '可變電阻(33)，LCD(SDA:21, SCL:22)，全彩LED(R:25, G:26, B:27)。',
+            desc: '可變電阻(32)，LCD(SDA:21, SCL:22)，全彩LED(R:25, G:26, B:27)。',
             setup: () => [
-              createCustomModule('potentiometer', 'IO33'),
+              { ...createCustomModule('potentiometer', 'IO32'), desc: '【指定】OUT ➜ IO32 (⚠️ 腳位: VCC, OUT, GND)' },
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' },
               { ...TASKS.find(t => t.id === 'led_rgb'), desc: 'R:25, G:26, B:27' }
             ]
@@ -396,9 +404,9 @@
           {
             id: 'd2-2',
             title: '2. 智慧路燈',
-            desc: '光敏電阻(14)，LCD(SDA:21, SCL:22)，全彩LED(R:25, G:26, B:27)。',
+            desc: '光敏電阻(33)，LCD(SDA:21, SCL:22)，全彩LED(R:25, G:26, B:27)。',
             setup: () => [
-              createCustomModule('photoresistor', 'IO14'),
+              createCustomModule('photoresistor', 'IO33'),
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' },
               { ...TASKS.find(t => t.id === 'led_rgb'), desc: 'R:25, G:26, B:27' }
             ]
@@ -441,9 +449,9 @@
           {
             id: 'd3-1',
             title: '1. 氣象台',
-            desc: 'DHT11 (DATA ➜ IO33)，LCD (SDA:21, SCL:22 擴充區)。',
+            desc: 'DHT11 (DATA ➜ IO33)，LCD (SDA:21, SCL:22 擴充區)。注意腳位順序！',
             setup: () => [
-              createCustomModule('dht', 'IO33'),
+              { ...createCustomModule('dht', 'IO33'), desc: '【指定】DATA ➜ IO33 (⚠️ 腳位: GND, DATA, VCC)' },
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           },
@@ -468,12 +476,9 @@
           {
             id: 'd3-4',
             title: '4. 風暴製造機',
-            desc: '繼電器 (IN ➜ IO4)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。注意繼電器腳位順序！',
+            desc: '繼電器 (IN ➜ IO14)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
             setup: () => [
-              { 
-                ...createCustomModule('relay', 'IO4'), 
-                desc: '【指定】IN ➜ IO4 (⚠️ 腳位: GND, IN, VCC)' 
-              },
+              { ...createCustomModule('relay', 'IO14'), desc: '【指定】IN ➜ IO14 (⚠️ 腳位: GND, IN, VCC)' },
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           }
@@ -528,18 +533,16 @@
       const [feedbacks, setFeedbacks] = useState(null); 
       const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
       const [randomColorMode, setRandomColorMode] = useState(false);
-      const [tick, setTick] = useState(0); // 新增：用於產生循環的計時器狀態
+      const [tick, setTick] = useState(0); 
       
       // ================= 互動模擬引擎狀態 =================
       const [interactions, setInteractions] = useState({});
-      const [ws2812Angles, setWs2812Angles] = useState({}); // 新增：專門管理 WS2812 的旋轉角度
+      const [ws2812Angles, setWs2812Angles] = useState({});
 
       const handleInteraction = (instanceId, value, type = 'default') => {
         if (type === 'ws2812_trigger' && value === true) {
-          // 觸發 WS2812 輪盤特效：轉 5 圈 (1800度) + 隨機 0~11 個燈位 (每個 30 度)
           setWs2812Angles(prev => {
             const currentAngle = prev[instanceId] || 0;
-            // 為了每次都能轉動，目標角度必須累加
             const targetAngle = currentAngle + 1800 + Math.floor(Math.random() * 12) * 30;
             return { ...prev, [instanceId]: targetAngle };
           });
@@ -548,20 +551,16 @@
         }
       };
 
-      // ================= 音效產生器 (Web Audio API) =================
+      // ================= 音效產生器 =================
       const playBeep = useCallback(() => {
         try {
-          if (!window.audioCtx) {
-            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          }
-          if (window.audioCtx.state === 'suspended') {
-            window.audioCtx.resume();
-          }
+          if (!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (window.audioCtx.state === 'suspended') window.audioCtx.resume();
           const osc = window.audioCtx.createOscillator();
           const gain = window.audioCtx.createGain();
           
           osc.type = 'square';
-          osc.frequency.setValueAtTime(2000, window.audioCtx.currentTime); // 2000Hz 更像紅綠燈倒數蜂鳴器
+          osc.frequency.setValueAtTime(2000, window.audioCtx.currentTime); 
           
           gain.gain.setValueAtTime(0.1, window.audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, window.audioCtx.currentTime + 0.1);
@@ -576,7 +575,6 @@
         }
       }, []);
 
-      // 每秒更新計時器，讓繼電器等設備可以定時切換狀態
       useEffect(() => {
         const interval = setInterval(() => setTick(t => t + 1), 1000);
         return () => clearInterval(interval);
@@ -585,10 +583,8 @@
       const simulationState = useMemo(() => {
         const outStates = {};
         
-        // 1. 統一收集所有輸入感測器的狀態
         let inputs = {
-          btn_g: false, btn_y: false, btn_r: false,
-          any_btn: false,
+          btn_g: false, btn_y: false, btn_r: false, any_btn: false,
           pot: null, temp: null, dist: null, light: null, soil: null, water: null
         };
 
@@ -611,117 +607,56 @@
         });
 
         inputs.any_btn = inputs.btn_g || inputs.btn_y || inputs.btn_r;
-
-        // 定義自動繼電器的每 2 秒開關狀態 (tick / 2 取整數判斷偶數)
         const autoRelay = Math.floor(tick / 2) % 2 === 0;
 
-        // 2. 根據輸入狀態，計算各個輸出模組的模擬反應
         workspaceModules.forEach(mod => {
           if (mod.type === 'output') {
             const modConns = connections.filter(c => c.moduleId === mod.instanceId);
             if (mod.validate(modConns).success) {
-              // 單色 LED
               if (mod.id === 'led_g') outStates[mod.instanceId] = { active: inputs.btn_g };
               if (mod.id === 'led_y') outStates[mod.instanceId] = { active: inputs.btn_y };
               if (mod.id === 'led_r') outStates[mod.instanceId] = { active: inputs.btn_r };
               
-              // 全彩 LED
               if (mod.id === 'led_rgb') {
-                let color = '#E5E5EA';
-                let active = false;
-                let opacity = 1;
-                
+                let color = '#E5E5EA', active = false, opacity = 1;
                 if (inputs.btn_r) { color = '#FF3B30'; active = true; }
                 else if (inputs.btn_g) { color = '#34C759'; active = true; }
                 else if (inputs.btn_y) { color = '#FFCC00'; active = true; }
                 else if (inputs.any_btn) { color = '#007AFF'; active = true; }
                 else if (inputs.pot !== null) {
-                  // 可變電阻連動：發出白光，且改變亮度
-                  active = true;
-                  color = '#FFFFFF';
-                  opacity = inputs.pot / 4095;
-                  if (opacity < 0.05) active = false; // 數值過低時關閉
+                  active = true; color = '#FFFFFF'; opacity = inputs.pot / 4095;
+                  if (opacity < 0.05) active = false;
                 }
                 else if (inputs.light !== null) {
-                  // 智慧路燈連動：光線數值 > 2900 時(天黑)開啟白光，否則關閉
-                  if (inputs.light > 2900) {
-                    active = true;
-                    color = '#FFFFFF';
-                    opacity = 1;
-                  } else {
-                    active = false;
-                  }
+                  if (inputs.light > 2900) { active = true; color = '#FFFFFF'; opacity = 1; } 
+                  else { active = false; }
                 }
                 outStates[mod.instanceId] = { active, color, opacity };
               }
               
-              // 蜂鳴器 (按鈕、距離過近警告，或直接點擊測試)
-              if (mod.id === 'buzzer') {
-                outStates[mod.instanceId] = { 
-                  active: inputs.any_btn || (inputs.dist !== null && inputs.dist <= 15) || interactions[mod.instanceId] 
-                };
-              }
+              if (mod.id === 'buzzer') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.dist !== null && inputs.dist <= 15) || interactions[mod.instanceId] };
+              if (mod.id === 'relay') outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.temp !== null && inputs.temp >= 30) || autoRelay };
               
-              // 繼電器/風扇 (按鈕 或 溫度過高啟動 或 自動切換模式)
-              if (mod.id === 'relay') {
-                outStates[mod.instanceId] = { active: inputs.any_btn || (inputs.temp !== null && inputs.temp >= 30) || autoRelay };
-              }
-              
-              // 伺服馬達 (優先判斷超音波閘門邏輯，否則對應可變電阻)
               if (mod.id === 'servo') {
                 let angle = 0;
-                if (inputs.dist !== null) {
-                  angle = inputs.dist < 10 ? 90 : 0; // 車子靠近 (<10cm) 開啟閘門 90 度
-                } else if (inputs.pot !== null) {
-                  angle = Math.floor((inputs.pot / 4095) * 180);
-                }
+                if (inputs.dist !== null) angle = inputs.dist < 10 ? 90 : 0; 
+                else if (inputs.pot !== null) angle = Math.floor((inputs.pot / 4095) * 180);
                 outStates[mod.instanceId] = { angle };
               }
               
-              // WS2812 環狀燈特效 (讀取專屬的角度狀態)
-              if (mod.id === 'ws2812') outStates[mod.instanceId] = { 
-                active: inputs.any_btn,
-                angle: ws2812Angles[mod.instanceId] || 0 
-              };
+              if (mod.id === 'ws2812') outStates[mod.instanceId] = { active: inputs.any_btn, angle: ws2812Angles[mod.instanceId] || 0 };
               
-              // LCD 1602 螢幕文字動態顯示
               if (mod.id === 'lcd1602_i2c') {
-                let line1 = "ESP32 Ready!";
-                let line2 = "Waiting input...";
+                let line1 = "ESP32 Ready!", line2 = "Waiting input...";
                 
-                if (inputs.temp !== null) { 
-                  line1 = `T: ${inputs.temp}C`; 
-                  line2 = `H: ${Math.min(100, inputs.temp + 35)}%`; // 模擬濕度為溫度+35
-                }
-                else if (inputs.soil !== null) {
-                  line1 = `Soil: ${inputs.soil}%`;
-                  line2 = inputs.soil < 30 ? "Status: DRY!" : "Status: OK";
-                }
-                else if (inputs.water !== null) {
-                  line1 = `Water Temp:`;
-                  line2 = `${inputs.water} C`;
-                }
-                else if (inputs.dist !== null) { 
-                  line1 = `Dist: ${inputs.dist} cm`; 
-                  line2 = inputs.dist < 10 ? "Gate: OPEN" : "Gate: CLOSED"; 
-                }
-                else if (inputs.light !== null) {
-                  line1 = `Light: ${inputs.light}`;
-                  line2 = inputs.light > 2900 ? "Night: LED ON " : "Day: LED OFF";
-                }
-                else if (inputs.pot !== null) {
-                  let percent = Math.floor((inputs.pot / 4095) * 100);
-                  line1 = `ADC: ${inputs.pot}`;
-                  line2 = `Bright: ${percent}%`;
-                }
-                else if (workspaceModules.some(m => m.id.startsWith('relay'))) {
-                  line1 = "Storm Maker";
-                  line2 = autoRelay ? "Relay: ON" : "Relay: OFF";
-                }
-                else if (inputs.any_btn) { 
-                  line1 = "Button Pressed!"; 
-                  line2 = "LED is ON"; 
-                }
+                if (inputs.temp !== null) { line1 = `T: ${inputs.temp}C`; line2 = `H: ${Math.min(100, inputs.temp + 35)}%`; }
+                else if (inputs.soil !== null) { line1 = `Soil: ${inputs.soil}%`; line2 = inputs.soil < 30 ? "Status: DRY!" : "Status: OK"; }
+                else if (inputs.water !== null) { line1 = `Water Temp:`; line2 = `${inputs.water} C`; }
+                else if (inputs.dist !== null) { line1 = `Dist: ${inputs.dist} cm`; line2 = inputs.dist < 10 ? "Gate: OPEN" : "Gate: CLOSED"; }
+                else if (inputs.light !== null) { line1 = `Light: ${inputs.light}`; line2 = inputs.light > 2900 ? "Night: LED ON " : "Day: LED OFF"; }
+                else if (inputs.pot !== null) { line1 = `ADC: ${inputs.pot}`; line2 = `Bright: ${Math.floor((inputs.pot / 4095) * 100)}%`; }
+                else if (workspaceModules.some(m => m.id.startsWith('relay'))) { line1 = "Storm Maker"; line2 = autoRelay ? "Relay: ON" : "Relay: OFF"; }
+                else if (inputs.any_btn) { line1 = "Button Pressed!"; line2 = "LED is ON"; }
                 
                 outStates[mod.instanceId] = { active: true, line1, line2 };
               }
@@ -730,7 +665,7 @@
         });
 
         return outStates;
-      }, [connections, interactions, ws2812Angles, workspaceModules, tick]); // 加入 tick 依賴，每秒重新計算
+      }, [connections, interactions, ws2812Angles, workspaceModules, tick]);
 
       const containerRef = useRef(null);
 
@@ -741,7 +676,6 @@
         const newCoords = connections.map(conn => {
           const modEl = document.getElementById(`pin-module-${conn.moduleId}-${conn.modulePin}`);
           const shieldEl = document.getElementById(`pin-shield-${conn.shieldPin}`);
-          
           if (!modEl || !shieldEl) return null;
 
           const modRect = modEl.getBoundingClientRect();
@@ -749,17 +683,14 @@
 
           return {
             id: conn.id, color: conn.color,
-            x1: modRect.left - containerRect.left + modRect.width / 2,
-            y1: modRect.top - containerRect.top + modRect.height / 2,
-            x2: shieldRect.left - containerRect.left + shieldRect.width / 2,
-            y2: shieldRect.top - containerRect.top + shieldRect.height / 2,
+            x1: modRect.left - containerRect.left + modRect.width / 2, y1: modRect.top - containerRect.top + modRect.height / 2,
+            x2: shieldRect.left - containerRect.left + shieldRect.width / 2, y2: shieldRect.top - containerRect.top + shieldRect.height / 2,
           };
         }).filter(Boolean);
         
         setWireCoords(newCoords);
       }, [connections, workspaceModules]);
 
-      // 監控 buzzer 狀態並產生循環滴聲
       useEffect(() => {
         let interval;
         const hasActiveBuzzer = Object.entries(simulationState).some(([id, state]) => 
@@ -767,13 +698,11 @@
         );
 
         if (hasActiveBuzzer) {
-          playBeep(); // 立即觸發第一聲
-          interval = setInterval(playBeep, 400); // 每 400ms 滴一聲 (紅綠燈倒數節奏)
+          playBeep();
+          interval = setInterval(playBeep, 400); 
         }
 
-        return () => {
-          if (interval) clearInterval(interval);
-        };
+        return () => { if (interval) clearInterval(interval); };
       }, [simulationState, workspaceModules, playBeep]);
 
       useEffect(() => {
@@ -783,9 +712,7 @@
       }, [updateCoords]);
 
       useEffect(() => {
-        if (appMode === 'challenge' && activeChallenge) {
-          loadChallenge(activeChallenge);
-        }
+        if (appMode === 'challenge' && activeChallenge) loadChallenge(activeChallenge);
       }, [randomColorMode]);
 
       const handleMouseMove = (e) => {
@@ -796,12 +723,7 @@
       };
 
       const loadChallenge = (level) => {
-        setConnections([]);
-        setFeedbacks(null);
-        setActivePin(null);
-        setChallengeSuccess(false);
-        setActiveChallenge(level);
-        
+        setConnections([]); setFeedbacks(null); setActivePin(null); setChallengeSuccess(false); setActiveChallenge(level);
         let mods = level.setup();
         
         if (randomColorMode) {
@@ -816,9 +738,7 @@
             return { ...mod, pins: newPins };
           });
         }
-        
-        const instances = mods.map((m, idx) => ({ ...m, instanceId: `${m.id}_c${idx}` }));
-        setWorkspaceModules(instances);
+        setWorkspaceModules(mods.map((m, idx) => ({ ...m, instanceId: `${m.id}_c${idx}` })));
       };
 
       const addModule = (taskTemplate) => {
@@ -847,8 +767,7 @@
       };
 
       const handlePinClick = (type, pinId, color = '#8E8E93', moduleId = null) => {
-        setFeedbacks(null);
-        setChallengeSuccess(false);
+        setFeedbacks(null); setChallengeSuccess(false);
         
         if (!activePin) {
           setActivePin({ type, id: pinId, color, moduleId });
@@ -857,10 +776,7 @@
           if (el && containerRef.current) {
             const rect = el.getBoundingClientRect();
             const containerRect = containerRef.current.getBoundingClientRect();
-            setMousePos({
-              x: rect.left - containerRect.left + rect.width / 2,
-              y: rect.top - containerRect.top + rect.height / 2
-            });
+            setMousePos({ x: rect.left - containerRect.left + rect.width / 2, y: rect.top - containerRect.top + rect.height / 2 });
           }
         } else {
           if (activePin.type === type) {
@@ -876,22 +792,14 @@
             c => !(c.moduleId === modPin.moduleId && c.modulePin === modPin.id) && c.shieldPin !== shPin.id
           );
 
-          setConnections([
-            ...newConns,
-            { 
-              id: `${modPin.moduleId}-${modPin.id}-${shPin.id}`, 
-              moduleId: modPin.moduleId, modulePin: modPin.id, shieldPin: shPin.id, 
-              color: activePin.type === 'module' ? activePin.color : color 
-            }
-          ]);
+          setConnections([...newConns, { id: `${modPin.moduleId}-${modPin.id}-${shPin.id}`, moduleId: modPin.moduleId, modulePin: modPin.id, shieldPin: shPin.id, color: activePin.type === 'module' ? activePin.color : color }]);
           setActivePin(null);
         }
       };
 
       const removeConnection = (id) => {
         setConnections(connections.filter(c => c.id !== id));
-        setFeedbacks(null);
-        setChallengeSuccess(false);
+        setFeedbacks(null); setChallengeSuccess(false);
       };
 
       const checkWiring = () => {
@@ -901,12 +809,8 @@
           return { name: mod.name, ...mod.validate(modConns) };
         });
         setFeedbacks(results);
-        
-        if (appMode === 'challenge' && results.every(r => r.success)) {
-          setChallengeSuccess(true);
-        } else {
-          setChallengeSuccess(false);
-        }
+        if (appMode === 'challenge' && results.every(r => r.success)) setChallengeSuccess(true);
+        else setChallengeSuccess(false);
       };
 
       const createCurve = (x1, y1, x2, y2) => {
@@ -919,30 +823,23 @@
 
       const getActivePinCoords = () => {
         if (!activePin || !containerRef.current) return null;
-        const elId = activePin.type === 'module' 
-          ? `pin-module-${activePin.moduleId}-${activePin.id}` : `pin-shield-${activePin.id}`;
+        const elId = activePin.type === 'module' ? `pin-module-${activePin.moduleId}-${activePin.id}` : `pin-shield-${activePin.id}`;
         const el = document.getElementById(elId);
         if (!el) return null;
         const rect = el.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
-        return {
-          x: rect.left - containerRect.left + rect.width / 2,
-          y: rect.top - containerRect.top + rect.height / 2
-        };
+        return { x: rect.left - containerRect.left + rect.width / 2, y: rect.top - containerRect.top + rect.height / 2 };
       };
 
       const activeCoords = getActivePinCoords();
-
       const outputModules = workspaceModules.filter(m => m.type === 'output' && m.id !== 'lcd1602_i2c');
       const inputModules = workspaceModules.filter(m => m.type === 'input');
       const fixedRightModules = workspaceModules.filter(m => m.id === 'lcd1602_i2c');
 
-      // 優化：計算左側 (輸出) 模組的兩欄配置：最多 3 個時不換列，全部排在靠近主板的內側
       const outMid = outputModules.length <= 3 ? outputModules.length : Math.ceil(outputModules.length / 2);
       const outInner = outputModules.slice(0, outMid);
       const outOuter = outputModules.slice(outMid);
 
-      // 優化：計算右側 (輸入) 模組的兩欄配置：最多 3 個時不換列，全部排在靠近主板的內側
       const inMid = inputModules.length <= 3 ? inputModules.length : Math.ceil(inputModules.length / 2);
       const inInner = inputModules.slice(0, inMid);
       const inOuter = inputModules.slice(inMid);
@@ -951,8 +848,13 @@
         const isRightSideModule = mod.type === 'input' || mod.id === 'lcd1602_i2c';
         const isWiredCorrectly = mod.validate(connections.filter(c => c.moduleId === mod.instanceId)).success;
         
+        // 針對特殊模組設定防呆底色 (淺橘色)
+        const isWarningModule = mod.id === 'relay' || mod.id === 'dht' || mod.id === 'potentiometer';
+        const cardBgClass = isWarningModule ? 'bg-[#FFF8E1]' : 'bg-ios-card';
+        const cardBorderClass = isWarningModule ? 'border-[#FFE0B2]' : 'border-ios-grayLight';
+        
         return (
-          <div key={mod.instanceId} className="bg-ios-card p-2.5 rounded-[1rem] shadow-sm border border-ios-grayLight flex flex-col items-center relative w-full shrink-0">
+          <div key={mod.instanceId} className={`${cardBgClass} p-2.5 rounded-[1rem] shadow-sm border ${cardBorderClass} flex flex-col items-center relative w-full shrink-0 transition-colors`}>
             {appMode === 'sandbox' && (
               <button 
                 onClick={() => removeModule(mod.instanceId)} 
@@ -961,18 +863,16 @@
               ><i className="fa-solid fa-xmark"></i></button>
             )}
             
-            <div className="text-ios-text font-bold mb-0.5 text-[12px] tracking-tight w-full text-center whitespace-nowrap overflow-hidden text-ellipsis px-1">
+            <div className={`font-bold mb-0.5 text-[12px] tracking-tight w-full text-center whitespace-nowrap overflow-hidden text-ellipsis px-1 ${isWarningModule ? 'text-[#E65100]' : 'text-ios-text'}`}>
               {mod.name}
             </div>
-            <div className="text-[10px] text-ios-blue bg-ios-blue/10 px-1.5 py-0.5 rounded-md mb-2 text-center leading-tight h-fit flex items-center justify-center font-medium">
+            <div className={`text-[10px] px-1.5 py-0.5 rounded-md mb-2 text-center leading-tight h-fit flex items-center justify-center font-medium ${isWarningModule ? 'bg-[#FFE0B2]/50 text-[#EF6C00]' : 'bg-ios-blue/10 text-ios-blue'}`}>
               {mod.desc}
             </div>
 
-            {/* 微縮版互動視覺元件 */}
             <div className="flex flex-col items-center justify-center w-full mb-1.5 min-h-[28px]">
               
               {/* === 1. 輸入模組區 === */}
-              {/* 微縮按鈕 */}
               {mod.id.startsWith('btn_') && (
                 <button
                   className="w-7 h-7 rounded-full shadow-sm active:shadow-inner active:scale-90 transition-all border border-black/10 cursor-pointer shrink-0"
@@ -982,12 +882,9 @@
                   onMouseLeave={() => handleInteraction(mod.instanceId, false)}
                   onTouchStart={() => handleInteraction(mod.instanceId, true)}
                   onTouchEnd={() => handleInteraction(mod.instanceId, false)}
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-b from-white/30 to-transparent"></div>
-                </button>
+                ><div className="w-full h-full rounded-full bg-gradient-to-b from-white/30 to-transparent"></div></button>
               )}
 
-              {/* 微縮感測器滑桿 */}
               {mod.sensor && isWiredCorrectly && (
                 <div className="w-full px-1.5 py-1 flex flex-col items-center bg-ios-bg border border-ios-grayLight rounded-lg shadow-inner">
                   <div className="text-[9px] font-bold text-ios-blue mb-0.5 flex justify-between w-full">
@@ -997,25 +894,15 @@
                       <span className="text-ios-gray font-normal text-[8px] ml-0.5">{mod.sensor.unit}</span>
                     </span>
                   </div>
-                  <input
-                    type="range"
-                    min={mod.sensor.min}
-                    max={mod.sensor.max}
-                    value={interactions[mod.instanceId] !== undefined ? interactions[mod.instanceId] : mod.sensor.default}
-                    onChange={(e) => handleInteraction(mod.instanceId, e.target.value)}
-                    className="w-full h-1 bg-[#D1D1D6] rounded-lg appearance-none cursor-pointer mt-0.5"
-                  />
+                  <input type="range" min={mod.sensor.min} max={mod.sensor.max} value={interactions[mod.instanceId] !== undefined ? interactions[mod.instanceId] : mod.sensor.default} onChange={(e) => handleInteraction(mod.instanceId, e.target.value)} className="w-full h-1 bg-[#D1D1D6] rounded-lg appearance-none cursor-pointer mt-0.5"/>
                 </div>
               )}
 
               {mod.sensor && !isWiredCorrectly && (
-                <div className="w-full px-1 flex items-center justify-center h-[32px] bg-ios-grayLight/30 border border-ios-separator border-dashed rounded-lg text-[9px] text-ios-gray font-medium">
-                  🔌 需接線
-                </div>
+                <div className="w-full px-1 flex items-center justify-center h-[32px] bg-ios-grayLight/30 border border-ios-separator border-dashed rounded-lg text-[9px] text-ios-gray font-medium">🔌 需接線</div>
               )}
 
               {/* === 2. 輸出模組模擬區 === */}
-              {/* 微縮單色 LED */}
               {mod.id.startsWith('led_') && mod.id !== 'led_rgb' && (
                 <div
                   className="w-7 h-7 rounded-full transition-all duration-150 border border-black/10 shrink-0"
@@ -1024,117 +911,70 @@
                     opacity: simulationState[mod.instanceId]?.active ? 1 : 0.25,
                     boxShadow: simulationState[mod.instanceId]?.active ? `0 0 15px 2px ${mod.pins.find(p=>p.id==='SIG').color}` : 'none'
                   }}
-                >
-                  <div className="w-full h-full rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
-                </div>
+                ><div className="w-full h-full rounded-full bg-gradient-to-br from-white/40 to-transparent"></div></div>
               )}
 
-              {/* 全彩 LED (RGB) 動態亮度渲染 */}
               {mod.id === 'led_rgb' && (() => {
                 const isActive = simulationState[mod.instanceId]?.active;
                 const color = simulationState[mod.instanceId]?.color || '#E5E5EA';
                 const opacity = simulationState[mod.instanceId]?.opacity !== undefined ? simulationState[mod.instanceId].opacity : 1;
                 return (
                   <div className="w-7 h-7 rounded-full transition-all duration-300 border border-black/10 flex overflow-hidden relative shrink-0">
-                    {/* 背景 RGB 條紋 */}
-                    <div className="w-full h-full flex absolute inset-0">
-                      <div className="flex-1 bg-[#FF3B30]/30"></div>
-                      <div className="flex-1 bg-[#34C759]/30"></div>
-                      <div className="flex-1 bg-[#007AFF]/30"></div>
-                    </div>
-                    {/* 發光層 */}
-                    <div 
-                      className="absolute inset-0 transition-all duration-150"
-                      style={{
-                        backgroundColor: color,
-                        opacity: isActive ? opacity : 0,
-                        boxShadow: isActive ? `0 0 ${15 * opacity}px ${2 * opacity}px ${color}` : 'none'
-                      }}
-                    ></div>
+                    <div className="w-full h-full flex absolute inset-0"><div className="flex-1 bg-[#FF3B30]/30"></div><div className="flex-1 bg-[#34C759]/30"></div><div className="flex-1 bg-[#007AFF]/30"></div></div>
+                    <div className="absolute inset-0 transition-all duration-150" style={{ backgroundColor: color, opacity: isActive ? opacity : 0, boxShadow: isActive ? `0 0 ${15 * opacity}px ${2 * opacity}px ${color}` : 'none' }}></div>
                     <div className="absolute w-full h-full rounded-full bg-gradient-to-br from-white/50 to-transparent z-10 pointer-events-none"></div>
                   </div>
                 );
               })()}
 
-              {/* 蜂鳴器 */}
               {mod.id === 'buzzer' && (
                 <button 
                   className={`w-full text-xl transition-all flex items-center justify-center h-7 rounded-md ${simulationState[mod.instanceId]?.active ? 'text-[#AF52DE] animate-bounce' : 'text-ios-grayLight'} ${isWiredCorrectly ? 'cursor-pointer hover:bg-black/5' : 'cursor-not-allowed'}`}
-                  onMouseDown={() => isWiredCorrectly && handleInteraction(mod.instanceId, true)}
-                  onMouseUp={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
-                  onMouseLeave={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
-                  onTouchStart={() => isWiredCorrectly && handleInteraction(mod.instanceId, true)}
-                  onTouchEnd={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
+                  onMouseDown={() => isWiredCorrectly && handleInteraction(mod.instanceId, true)} onMouseUp={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)} onMouseLeave={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)} onTouchStart={() => isWiredCorrectly && handleInteraction(mod.instanceId, true)} onTouchEnd={() => isWiredCorrectly && handleInteraction(mod.instanceId, false)}
                   title={isWiredCorrectly ? "點擊測試發聲" : "請先完成接線"}
-                >
-                  <i className={`fa-solid ${simulationState[mod.instanceId]?.active ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
-                </button>
+                ><i className={`fa-solid ${simulationState[mod.instanceId]?.active ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i></button>
               )}
 
-              {/* 繼電器與風扇 */}
               {mod.id === 'relay' && (
-                <div className={`text-xl transition-all flex items-center justify-center h-7 ${simulationState[mod.instanceId]?.active ? 'text-[#FF9500]' : 'text-ios-grayLight'}`}>
-                  <i className={`fa-solid fa-fan ${simulationState[mod.instanceId]?.active ? 'fa-spin' : ''}`}></i>
-                </div>
+                <div className={`text-xl transition-all flex items-center justify-center h-7 ${simulationState[mod.instanceId]?.active ? 'text-[#FF9500]' : 'text-ios-grayLight'}`}><i className={`fa-solid fa-fan ${simulationState[mod.instanceId]?.active ? 'fa-spin' : ''}`}></i></div>
               )}
 
-              {/* 伺服馬達 */}
               {mod.id === 'servo' && (
                 <div className="relative w-8 h-8 rounded-full border-2 border-ios-separator bg-white flex items-center justify-center shrink-0">
-                   <div 
-                     className="absolute w-1 h-3.5 bg-[#FF9500] rounded-full origin-bottom bottom-4 transition-all duration-200"
-                     style={{ transform: `rotate(${simulationState[mod.instanceId]?.angle || 0}deg)` }}
-                   ></div>
+                   <div className="absolute w-1 h-3.5 bg-[#FF9500] rounded-full origin-bottom bottom-4 transition-all duration-200" style={{ transform: `rotate(${simulationState[mod.instanceId]?.angle || 0}deg)` }}></div>
                    <div className="w-2 h-2 bg-ios-text rounded-full z-10 shadow-sm"></div>
                    <span className="absolute -bottom-3 text-[8px] font-bold text-ios-gray bg-ios-bg px-0.5 rounded">{simulationState[mod.instanceId]?.angle || 0}°</span>
                 </div>
               )}
 
-              {/* WS2812 環狀燈 (支援點擊觸發輪盤旋轉) */}
               {mod.id === 'ws2812' && (
                 <button 
                   className={`relative w-7 h-7 rounded-full border-[3px] border-ios-grayLight flex items-center justify-center shrink-0 ${isWiredCorrectly ? 'cursor-pointer hover:shadow-md' : 'cursor-not-allowed opacity-50'}`}
-                  style={{
-                    borderTopColor: '#FF3B30',
-                    borderRightColor: '#FFCC00',
-                    borderBottomColor: '#34C759',
-                    borderLeftColor: '#007AFF',
-                    transform: `rotate(${simulationState[mod.instanceId]?.angle || 0}deg)`,
-                    transition: 'transform 3s cubic-bezier(0.2, 0.8, 0.2, 1)' // 快速啟動、緩慢停止的物理減速效果
-                  }}
-                  onMouseDown={() => isWiredCorrectly && handleInteraction(mod.instanceId, true, 'ws2812_trigger')}
-                  title={isWiredCorrectly ? "點擊觸發輪盤特效" : "請先完成接線"}
+                  style={{ borderTopColor: '#FF3B30', borderRightColor: '#FFCC00', borderBottomColor: '#34C759', borderLeftColor: '#007AFF', transform: `rotate(${simulationState[mod.instanceId]?.angle || 0}deg)`, transition: 'transform 3s cubic-bezier(0.2, 0.8, 0.2, 1)' }}
+                  onMouseDown={() => isWiredCorrectly && handleInteraction(mod.instanceId, true, 'ws2812_trigger')} title={isWiredCorrectly ? "點擊觸發輪盤特效" : "請先完成接線"}
                 >
                    <div className="w-3 h-3 bg-ios-bg rounded-full shadow-inner relative z-10"></div>
-                   {/* 亮點指示器 (代表 1/12 位置) */}
                    <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_5px_white]"></div>
                 </button>
               )}
 
-              {/* LCD 1602 */}
               {mod.id === 'lcd1602_i2c' && (
                 <div className="w-full h-[36px] bg-[#8BC34A] border-2 border-[#558B2F] rounded shadow-inner p-1 font-mono text-[#1B5E20] leading-none overflow-hidden flex flex-col justify-center">
                    {simulationState[mod.instanceId]?.active ? (
-                     <>
-                       <div className="text-[9px] font-bold whitespace-nowrap">{simulationState[mod.instanceId]?.line1}</div>
-                       <div className="text-[9px] font-bold whitespace-nowrap mt-0.5">{simulationState[mod.instanceId]?.line2}</div>
-                     </>
+                     <><div className="text-[9px] font-bold whitespace-nowrap">{simulationState[mod.instanceId]?.line1}</div><div className="text-[9px] font-bold whitespace-nowrap mt-0.5">{simulationState[mod.instanceId]?.line2}</div></>
                    ) : (
                      <div className="text-[8px] text-[#33691E]/50 font-bold text-center mt-1">NO POWER</div>
                    )}
                 </div>
               )}
-
             </div>
             
-            {/* 微縮版排針 - 升級彩色底色標籤 */}
+            {/* 微縮版排針 - 彩色底色標籤 */}
             <div className="flex flex-col gap-1.5 w-full px-1">
               {mod.pins.map(pin => {
                 const isActive = activePin?.type === 'module' && activePin?.id === pin.id && activePin?.moduleId === mod.instanceId;
                 const isConnected = connections.some(c => c.moduleId === mod.instanceId && c.modulePin === pin.id);
-                
-                // 為了在白底上更好看，讓 GND 稍微調亮成深灰色
-                const badgeBgColor = pin.color === '#1f2937' ? '#475569' : pin.color;
+                const badgeBgColor = pin.color === '#1f2937' ? '#475569' : pin.color; // GND 微調防撞色
 
                 return (
                   <div key={pin.id} className={`flex items-center justify-between ${isRightSideModule ? 'flex-row-reverse' : ''}`}>
@@ -1142,9 +982,7 @@
                       <span 
                         className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded text-white shadow-sm tracking-wide"
                         style={{ backgroundColor: badgeBgColor }}
-                      >
-                        {pin.label}
-                      </span>
+                      >{pin.label}</span>
                       {pin.colorName && (
                         <span className={`text-[9px] ${isRightSideModule ? 'mr-1' : 'ml-1'} px-1 py-0.5 rounded bg-ios-bg border border-ios-grayLight text-ios-gray font-bold shadow-sm whitespace-nowrap`}>
                           {pin.colorName}
@@ -1231,7 +1069,6 @@
             </div>
           </header>
 
-          {/* 新增的通用接線提醒列 */}
           <div className="bg-[#FFF8E1] border-y border-[#FFECB3] px-6 py-2 flex items-center justify-center gap-2 text-[#F57F17] shrink-0 z-20 shadow-sm relative">
              <i className="fa-solid fa-lightbulb"></i>
              <span className="font-bold text-[13px] tracking-wide">📌 提醒：所有模組皆需將 VCC 與 GND 接至擴充板同一排的 V 與 G 孔位，才能正常通電運作！</span>
@@ -1245,15 +1082,11 @@
                 <button 
                   onClick={() => { setAppMode('sandbox'); setWorkspaceModules([]); setConnections([]); setFeedbacks(null); setChallengeSuccess(false); setActiveChallenge(null); }}
                   className={`flex-1 py-1.5 text-[13px] font-semibold rounded-[8px] transition-all ${appMode === 'sandbox' ? 'bg-white shadow-sm text-ios-text' : 'text-ios-gray hover:text-ios-text'}`}
-                >
-                  自由沙盒
-                </button>
+                >自由沙盒</button>
                 <button 
                   onClick={() => { setAppMode('challenge'); setWorkspaceModules([]); setConnections([]); setFeedbacks(null); setChallengeSuccess(false); }}
                   className={`flex-1 py-1.5 text-[13px] font-semibold rounded-[8px] transition-all ${appMode === 'challenge' ? 'bg-white shadow-sm text-ios-text' : 'text-ios-gray hover:text-ios-text'}`}
-                >
-                  關卡挑戰
-                </button>
+                >關卡挑戰</button>
               </div>
 
               <div className="flex-1 overflow-y-auto pt-6 pb-2 custom-scrollbar">
@@ -1293,9 +1126,7 @@
                       <div key={day.day}>
                         <h3 className="text-[13px] font-bold text-ios-gray uppercase mb-2 pl-1">{day.day} - {day.title}</h3>
                         {day.levels.length === 0 ? (
-                          <div className="bg-ios-card rounded-[10px] border border-ios-grayLight p-3 text-center text-ios-gray text-[13px] shadow-sm">
-                            🚧 關卡建置中...
-                          </div>
+                          <div className="bg-ios-card rounded-[10px] border border-ios-grayLight p-3 text-center text-ios-gray text-[13px] shadow-sm">🚧 關卡建置中...</div>
                         ) : (
                           <div className="bg-ios-card rounded-[10px] overflow-hidden border border-ios-grayLight shadow-sm">
                             {day.levels.map((level, idx, arr) => (
@@ -1317,28 +1148,20 @@
               
               <div className="p-4 bg-ios-bg border-t border-ios-grayLight shrink-0 flex flex-col gap-3">
                 <button 
-                  onClick={() => { 
-                    if (appMode === 'sandbox') setWorkspaceModules([]); 
-                    setConnections([]); setFeedbacks(null); setActivePin(null); setChallengeSuccess(false); 
-                  }}
+                  onClick={() => { if (appMode === 'sandbox') setWorkspaceModules([]); setConnections([]); setFeedbacks(null); setActivePin(null); setChallengeSuccess(false); }}
                   className="w-full bg-ios-card text-ios-red font-medium py-3 rounded-xl transition-all active:bg-ios-grayLight border border-ios-grayLight shadow-sm"
-                >
-                  {appMode === 'sandbox' ? '清空工作區' : '重置所有連線'}
-                </button>
+                >{appMode === 'sandbox' ? '清空工作區' : '重置所有連線'}</button>
                 <button 
                   onClick={checkWiring}
                   disabled={workspaceModules.length === 0}
                   className="w-full bg-ios-blue disabled:bg-ios-blue/50 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] shadow-sm flex justify-center items-center gap-2"
-                >
-                  <i className="fa-solid fa-check"></i> 檢查接線邏輯
-                </button>
+                ><i className="fa-solid fa-check"></i> 檢查接線邏輯</button>
               </div>
             </aside>
 
             <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F2F2F7]">
               
               <div className="absolute top-0 w-full z-30 px-6 py-4 pointer-events-none flex flex-col items-center">
-                
                 {challengeSuccess && (
                   <div className="pointer-events-auto bg-[#E8F5E9] border border-[#A5D6A7] text-[#2E7D32] shadow-lg rounded-2xl w-full max-w-2xl p-4 flex items-center justify-center gap-3 animate-bounce">
                     <i className="fa-solid fa-trophy text-2xl text-[#FFB300]"></i>
@@ -1348,12 +1171,8 @@
 
                 {appMode === 'challenge' && activeChallenge && !feedbacks && !challengeSuccess && (
                   <div className="pointer-events-auto bg-ios-card/90 backdrop-blur-xl border border-ios-grayLight shadow-lg rounded-2xl w-full max-w-2xl p-4 flex flex-col gap-2 transition-all">
-                    <h3 className="text-[13px] font-semibold text-ios-blue uppercase tracking-wide">
-                      <i className="fa-solid fa-flag"></i> 任務目標
-                    </h3>
-                    <div className="text-[14px] text-ios-text font-medium leading-relaxed">
-                      {activeChallenge.desc}
-                    </div>
+                    <h3 className="text-[13px] font-semibold text-ios-blue uppercase tracking-wide"><i className="fa-solid fa-flag"></i> 任務目標</h3>
+                    <div className="text-[14px] text-ios-text font-medium leading-relaxed">{activeChallenge.desc}</div>
                   </div>
                 )}
 
@@ -1367,10 +1186,7 @@
                       {feedbacks.map((f, i) => (
                         <div key={i} className={`p-3 rounded-xl border flex items-start gap-2 text-[14px] leading-snug ${f.success ? 'bg-[#E3F2FD] border-[#90CAF9] text-[#1565C0]' : 'bg-[#FFEBEE] border-[#FFCDD2] text-[#C62828]'}`}>
                           <span className="text-lg mt-[-2px]">{f.success ? '✅' : '⚠️'}</span>
-                          <div>
-                            <span className="font-semibold block mb-1">{f.name}</span>
-                            {f.msg}
-                          </div>
+                          <div><span className="font-semibold block mb-1">{f.name}</span>{f.msg}</div>
                         </div>
                       ))}
                     </div>
@@ -1379,37 +1195,24 @@
               </div>
 
               <div 
-                id="workspace-container"
-                ref={containerRef} 
+                id="workspace-container" ref={containerRef} 
                 className="flex-1 relative p-8 pt-20 pb-12 flex justify-center items-stretch gap-8 overflow-hidden"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => setActivePin(null)}
+                onMouseMove={handleMouseMove} onMouseLeave={() => setActivePin(null)}
               >
                 <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-20">
                   {wireCoords.map(wire => (
                     <g key={wire.id} className="pointer-events-auto cursor-pointer group" onClick={() => removeConnection(wire.id)}>
                       <path d={createCurve(wire.x1, wire.y1, wire.x2, wire.y2)} stroke="transparent" strokeWidth="20" fill="none" />
-                      <path 
-                        d={createCurve(wire.x1, wire.y1, wire.x2, wire.y2)} 
-                        stroke={wire.color} strokeWidth="4" fill="none" strokeLinecap="round"
-                        className="group-hover:stroke-ios-red group-hover:opacity-50 transition-colors drop-shadow-sm"
-                      />
+                      <path d={createCurve(wire.x1, wire.y1, wire.x2, wire.y2)} stroke={wire.color} strokeWidth="4" fill="none" strokeLinecap="round" className="group-hover:stroke-ios-red group-hover:opacity-50 transition-colors drop-shadow-sm" />
                     </g>
                   ))}
                   {activePin && activeCoords && (
-                    <path 
-                      d={createCurve(activeCoords.x, activeCoords.y, mousePos.x, mousePos.y)} 
-                      stroke={activePin.color || '#8E8E93'} strokeWidth="4" strokeDasharray="6,6" fill="none" strokeLinecap="round"
-                      className="opacity-60"
-                    />
+                    <path d={createCurve(activeCoords.x, activeCoords.y, mousePos.x, mousePos.y)} stroke={activePin.color || '#8E8E93'} strokeWidth="4" strokeDasharray="6,6" fill="none" strokeLinecap="round" className="opacity-60" />
                   )}
                 </svg>
 
-                {/* 左側：輸出模組區 (雙欄網格 + 獨立捲動) */}
-                <div 
-                  className="relative z-10 flex flex-col gap-4 items-center w-[300px] shrink-0 mt-4 overflow-y-auto custom-scrollbar pb-32 px-1 h-full"
-                  onScroll={updateCoords}
-                >
+                {/* 左側：輸出模組區 (雙欄網格) */}
+                <div className="relative z-10 flex flex-col gap-4 items-center w-[300px] shrink-0 mt-4 overflow-y-auto custom-scrollbar pb-32 px-1 h-full" onScroll={updateCoords}>
                    <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80 shrink-0">
                       <i className="fa-solid fa-arrow-right-from-bracket"></i> 輸出模組區
                    </h3>
@@ -1420,31 +1223,21 @@
                      </div>
                    )}
                    <div className="w-full flex gap-3 items-start">
-                     {/* 左側面板的外側 (遠離主板)：放後續換列的模組 */}
-                     <div className="flex-1 flex flex-col gap-3">
-                       {outOuter.map(mod => renderModuleCard(mod))}
-                     </div>
-                     {/* 左側面板的內側 (靠近主板)：優先由上到下排列 */}
-                     <div className="flex-1 flex flex-col gap-3">
-                       {outInner.map(mod => renderModuleCard(mod))}
-                     </div>
+                     <div className="flex-1 flex flex-col gap-3">{outOuter.map(mod => renderModuleCard(mod))}</div>
+                     <div className="flex-1 flex flex-col gap-3">{outInner.map(mod => renderModuleCard(mod))}</div>
                    </div>
                 </div>
 
+                {/* 中間：ESP32 擴充板 (維持深色科技質感對比) */}
                 <div className="relative z-10 bg-[#1C1C1E] px-6 py-7 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.2)] border border-[#2C2C2E] flex flex-col items-center select-none w-fit min-w-[24rem] self-start shrink-0 sticky top-4 mt-4">
                   <div className="text-[#FFCC00] font-bold mb-5 tracking-widest text-xs uppercase flex items-center gap-2 opacity-90">
-                    <span className="w-2 h-2 rounded-full bg-[#FF3B30] inline-block shadow-[0_0_8px_#FF3B30]"></span>
-                    ESP32 Sensor Shield V1
+                    <span className="w-2 h-2 rounded-full bg-[#FF3B30] inline-block shadow-[0_0_8px_#FF3B30]"></span> ESP32 Sensor Shield V1
                   </div>
                   
                   <div className="flex w-full justify-between items-stretch">
-                    
                     <div className="flex flex-col gap-1 w-fit">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
-                        <span className="w-[42px] text-right pr-2">GPIO</span>
-                        <span className="w-5">G</span>
-                        <span className="w-5">V</span>
-                        <span className="w-5">S</span>
+                        <span className="w-[42px] text-right pr-2">GPIO</span><span className="w-5">G</span><span className="w-5">V</span><span className="w-5">S</span>
                       </div>
                       {LEFT_PINS.map(pin => (
                         <div key={pin.id} className="flex items-center gap-1.5 mb-0.5">
@@ -1457,8 +1250,7 @@
                             </React.Fragment>
                           ) : (
                             <React.Fragment>
-                              <div className="w-5 h-5"></div>
-                              <div className="w-5 h-5"></div>
+                              <div className="w-5 h-5"></div><div className="w-5 h-5"></div>
                               <PinButton type="shield" id={`${pin.id}_S`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
                             </React.Fragment>
                           )}
@@ -1468,26 +1260,17 @@
 
                     <div className="w-24 bg-[#D1D1D6] mx-3 border-4 border-[#3A3A3C] rounded-xl flex flex-col justify-between py-6 items-center shadow-inner relative shrink-0">
                       <div className="w-16 h-12 border-b-2 border-[#8E8E93] flex flex-col justify-evenly px-1 pb-1">
-                        <div className="w-full h-1 bg-[#C68926] rounded-sm"></div>
-                        <div className="w-10 h-1 bg-[#C68926] rounded-sm"></div>
-                        <div className="w-full h-1 bg-[#C68926] rounded-sm"></div>
+                        <div className="w-full h-1 bg-[#C68926] rounded-sm"></div><div className="w-10 h-1 bg-[#C68926] rounded-sm"></div><div className="w-full h-1 bg-[#C68926] rounded-sm"></div>
                       </div>
                       <div className="text-[#1C1C1E] font-bold text-[13px] transform -rotate-90 tracking-widest flex items-center gap-2 my-auto whitespace-nowrap opacity-80">
-                        <i className="fa-brands fa-bluetooth"></i>
-                        ESP-WROOM-32
+                        <i className="fa-brands fa-bluetooth"></i> ESP-WROOM-32
                       </div>
-                      <div className="flex gap-4 pb-4">
-                        <div className="w-3 h-3 bg-[#8E8E93] rounded-full shadow-inner"></div>
-                        <div className="w-3 h-3 bg-[#8E8E93] rounded-full shadow-inner"></div>
-                      </div>
+                      <div className="flex gap-4 pb-4"><div className="w-3 h-3 bg-[#8E8E93] rounded-full shadow-inner"></div><div className="w-3 h-3 bg-[#8E8E93] rounded-full shadow-inner"></div></div>
                     </div>
 
                     <div className="flex flex-col gap-1 w-fit">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
-                        <span className="w-5">G</span>
-                        <span className="w-5">V</span>
-                        <span className="w-5">S</span>
-                        <span className="w-8">GPIO</span>
+                        <span className="w-5">G</span><span className="w-5">V</span><span className="w-5">S</span><span className="w-8">GPIO</span>
                       </div>
                       {RIGHT_PINS.map(pin => (
                         <div key={pin.id} className="flex items-center gap-1.5 mb-0.5">
@@ -1499,8 +1282,7 @@
                             </React.Fragment>
                           ) : (
                             <React.Fragment>
-                              <div className="w-5 h-5"></div>
-                              <div className="w-5 h-5"></div>
+                              <div className="w-5 h-5"></div><div className="w-5 h-5"></div>
                               <PinButton type="shield" id={`${pin.id}_S`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} disabled={pin.disabled} />
                             </React.Fragment>
                           )}
@@ -1508,16 +1290,11 @@
                         </div>
                       ))}
 
-                      {/* 另外空一行再加入的區域 */}
+                      {/* 下方 I2C 區塊 */}
                       <div className="mt-5 pt-4 border-t border-[#3A3A3C] flex justify-center w-full">
                         <div className="border border-[#48484A] rounded-lg py-2 px-3 flex flex-col items-center shadow-sm bg-[#2C2C2E]/40 w-fit">
                           <div className="flex flex-col gap-1.5">
-                            {[
-                              { id: '22', color: 'blue' },
-                              { id: '21', color: 'blue' },
-                              { id: 'V', color: 'red' },
-                              { id: 'G', color: 'black' }
-                            ].map(pin => (
+                            {[{ id: '22', color: 'blue' }, { id: '21', color: 'blue' }, { id: 'V', color: 'red' }, { id: 'G', color: 'black' }].map(pin => (
                               <div key={pin.id} className="flex items-center gap-2.5">
                                 <PinButton type="shield" id={`I2C_1_${pin.id}`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
                                 <span className="text-[#F2F2F7] font-mono text-[10px] font-bold opacity-80 w-4 text-left">{pin.id}</span>
@@ -1528,15 +1305,11 @@
                       </div>
 
                     </div>
-
                   </div>
                 </div>
 
-                {/* 右側：輸入模組區 (雙欄網格 + 獨立捲動) */}
-                <div 
-                  className="relative z-10 flex flex-col gap-4 items-center w-[300px] shrink-0 mt-4 overflow-y-auto custom-scrollbar pb-32 px-1 h-full"
-                  onScroll={updateCoords}
-                >
+                {/* 右側：輸入模組區 (雙欄網格) */}
+                <div className="relative z-10 flex flex-col gap-4 items-center w-[300px] shrink-0 mt-4 overflow-y-auto custom-scrollbar pb-32 px-1 h-full" onScroll={updateCoords}>
                    <h3 className="text-ios-gray font-semibold text-[13px] mb-2 tracking-widest uppercase flex items-center gap-2 opacity-80 shrink-0">
                       <i className="fa-solid fa-arrow-right-to-bracket"></i> 輸入模組區
                    </h3>
@@ -1547,18 +1320,12 @@
                      </div>
                    )}
                    <div className="w-full flex gap-3 items-start">
-                     {/* 右側面板的內側 (靠近主板)：優先由上到下排列 */}
-                     <div className="flex-1 flex flex-col gap-3">
-                       {inInner.map(mod => renderModuleCard(mod))}
-                     </div>
-                     {/* 右側面板的外側 (遠離主板)：放後續換列的模組 */}
-                     <div className="flex-1 flex flex-col gap-3">
-                       {inOuter.map(mod => renderModuleCard(mod))}
-                     </div>
+                     <div className="flex-1 flex flex-col gap-3">{inInner.map(mod => renderModuleCard(mod))}</div>
+                     <div className="flex-1 flex flex-col gap-3">{inOuter.map(mod => renderModuleCard(mod))}</div>
                    </div>
                 </div>
                 
-                {/* 獨立固定在右下角的顯示模組 (LCD1602) - 配合微縮調整寬度 */}
+                {/* 獨立固定在右下角的顯示模組 (LCD1602) */}
                 {fixedRightModules.length > 0 && (
                   <div className="absolute bottom-6 right-6 z-30 flex flex-col gap-3 w-[150px]">
                     <h3 className="text-ios-gray font-semibold text-[11px] tracking-widest uppercase flex items-center gap-1.5 opacity-80 self-center">
@@ -1567,9 +1334,7 @@
                     {fixedRightModules.map(mod => renderModuleCard(mod))}
                   </div>
                 )}
-
               </div>
-              
             </main>
           </div>
         </div>
