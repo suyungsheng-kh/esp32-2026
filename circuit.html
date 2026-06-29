@@ -145,25 +145,25 @@
         }
       },
       {
-        id: 'buzzer', type: 'output', name: '🔔 蜂鳴器', desc: 'I/O ➜ IO27',
+        id: 'buzzer', type: 'output', name: '🔔 蜂鳴器', desc: 'I/O ➜ IO13',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IO', label: 'I/O', color: '#5856D6' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO27_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO27']);
+          const sig = modConns.some(c => c.modulePin === 'IO' && c.shieldPin === 'IO13_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO13']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！點擊上方圖示可測試發聲。' };
-          if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 27 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 27 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'I/O 訊號請接在 pin 13 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 13 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
-        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO14',
+        id: 'relay', type: 'output', name: '⚡ 繼電器與風扇', desc: 'IN ➜ IO4',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'IN', label: 'IN', color: '#FF9500' }],
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO14_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO14']);
+          const sig = modConns.some(c => c.modulePin === 'IN' && c.shieldPin === 'IO4_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO4']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！繼電器隨時可以作動。' };
-          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 14 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 14 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'IN 訊號請接在 pin 4 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 4 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -272,15 +272,15 @@
         }
       },
       {
-        id: 'dht', type: 'input', name: '🌡️ 溫濕度', desc: 'DATA ➜ IO23',
+        id: 'dht', type: 'input', name: '🌡️ 溫濕度', desc: 'DATA ➜ IO33',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'DATA', label: 'DATA', color: '#5AC8FA' }],
         sensor: { min: 0, max: 50, default: 25, unit: ' °C' },
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'DATA' && c.shieldPin === 'IO23_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO23']);
+          const sig = modConns.some(c => c.modulePin === 'DATA' && c.shieldPin === 'IO33_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO33']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！準備讀取溫濕度資料。' };
-          if (!sig) return { success: false, msg: 'DATA 訊號請接在 pin 23 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 23 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'DATA 訊號請接在 pin 33 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 33 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -296,15 +296,15 @@
         }
       },
       {
-        id: 'water_temp', type: 'input', name: '💧 水溫', desc: 'DATA ➜ IO16',
+        id: 'water_temp', type: 'input', name: '💧 水溫', desc: 'DATA ➜ IO13',
         pins: [{ id: 'GND', label: 'GND', color: '#1f2937' }, { id: 'VCC', label: 'VCC', color: '#ef4444' }, { id: 'DATA', label: 'DATA', color: '#007AFF' }],
         sensor: { min: 0, max: 100, default: 20, unit: ' °C' },
         validate: (modConns) => {
-          const sig = modConns.some(c => c.modulePin === 'DATA' && c.shieldPin === 'IO16_S');
-          const { vcc, gnd } = checkPower(modConns, ['IO16']);
+          const sig = modConns.some(c => c.modulePin === 'DATA' && c.shieldPin === 'IO13_S');
+          const { vcc, gnd } = checkPower(modConns, ['IO13']);
           if (vcc && gnd && sig) return { success: true, msg: '接線正確！準備測量水溫。' };
-          if (!sig) return { success: false, msg: 'DATA 訊號請接在 pin 16 的 S 腳位。' };
-          return { success: false, msg: '請將 VCC 與 GND 接在 pin 16 旁邊對應的 V 與 G 腳位。' };
+          if (!sig) return { success: false, msg: 'DATA 訊號請接在 pin 13 的 S 腳位。' };
+          return { success: false, msg: '請將 VCC 與 GND 接在 pin 13 旁邊對應的 V 與 G 腳位。' };
         }
       },
       {
@@ -368,9 +368,9 @@
           {
             id: 'd1-2',
             title: '2. 蜂鳴器發聲',
-            desc: '將蜂鳴器訊號接至 IO27。接妥後點擊圖示聽聽看！',
+            desc: '將蜂鳴器訊號接至 IO13。接妥後點擊圖示聽聽看！',
             setup: () => [
-              createCustomModule('buzzer', 'IO27')
+              createCustomModule('buzzer', 'IO13')
             ]
           }
         ]
@@ -437,36 +437,36 @@
           {
             id: 'd3-1',
             title: '1. 氣象台',
-            desc: 'DHT11 (DATA ➜ IO13)，LCD (SDA:21, SCL:22 擴充區)。',
+            desc: 'DHT11 (DATA ➜ IO33)，LCD (SDA:21, SCL:22 擴充區)。',
             setup: () => [
-              createCustomModule('dht', 'IO13'),
+              createCustomModule('dht', 'IO33'),
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           },
           {
             id: 'd3-2',
             title: '2. 泥土醫生',
-            desc: '土壤濕度 (AO ➜ IO32)，LCD (SDA:21, SCL:22 擴充區)。找出太乾的閥值！',
+            desc: '土壤濕度 (AO ➜ IO34)，LCD (SDA:21, SCL:22 擴充區)。找出太乾的閥值！',
             setup: () => [
-              createCustomModule('soil', 'IO32'),
+              createCustomModule('soil', 'IO34'),
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           },
           {
             id: 'd3-3',
             title: '3. 水溫計',
-            desc: '水溫感測 (DATA ➜ IO16)，LCD (SDA:21, SCL:22 擴充區)。',
+            desc: '水溫感測 (DATA ➜ IO13)，LCD (SDA:21, SCL:22 擴充區)。',
             setup: () => [
-              createCustomModule('water_temp', 'IO16'),
+              createCustomModule('water_temp', 'IO13'),
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           },
           {
             id: 'd3-4',
             title: '4. 風暴製造機',
-            desc: '繼電器 (IN ➜ IO14)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
+            desc: '繼電器 (IN ➜ IO4)，LCD (SDA:21, SCL:22 擴充區)。確認每 2 秒自動開關。',
             setup: () => [
-              createCustomModule('relay', 'IO14'),
+              createCustomModule('relay', 'IO4'),
               { ...TASKS.find(t => t.id === 'lcd1602_i2c'), desc: 'SDA:21, SCL:22 (下方擴充區)' }
             ]
           }
