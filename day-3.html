@@ -154,7 +154,7 @@
                             <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
                             <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
                                 <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
-                                <li><span class="text-slate-800 font-bold">DHT11：</span>Pin 13</li>
+                                <li><span class="text-slate-800 font-bold">DHT11：</span>Pin 33</li>
                             </ul>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
@@ -171,12 +171,12 @@
                             <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
                             <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
                                 <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
-                                <li><span class="text-slate-800 font-bold">土壤濕度：</span>Pin 32</li>
+                                <li><span class="text-slate-800 font-bold">土壤濕度：</span>Pin 34</li>
                             </ul>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
-                                <li>清空 LCD 螢幕。</li>
-                                <li>持續顯示土壤濕度的數值，並找出「太乾」的閥值。</li>
+                                <li>讀取<strong>土壤濕度</strong>數值。</li>
+                                <li>轉換數值 (0~1023) ➜ (0~100)。</li>
                             </ul>
                         </div>
                         <!-- Task 3 -->
@@ -188,7 +188,7 @@
                             <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
                             <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
                                 <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
-                                <li><span class="text-slate-800 font-bold">水溫感測：</span>Pin 16</li>
+                                <li><span class="text-slate-800 font-bold">水溫感測：</span>Pin 13</li>
                             </ul>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
@@ -205,7 +205,7 @@
                             <p class="text-[11px] text-slate-500 mb-1"><i class="fa-solid fa-plug text-slate-400"></i> 接線腳位：</p>
                             <ul class="text-[11px] text-slate-600 list-disc list-inside mb-2 ml-1">
                                 <li><span class="text-slate-800 font-bold">1602A LCD：</span>SDA(21), SCL(22)</li>
-                                <li><span class="text-slate-800 font-bold">繼電器：</span>Pin 12</li>
+                                <li><span class="text-slate-800 font-bold">繼電器：</span>Pin 4</li>
                             </ul>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
@@ -278,7 +278,7 @@
                     </div>
                 </div>
 
-                <!-- 專題範例互動模擬器 -->
+                <!-- 專題範例互動展示 -->
                 <div class="mb-8">
                     <h4 class="text-xl font-bold text-slate-800 mb-4 border-l-4 border-emerald-500 pl-3"><i class="fa-solid fa-gamepad text-emerald-600 mr-1"></i> 專題範例互動展示</h4>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
