@@ -191,7 +191,7 @@
                                 <li><strong>挑戰二：時間可調</strong></li>
                             </ul>
                             <div class="bg-indigo-50 text-indigo-700 text-xs p-2 rounded border border-indigo-100 mt-auto">
-                                <strong>💡 提示：</strong>使用「副程式」&「自定變量」
+                                <strong>💡 提示：</strong>使用「副程式」&「對應的變數」，這樣就能設置或調整紅綠燈速度
                             </div>
                         </div>
                         <!-- Task 3 -->
@@ -208,6 +208,21 @@
                             <div class="bg-indigo-50 text-indigo-700 text-xs p-2 rounded border border-indigo-100 mt-auto">
                                 <strong>💡 提示：</strong>因為 ESP32 同時間只能有一個硬體作用，用蜂鳴器播放聲音的時間來取代原有的「等待時間」
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 進階挑戰區塊 -->
+                    <div class="mt-6 bg-gradient-to-r from-orange-100 to-amber-100 p-4 rounded-lg border border-orange-200">
+                        <h5 class="font-bold text-orange-800 mb-2"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> 進階挑戰：可調速號誌台</h5>
+                        <p class="text-sm text-orange-900 mb-2">結合 <strong>1.神奇開關</strong> 與 <strong>2.自動紅綠燈</strong>：</p>
+                        <ul class="text-sm text-orange-800 list-disc list-inside">
+                            <li>按下對應顏色的開關後，對應的變數數值增加（例如：按下綠按鈕，綠燈時間變數增加）。</li>
+                            <li>將自動紅綠燈的等待時間改為「對應的變數」，這樣就能隨時設置或調整紅綠燈的切換速度！</li>
+                        </ul>
+                        <div class="bg-orange-50/80 text-orange-800 text-xs p-2.5 rounded border border-orange-200 mt-3 leading-relaxed">
+                            <strong>💡 提示：</strong><br>
+                            1. 宣告全域變數<br>
+                            2. 賦值 &lt;變數&gt; 成 &lt;變數&gt; + 100
                         </div>
                     </div>
                 </div>
@@ -229,19 +244,28 @@
                 <div class="bg-maker-light rounded-xl p-6 border border-maker/20">
                     <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-maker mr-2"></i>程式邏輯挑戰 (話流程圖)</h4>
                     <p class="text-slate-700 italic mb-4">「先亮綠燈 2 秒，此時蜂鳴器慢慢發出『滴—滴』的聲音。接著換黃燈亮，安靜等待 1 秒。最後換紅燈亮 3 秒，此時蜂鳴器變成急促的『滴滴滴滴』。然後不斷重複。」</p>
+                    
+                    <div class="bg-blue-50/80 text-blue-800 text-xs p-2.5 rounded border border-blue-200 mb-4 leading-relaxed">
+                        <strong>💡 時間計算小提醒：</strong><br>
+                        因為積木播放蜂鳴器聲音時「也會消耗時間」，所以不能單純只寫等待！<br>
+                        綠燈 2 秒 = (發聲 0.5 秒 + 等待 0.5 秒) &times; 2 次<br>
+                        紅燈 3 秒 = (發聲 0.1 秒 + 等待 0.1 秒) &times; 15 次
+                    </div>
+
                     <div class="flex flex-col gap-3 text-sm font-medium text-slate-600">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="bg-green-100 text-green-800 px-3 py-1 rounded shadow-sm border border-green-200">綠燈亮起</span>
-                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded shadow-sm">+ 蜂鳴器 慢速重複滴滴聲 (2 秒)</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded shadow-sm">迴圈 2 次：蜂鳴器響 0.5 秒 <i class="fa-solid fa-arrow-right mx-1"></i> 等待 0.5 秒</span>
                         </div>
                         <i class="fa-solid fa-arrow-down text-slate-400 ml-5"></i>
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded shadow-sm border border-yellow-200">黃燈亮起 (等待 1 秒)</span>
+                            <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded shadow-sm border border-yellow-200">黃燈亮起</span>
+                            <span class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm border border-slate-200">安靜等待 1 秒</span>
                         </div>
                         <i class="fa-solid fa-arrow-down text-slate-400 ml-5"></i>
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="bg-red-100 text-red-800 px-3 py-1 rounded shadow-sm border border-red-200">紅燈亮起</span>
-                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded shadow-sm">+ 蜂鳴器 急促重複滴滴聲 (3 秒)</span>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded shadow-sm">迴圈 15 次：蜂鳴器響 0.1 秒 <i class="fa-solid fa-arrow-right mx-1"></i> 等待 0.1 秒</span>
                         </div>
                     </div>
                 </div>
@@ -255,23 +279,23 @@
                             <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-400">Day 1</span>
                         </div>
                         <pre class="whitespace-pre-wrap"><code>Loop {
-  <span class="text-slate-500">// 1. 綠燈階段 (慢速提示音)</span>
+  <span class="text-slate-500">// 1. 綠燈階段 (慢速提示音，總長 2 秒)</span>
   set_light("GREEN");
   repeat(2) {
-    buzzer_beep();
-    delay(1000);
+    buzzer_beep(500);  <span class="text-slate-500">// 蜂鳴器發聲 0.5 秒</span>
+    delay(500);        <span class="text-slate-500">// 安靜等待 0.5 秒</span>
   }
 
-  <span class="text-slate-500">// 2. 黃燈階段 (安靜等待)</span>
+  <span class="text-slate-500">// 2. 黃燈階段 (安靜等待，總長 1 秒)</span>
   set_light("YELLOW");
   buzzer_stop();
   delay(1000);
 
-  <span class="text-slate-500">// 3. 紅燈階段 (急促警告音)</span>
+  <span class="text-slate-500">// 3. 紅燈階段 (急促警告音，總長 3 秒)</span>
   set_light("RED");
   repeat(15) {
-    buzzer_beep();
-    delay(200);
+    buzzer_beep(100);  <span class="text-slate-500">// 蜂鳴器發聲 0.1 秒</span>
+    delay(100);        <span class="text-slate-500">// 安靜等待 0.1 秒</span>
   }
 }</code></pre>
                     </div>
