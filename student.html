@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>motoBlockly程式自評闖關站</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
   :root{
     --bg1:#6a8dff; --bg2:#9b6bff; --card:#fff; --ink:#2c3e50; --muted:#7f8c8d;
@@ -55,11 +56,21 @@
   .sec.bad{border-color:var(--warn);background:#fff8ec}
   .again{margin-top:10px;background:#eef1f6;color:var(--ink)}
   .setup{font-size:.8rem;color:var(--muted);text-align:center;margin-top:8px}
+  /* 回到課程首頁：iOS 藍膠囊 + Font Awesome home 圖示（與同系列頁面一致） */
+  .home-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;
+             text-decoration:none;color:#007aff;background:rgba(0,122,255,.1);
+             padding:8px 16px;border-radius:9999px;transition:background .15s}
+  .home-link:hover{background:rgba(0,122,255,.2)}
   @media(max-width:480px){body{padding:12px}.card{padding:16px}}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div style="text-align:center;margin-bottom:12px">
+    <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="home-link">
+      <i class="fa-solid fa-house"></i> 回到課程首頁
+    </a>
+  </div>
   <div class="hero">
     <h1>🎮 motoBlockly程式自評闖關站</h1>
     <p>上傳你的 <b>.xml</b> 積木作品，AI 助教立刻幫你檢查任務完成度！</p>
