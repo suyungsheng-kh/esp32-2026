@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>motoBlockly 自評闖關站</title>
+<title>積木程式作業 自評闖關站</title>
 <style>
   :root{
     --bg1:#6a8dff; --bg2:#9b6bff; --card:#fff; --ink:#2c3e50; --muted:#7f8c8d;
@@ -61,7 +61,7 @@
 <body>
 <div class="wrap">
   <div class="hero">
-    <h1>🎮 motoBlockly 自評闖關站</h1>
+    <h1>🎮 積木程式作業自評闖關站</h1>
     <p>上傳你的 <b>.xml</b> 積木作品，AI 助教立刻幫你檢查任務完成度！</p>
   </div>
 
@@ -162,12 +162,24 @@ async function loadTask(){
     const j=await r.json();
     if(j.ok){
       const c=j.config; showScore=c.student_show_score!==false;
-      // 評測標準清單（多份時可下拉選取）
-      let rubrics = Array.isArray(c.rubrics) ? c.rubrics.filter(x=>x&&x.id) : [];
-      if(!rubrics.length){ // 相容舊版：沒有 rubrics 陣列時用單一 theme/rules
-        rubrics = [{ id:'default', name:c.theme||'預設評分標準', theme:c.theme||'', rules:c.rules||'' }];
+      // 評測標準清單：後端只會下發「開放中」的作業；舊版後端沒有 rubrics 欄位
+      let rubrics = Array.isArray(c.rubrics) ? c.rubrics.filter(x=>x&&x.id) : null;
+      if(rubrics===null){ // 相容舊版後端：用單一 theme/rules
+        rubrics = (c.theme||c.rules) ? [{ id:'default', name:c.theme||'預設評分標準', theme:c.theme||'', rules:c.rules||'' }] : [];
       }
       window.rubrics = rubrics;
+
+      // 沒有任何開放中的作業 → 隱藏選單、提示、停用上傳
+      if(!rubrics.length){
+        window.curRubricId=null;
+        $('rubricPick').style.display='none'; $('rubricSelect').innerHTML='';
+        $('themeText').textContent='📕 目前沒有開放的作業';
+        $('rulesText').textContent='老師尚未開放任何作業，請稍後再來或詢問老師。';
+        $('gradeBtn').disabled=true; $('setupHint').textContent='';
+        setLight('on','🟢 已連線（目前沒有開放的作業）');
+        return;
+      }
+
       // 保留先前選擇（若還在清單內），否則預設第一份
       if(!rubrics.some(r=>r.id===window.curRubricId)) window.curRubricId = rubrics[0].id;
       const sel=$('rubricSelect'); sel.innerHTML='';
@@ -175,10 +187,12 @@ async function loadTask(){
       sel.value = window.curRubricId;
       $('rubricPick').style.display = rubrics.length>1 ? 'block' : 'none';
       renderRubric();
+      $('gradeBtn').disabled = !chosen;   // 有選檔才可按
       if(!c.has_api_key){
         $('setupHint').textContent='⚠️ 老師尚未完成設定，暫時無法自評。';
         setLight('on','🟢 已連線（老師尚未完成設定）');
       }else{
+        $('setupHint').textContent='';
         setLight('on','🟢 已連線，可以開始自評');
       }
     } else { $('themeText').textContent='無法載入任務資訊'; setLight('off','🔴 伺服器回應異常'); }
