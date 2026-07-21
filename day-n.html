@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 x motoBlockly - Day N</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Noto Sans TC"', 'sans-serif'] },
+                    colors: { maker: { light: '#fff7ed', DEFAULT: '#f97316', dark: '#c2410c' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <nav class="glass-nav fixed w-full z-50 top-0 border-b border-slate-200 shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-maker text-2xl"></i>
+                    <span class="font-bold text-xl tracking-wider text-slate-800 hidden sm:inline-block">Lung-Hwa <span class="text-maker">物聯網創客</span></span>
+                </div>
+                
+                <!-- 桌面版選單 -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">前導課程</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-1.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 1: 有聲紅綠燈</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 2: 光影與閘門</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="text-slate-600 hover:bg-slate-100 font-medium px-4 py-2 rounded-lg transition-colors">Day 3: 觀測與整合</a>
+                    <a href="https://suyungsheng-kh.github.io/esp32-2026/day-n.html" class="text-maker font-bold bg-maker-light px-4 py-2 rounded-lg transition-colors">Day N: 雲端資料庫</a>
+                    
+                    <div class="h-6 w-px bg-slate-300 mx-2"></div>
+                    <a href="https://drive.google.com/file/d/1Y1JUgKo8vmLsNyORpjvc-Uv0b1M5Vexb/view" target="_blank" class="flex items-center gap-2 bg-slate-800 text-white hover:bg-slate-700 px-4 py-2 rounded-lg font-bold transition-colors shadow-sm">
+                        <i class="fa-solid fa-download"></i> 下載 motoBlockly
+                    </a>
+                </div>
+
+                <!-- 手機版選單按鈕 -->
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="https://drive.google.com/file/d/1Y1JUgKo8vmLsNyORpjvc-Uv0b1M5Vexb/view" target="_blank" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded-md font-bold">
+                        <i class="fa-solid fa-download"></i> motoBlockly
+                    </a>
+                    <button id="mobile-menu-btn" class="text-slate-600 hover:text-maker focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 手機版選單 (下拉列表) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 absolute w-full shadow-lg">
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">前導課程</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-1.html" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">Day 1: 有聲紅綠燈</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-2.html" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">Day 2: 光影與閘門</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="block w-full text-left px-6 py-4 text-slate-600 hover:bg-slate-50 border-l-4 border-transparent">Day 3: 觀測與整合</a>
+            <a href="https://suyungsheng-kh.github.io/esp32-2026/day-n.html" class="block w-full text-left px-6 py-4 text-maker font-bold bg-slate-50 border-l-4 border-maker">Day N: 雲端資料庫</a>
+        </div>
+    </nav>
+
+    <!-- 頁首主視覺 -->
+    <header class="pt-24 pb-16 md:pt-28 md:pb-20 bg-gradient-to-br from-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBkPSJNMjAgMjBjMTEuMDQ2IDAgMjAtOC45NTQgMjAtMjBIMDBDMCAxMS4wNDYgOC45NTQgMjAgMjAgMjB6bTIwIDIwYzAtMTEuMDQ2LTguOTU0LTIwLTIwLTIwUzAgMjguOTU0IDAgNDBoNDB6IiBmaWxsPSIjZmZmZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGwtb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-maker-light text-maker-dark text-sm font-bold tracking-wider mb-4 border border-maker/30">ESP32 x motoBlockly</span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">動手做，打造你的<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-maker to-yellow-400">智慧物聯網</span>世界</h1>
+            <p class="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-8">透過三天的專題導向課程 (PBL)，從基礎接線到邏輯編程，帶你認識感測器原理，解決真實生活中的問題。</p>
+            
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 flex-wrap">
+                <a href="https://suyungsheng-kh.github.io/esp32-2026/circuit.html" class="inline-flex items-center gap-2 bg-maker hover:bg-maker-dark text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-maker/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-graduation-cap"></i> 接線練習
+                </a>
+                <button onclick="openQRCodeModal()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-emerald-600/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-qrcode"></i> 成果分享
+                </button>
+                <a href="https://suyungsheng-kh.github.io/esp32-2026/student.html" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-indigo-600/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-laptop-code"></i> 程式評測
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-[60vh]">
+        <!-- ==================== Day N ==================== -->
+        <section id="dayn">
+            <div class="flex items-center gap-3 mb-8 border-b-2 border-slate-200 pb-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-2xl shadow-inner">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-800">Day N：雲端資料庫 —— 數據上雲端</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-slate-100">
+                <h3 class="text-2xl font-bold text-maker mb-2">🎯 專題目標：將環境數據即時記錄至 Google 試算表</h3>
+                <p class="text-slate-600 mb-6">學會了讀取感測器數值，下一步就是讓這些資料產生長期的價值。今天我們將解鎖 ESP32 的上網功能，將 DHT11 的溫濕度資料，透過 WiFi 即時傳送到 Google 試算表中，打造真正的「物聯網」數據中心！</p>
+
+                <h4 class="text-lg font-bold text-slate-800 mb-4 border-l-4 border-maker pl-3">模組原理與概念總結</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- WiFi 連線 -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-wifi text-sky-500 text-xl"></i>
+                            <h5 class="font-bold text-slate-700">WiFi 連線</h5>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            ESP32 內建強大的 WiFi 模組。在程式一開始，我們必須告訴它無線網路的名稱 (SSID) 與密碼，讓它連上網際網路，這是資料上傳的第一步。
+                        </p>
+                    </div>
+                    <!-- Google Apps Script -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-brands fa-google text-blue-500 text-xl"></i>
+                            <h5 class="font-bold text-slate-700">Google Apps Script</h5>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            試算表不會自己接收資料。我們需要撰寫一段簡單的「雲端小程式 (Apps Script)」，就像一個郵差，負責接收 ESP32 送來的包裹，並填入表格中。
+                        </p>
+                    </div>
+                    <!-- HTTP GET 請求 -->
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-paper-plane text-teal-500 text-xl"></i>
+                            <h5 class="font-bold text-slate-700">HTTP GET 請求</h5>
+                        </div>
+                        <p class="text-sm text-slate-600">
+                            就像在瀏覽器輸入網址一樣。我們將溫濕度資料打包成網址的一部分 (例如: <code class="text-xs bg-slate-200 px-1 rounded">?temp=25&humi=60</code>)，傳送給 Google Apps Script 執行寫入。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 模組小試身手 Day N -->
+                <div class="mb-8 bg-blue-50/50 p-6 rounded-xl border border-blue-100">
+                    <h4 class="text-lg font-bold text-blue-800 mb-4 border-l-4 border-blue-500 pl-3"><i class="fa-solid fa-list-check mr-1"></i> 雲端設定三步曲</h4>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <!-- Task 1 -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors flex flex-col">
+                            <div class="flex items-center gap-2 mb-2 border-b pb-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">1</span>
+                                <h5 class="font-bold text-slate-800">建立試算表</h5>
+                            </div>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>開啟 Google Sheets 建立空白試算表。</li>
+                                <li>在第一列 (A1, B1, C1) 依序輸入標題：「時間戳記」、「溫度」、「濕度」。</li>
+                            </ul>
+                        </div>
+                        <!-- Task 2 -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors flex flex-col">
+                            <div class="flex items-center gap-2 mb-2 border-b pb-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">2</span>
+                                <h5 class="font-bold text-slate-800">部署 Apps Script</h5>
+                            </div>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>點選「擴充功能 ➜ Apps Script」。</li>
+                                <li>貼上老師提供的專用程式碼並存檔。</li>
+                                <li>部署為「網路應用程式」(權限設為所有人)，並取得 <strong>Web App URL</strong>。</li>
+                            </ul>
+                        </div>
+                        <!-- Task 3 -->
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors flex flex-col">
+                            <div class="flex items-center gap-2 mb-2 border-b pb-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                                <h5 class="font-bold text-slate-800">積木設定與測試</h5>
+                            </div>
+                            <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
+                            <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
+                                <li>在 motoBlockly 設定 WiFi 帳密。</li>
+                                <li>將取得的 Web App URL 貼入積木。</li>
+                                <li>組裝讀取 DHT11 (Pin 33) 數值並上傳的積木邏輯。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-maker-light rounded-xl p-6 border border-maker/20 mb-8">
+                    <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-maker mr-2"></i>Google Apps Script 雲端程式碼</h4>
+                    <p class="text-sm text-slate-700 mb-3">這是一段運行在 Google 伺服器上的程式，負責接收 ESP32 送來的 GET 請求，並將裡面的 <code>temp</code> 和 <code>humi</code> 參數寫入試算表的新一列。</p>
+                    <div class="bg-slate-800 rounded-lg p-4 text-xs font-mono text-slate-300 overflow-x-auto shadow-inner">
+<pre><code>function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  <span class="text-slate-500">// 讀取 URL 中的參數 (?temp=XX&humi=XX)</span>
+  var temp = e.parameter.temp || "N/A";
+  var humi = e.parameter.humi || "N/A";
+  
+  <span class="text-slate-500">// 取得台灣時區的當前時間</span>
+  var tz = "Asia/Taipei";
+  var now = Utilities.formatDate(new Date(), tz, "yyyy/MM/dd HH:mm:ss");
+  
+  <span class="text-slate-500">// 寫入一列資料：[時間, 溫度, 濕度]</span>
+  sheet.appendRow([now, temp, humi]);
+  
+  return ContentService.createTextOutput("Data Received OK");
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- 專題範例互動展示 -->
+                <div class="mb-8">
+                    <h4 class="text-xl font-bold text-slate-800 mb-4 border-l-4 border-blue-500 pl-3"><i class="fa-solid fa-network-wired text-blue-600 mr-1"></i> HTTP GET 傳輸原理模擬</h4>
+                    <p class="text-sm text-slate-600 mb-4">當我們使用積木傳送資料時，其實是組合出了一段帶有參數的網址。試著調整下方感測器的數值，觀察「網址請求」與「雲端試算表」的即時變化！</p>
+                    
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 shadow-sm p-5 md:p-8 flex flex-col items-center gap-6">
+                        
+                        <!-- Step 1: ESP32 感測端 -->
+                        <div class="w-full flex flex-col md:flex-row gap-6 items-center">
+                            <div class="bg-white p-5 rounded-xl border-2 border-slate-300 shadow-sm flex-1 w-full relative">
+                                <span class="absolute -top-3 left-4 bg-slate-100 text-slate-600 px-2 py-0.5 text-xs font-bold rounded border border-slate-300">ESP32 端 (發送)</span>
+                                <div class="flex items-center gap-4 mb-4">
+                                    <i class="fa-solid fa-microchip text-4xl text-slate-400"></i>
+                                    <div class="flex-1 space-y-3">
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-red-500 flex justify-between mb-1">
+                                                <span>🌡️ 溫度 Temp</span>
+                                                <span id="sim-url-temp" class="text-sm">28</span>
+                                            </label>
+                                            <input type="range" id="slider-url-temp" min="15" max="45" value="28" class="w-full accent-red-500 h-1.5 cursor-pointer">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-blue-500 flex justify-between mb-1">
+                                                <span>💧 濕度 Humi</span>
+                                                <span id="sim-url-humi" class="text-sm">65</span>
+                                            </label>
+                                            <input type="range" id="slider-url-humi" min="30" max="90" value="65" class="w-full accent-blue-500 h-1.5 cursor-pointer">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button id="btn-send-data" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition-colors shadow-sm active:scale-95 text-sm">
+                                    <i class="fa-solid fa-paper-plane mr-1"></i> 送出資料 (HTTP GET)
+                                </button>
+                            </div>
+
+                            <!-- 動畫箭頭區 -->
+                            <div class="flex flex-col items-center justify-center min-w-[120px] text-blue-400 hidden md:flex">
+                                <div class="text-[10px] font-bold mb-1 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">網址夾帶參數</div>
+                                <div class="relative w-full h-8 flex items-center justify-center">
+                                    <div class="w-full h-1 bg-blue-200 rounded-full"></div>
+                                    <i id="anim-packet" class="fa-solid fa-envelope absolute left-0 text-blue-600 transition-all duration-700 ease-in-out"></i>
+                                    <i class="fa-solid fa-caret-right absolute right-0 text-blue-400"></i>
+                                </div>
+                            </div>
+                            <div class="text-blue-400 md:hidden py-2">
+                                <i class="fa-solid fa-arrow-down text-2xl"></i>
+                            </div>
+
+                            <!-- Step 2: Google 雲端端 -->
+                            <div class="bg-white p-5 rounded-xl border-2 border-green-300 shadow-sm flex-1 w-full relative min-h-[160px]">
+                                <span class="absolute -top-3 left-4 bg-green-50 text-green-700 px-2 py-0.5 text-xs font-bold rounded border border-green-200">Google 試算表 (接收)</span>
+                                
+                                <div class="overflow-hidden border border-slate-200 rounded text-xs mt-2">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-3 py-2 font-bold w-1/2">時間戳記</th>
+                                                <th class="px-3 py-2 font-bold text-red-600">溫度</th>
+                                                <th class="px-3 py-2 font-bold text-blue-600">濕度</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sim-sheet-body" class="divide-y divide-slate-100 font-mono">
+                                            <tr class="text-slate-400 italic">
+                                                <td class="px-3 py-2" colspan="3">等待資料寫入...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- URL 顯示列 -->
+                        <div class="w-full bg-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 break-all border border-slate-700 shadow-inner">
+                            <span class="text-yellow-400 font-bold">GET</span> 
+                            <span class="text-slate-400">https://script.google.com/macros/s/AKfyc.../exec</span><span id="sim-url-query" class="text-green-400 font-bold bg-green-900/30 px-1 rounded transition-colors duration-300">?temp=28&humi=65</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-12 mb-4 border-t-2 border-slate-200 pt-8">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-rocket text-maker"></i> 未來發展方向：物聯網的無限可能
+                    </h3>
+                    <p class="text-slate-600 mb-8">三天的基礎課程只是物聯網大門的鑰匙。當你掌握了「將資料傳上網路」的能力後，不妨在未來的專題或科展中，挑戰以下三大進階領域。這些都是目前業界與創客圈最熱門的實作方向：</p>
+                    
+                    <div class="space-y-8">
+                        
+                        <!-- 發展方向 1: Looker Studio -->
+                        <div class="bg-white rounded-2xl p-6 md:p-8 border-2 border-orange-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden group">
+                            <div class="absolute -right-12 -top-12 w-48 h-48 bg-orange-50 rounded-full z-0 group-hover:scale-150 transition-transform duration-700 opacity-50"></div>
+                            
+                            <!-- 視覺示意圖 -->
+                            <div class="w-full md:w-1/3 flex justify-center relative z-10">
+                                <div class="w-full max-w-[200px] h-48 bg-orange-50 rounded-xl border-2 border-orange-200 p-4 flex flex-col justify-end gap-2 shadow-inner">
+                                    <div class="flex items-center gap-2 mb-auto border-b border-orange-200 pb-2">
+                                        <i class="fa-solid fa-chart-line text-orange-500"></i>
+                                        <span class="text-xs font-bold text-orange-700">Data Dashboard</span>
+                                    </div>
+                                    <div class="flex items-end justify-around h-24 gap-2">
+                                        <div class="w-full bg-orange-300 rounded-t h-1/3 animate-[pulse_3s_ease-in-out_infinite]"></div>
+                                        <div class="w-full bg-orange-400 rounded-t h-2/3 animate-[pulse_3s_ease-in-out_infinite_0.5s]"></div>
+                                        <div class="w-full bg-maker rounded-t h-full animate-[pulse_3s_ease-in-out_infinite_1s]"></div>
+                                        <div class="w-full bg-orange-500 rounded-t h-1/2 animate-[pulse_3s_ease-in-out_infinite_1.5s]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 詳細介紹 -->
+                            <div class="w-full md:w-2/3 relative z-10">
+                                <div class="inline-block px-3 py-1 bg-orange-100 text-orange-700 font-bold text-sm rounded-full mb-3">方向一：數據視覺化</div>
+                                <h4 class="text-2xl font-bold text-slate-800 mb-3">打造專業數據儀表板 (Looker Studio)</h4>
+                                <p class="text-slate-600 mb-4 leading-relaxed">
+                                    Google 試算表裡的純文字數據很難一眼看出變化趨勢。透過 Google 的免費工具 <strong class="text-slate-800">Looker Studio</strong> (前身為 Data Studio)，你可以無縫匯入試算表資料，不需要寫任何程式碼 (No-code)，只要用滑鼠拖拉，就能生成即時動態的折線圖、圓餅圖與數字儀表板。
+                                </p>
+                                
+                                <!-- 新增：基礎起步步驟 -->
+                                <div class="mb-4">
+                                    <h5 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-flag-checkered text-green-600"></i> 基礎起步步驟 (極簡版)：</h5>
+                                    <ol class="text-[13px] text-slate-600 list-decimal list-inside space-y-2 ml-1 bg-white p-4 rounded-lg border border-orange-200 shadow-sm">
+                                        <li><strong>登入平台：</strong>使用你的 Google 帳號開啟 Looker Studio，點擊「建立空白報告」。</li>
+                                        <li><strong>連接資料：</strong>資料來源選擇「Google 試算表」，授權後選取你剛建立的溫濕度紀錄表。</li>
+                                        <li><strong>拉出圖表：</strong>從上方選單點選「新增圖表 ➜ 時間序列圖」。將右側設定的Ｘ軸維度設為「時間」，Ｙ軸指標設為「溫度」，即可看見數據折線！</li>
+                                    </ol>
+                                </div>
+
+                                <!-- 原有的進階挑戰區塊 (微調樣式) -->
+                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-angles-up text-orange-500"></i> 進階挑戰與情境：</div>
+                                    <p class="text-slate-600 mb-3">試著建置「校園溫室觀測站」，加入溫度「量表 (儀表板)」，並將專屬圖表網址分享給師生觀看。</p>
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-magnifying-glass text-blue-500"></i> 自學搜尋關鍵字：</div>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-orange-400 cursor-help">Looker Studio 基礎教學</span>
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-orange-400 cursor-help">Looker Studio 樣式自訂</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 發展方向 2: Web Server -->
+                        <div class="bg-white rounded-2xl p-6 md:p-8 border-2 border-indigo-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col md:flex-row-reverse gap-8 items-center relative overflow-hidden group">
+                            <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-50 rounded-full z-0 group-hover:scale-150 transition-transform duration-700 opacity-50"></div>
+                            
+                            <!-- 視覺示意圖 -->
+                            <div class="w-full md:w-1/3 flex justify-center relative z-10">
+                                <div class="w-full max-w-[160px] h-48 bg-indigo-900 rounded-[2rem] border-[6px] border-slate-800 p-3 flex flex-col relative shadow-xl">
+                                    <div class="w-12 h-1 bg-slate-800 rounded-full mx-auto mb-2"></div>
+                                    <div class="flex-1 bg-indigo-50 rounded-xl p-3 flex flex-col gap-3 justify-center">
+                                        <div class="text-center font-bold text-indigo-900 text-xs mb-1">智慧家居中控</div>
+                                        <div class="bg-white p-2 rounded shadow-sm border border-indigo-100 flex justify-between items-center cursor-pointer hover:bg-indigo-50">
+                                            <i class="fa-solid fa-lightbulb text-yellow-400"></i>
+                                            <div class="w-8 h-4 bg-indigo-500 rounded-full relative"><div class="w-3 h-3 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+                                        </div>
+                                        <div class="bg-white p-2 rounded shadow-sm border border-indigo-100 flex justify-between items-center cursor-pointer hover:bg-indigo-50">
+                                            <i class="fa-solid fa-fan text-slate-400"></i>
+                                            <div class="w-8 h-4 bg-slate-200 rounded-full relative"><div class="w-3 h-3 bg-white rounded-full absolute left-0.5 top-0.5"></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 詳細介紹 -->
+                            <div class="w-full md:w-2/3 relative z-10">
+                                <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 font-bold text-sm rounded-full mb-3">方向二：雙向互動遙控</div>
+                                <h4 class="text-2xl font-bold text-slate-800 mb-3">手機網頁伺服器 (Web Server)</h4>
+                                <p class="text-slate-600 mb-4 leading-relaxed">
+                                    目前的課程我們是將資料「單向」丟上雲端。真正的物聯網應該要是「雙向」的！你可以將 ESP32 本身變成一台微型的網頁伺服器，當你的手機與 ESP32 連上同一個 WiFi 時，只需在手機瀏覽器輸入 ESP32 的 IP 位置，就能打開專屬的遙控器介面。
+                                </p>
+
+                                <!-- 新增：基礎起步步驟 -->
+                                <div class="mb-4">
+                                    <h5 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-flag-checkered text-green-600"></i> 基礎起步步驟 (極簡版)：</h5>
+                                    <ol class="text-[13px] text-slate-600 list-decimal list-inside space-y-2 ml-1 bg-white p-4 rounded-lg border border-indigo-200 shadow-sm">
+                                        <li><strong>積木設定：</strong>在 motoBlockly 的通訊分類中，找到「網頁伺服器 (Web Server)」模組積木。</li>
+                                        <li><strong>建立介面：</strong>設定伺服器回傳一組最簡單的 HTML 網頁文字，裡面包含兩個超連結按鈕 (例如 <code>/on</code> 開燈 與 <code>/off</code> 關燈)。</li>
+                                        <li><strong>手機連線：</strong>啟動 ESP32 並取得它的 IP 位置。手機連上同一個 WiFi，打開瀏覽器輸入該 IP。點擊網頁上的按鈕，ESP32 接收到對應網址就會控制 LED 亮滅！</li>
+                                    </ol>
+                                </div>
+
+                                <!-- 原有的進階挑戰區塊 (微調樣式) -->
+                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-angles-up text-indigo-500"></i> 進階挑戰與情境：</div>
+                                    <p class="text-slate-600 mb-3">製作「寵物自動餵食器」，在外也能用手機登入網頁，按下按鈕控制馬達轉動掉落飼料；或製作「遠端密碼門鎖」。</p>
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-magnifying-glass text-blue-500"></i> 自學搜尋關鍵字：</div>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-indigo-400 cursor-help">ESP32 Web Server 教學</span>
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-indigo-400 cursor-help">ESP32 繼電器控制家電</span>
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-indigo-400 cursor-help">ESP32 HTML/CSS 介面美化</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 發展方向 3: Open Data -->
+                        <div class="bg-white rounded-2xl p-6 md:p-8 border-2 border-emerald-100 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden group">
+                            <div class="absolute -right-12 -top-12 w-48 h-48 bg-emerald-50 rounded-full z-0 group-hover:scale-150 transition-transform duration-700 opacity-50"></div>
+                            
+                            <!-- 視覺示意圖 -->
+                            <div class="w-full md:w-1/3 flex justify-center relative z-10">
+                                <div class="w-full max-w-[200px] h-48 bg-gradient-to-br from-sky-400 to-blue-600 rounded-xl p-4 flex flex-col text-white shadow-lg relative overflow-hidden">
+                                    <i class="fa-solid fa-cloud-showers-heavy absolute -right-4 -top-2 text-6xl text-white/20"></i>
+                                    <div class="text-sm font-bold opacity-80 mb-2"><i class="fa-solid fa-location-dot mr-1"></i> 高雄市, 台灣</div>
+                                    <div class="text-4xl font-black mb-1">28°C</div>
+                                    <div class="text-sm opacity-90 mb-auto">降雨機率: 80%</div>
+                                    
+                                    <div class="bg-white/20 backdrop-blur rounded-lg p-2 flex items-center gap-2 mt-4 text-xs font-mono">
+                                        <i class="fa-solid fa-download animate-bounce"></i>
+                                        <span>GET /api/v1/weather...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 詳細介紹 -->
+                            <div class="w-full md:w-2/3 relative z-10">
+                                <div class="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 font-bold text-sm rounded-full mb-3">方向三：連結真實世界</div>
+                                <h4 class="text-2xl font-bold text-slate-800 mb-3">串接網路開放資料 (Open Data)</h4>
+                                <p class="text-slate-600 mb-4 leading-relaxed">
+                                    做物聯網不代表所有東西都要自己裝感測器！政府機關與各大平台（如氣象署、環境部）提供了許多免費的「開放資料 (API)」。你可以讓 ESP32 主動上網抓取這些數據（例如今日降雨機率、即時空污指數），並結合硬體做出反應。
+                                </p>
+                                
+                                <!-- 新增：基礎起步步驟 -->
+                                <div class="mb-4">
+                                    <h5 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-flag-checkered text-green-600"></i> 基礎起步步驟 (極簡版)：</h5>
+                                    <ol class="text-[13px] text-slate-600 list-decimal list-inside space-y-2 ml-1 bg-white p-4 rounded-lg border border-emerald-200 shadow-sm">
+                                        <li><strong>尋找資料源：</strong>尋找免費免註冊的簡單 API (如 World Time API 抓網路時間)，或到氣象署開放資料平台免費註冊取得 API Key。</li>
+                                        <li><strong>發送請求：</strong>使用 motoBlockly 的「HTTP GET 請求」積木，將 API 網址填入。ESP32 執行後會從網路抓回一大串包含資料的文字 (通常為 JSON 格式)。</li>
+                                        <li><strong>解析數據：</strong>這是一大考驗！使用「JSON 格式解析」積木，精準抓出那一長串文字中的特定數值 (例如今日降雨機率 PoP)。</li>
+                                    </ol>
+                                </div>
+
+                                <!-- 原有的進階挑戰區塊 (微調樣式) -->
+                                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-angles-up text-emerald-500"></i> 進階挑戰與情境：</div>
+                                    <p class="text-slate-600 mb-3">設計一個放在玄關的「智慧出門小精靈」，如果 ESP32 抓到今天該縣市降雨機率大於 50%，出門前經過時就會主動亮起藍燈提醒你要帶傘。</p>
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-magnifying-glass text-blue-500"></i> 自學搜尋關鍵字：</div>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-emerald-400 cursor-help">ESP32 JSON 資料解析</span>
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-emerald-400 cursor-help">氣象署 API ESP32</span>
+                                        <span class="bg-white border border-slate-300 px-2 py-1 rounded text-slate-600 text-[11px] font-bold shadow-sm hover:border-emerald-400 cursor-help">HTTP GET 取得開放資料</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- QR Code 成果分享浮動視窗 (Modal) -->
+        <div id="qrcode-modal" class="fixed inset-0 z-[100] hidden bg-black/70 items-center justify-center p-4 backdrop-blur-sm transition-opacity cursor-zoom-out" onclick="closeQRCodeModal()">
+            <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl relative cursor-default text-center transition-all duration-300 transform scale-95" id="qrcode-card" onclick="event.stopPropagation()">
+                <div class="absolute top-2 right-4 text-slate-400 hover:text-slate-600 text-2xl cursor-pointer transition-colors" onclick="closeQRCodeModal()">&times;</div>
+                <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-share-nodes text-maker"></i> 觀看成果分享
+                </h4>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-center items-center">
+                    <img src="https://raw.githubusercontent.com/su-yung-sheng/googlesites/refs/heads/main/2026072100.png" alt="成果分享 QR Code" class="w-64 h-64 object-contain rounded-lg shadow-sm">
+                </div>
+                <p class="text-xs text-slate-500 mt-4">💡 歡迎用手機掃描 QR Code 觀看學生的創作成果！</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-microchip text-maker text-xl"></i>
+                <span class="font-bold text-white tracking-wider">Lung-Hwa <span class="text-maker">PBL 課程</span></span>
+            </div>
+            <p class="text-sm">© 2026 創客教育. Designed for Junior High School Students.</p>
+            <div class="flex gap-4">
+                <span class="text-xs px-2 py-1 bg-slate-800 rounded">需準備零件盒存放模組</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 手機版選單開關邏輯 ---
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        if (btn && menu) {
+            btn.addEventListener('click', () => { menu.classList.toggle('hidden'); });
+        }
+
+        // --- QR Code 浮動視窗邏輯 ---
+        function openQRCodeModal() {
+            const modal = document.getElementById('qrcode-modal');
+            const card = document.getElementById('qrcode-card');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeQRCodeModal() {
+            const modal = document.getElementById('qrcode-modal');
+            const card = document.getElementById('qrcode-card');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- Day N: HTTP GET 傳輸原理模擬邏輯 ---
+        const sliderTemp = document.getElementById('slider-url-temp');
+        const sliderHumi = document.getElementById('slider-url-humi');
+        const simUrlTemp = document.getElementById('sim-url-temp');
+        const simUrlHumi = document.getElementById('sim-url-humi');
+        const simUrlQuery = document.getElementById('sim-url-query');
+        
+        const btnSend = document.getElementById('btn-send-data');
+        const animPacket = document.getElementById('anim-packet');
+        const sheetBody = document.getElementById('sim-sheet-body');
+        
+        let sheetRowCounter = 0;
+
+        function updateQueryString() {
+            const temp = sliderTemp.value;
+            const humi = sliderHumi.value;
+            simUrlTemp.textContent = temp;
+            simUrlHumi.textContent = humi;
+            simUrlQuery.textContent = `?temp=${temp}&humi=${humi}`;
+            
+            // 讓 queryString 閃爍一下提示有變更
+            simUrlQuery.classList.remove('bg-green-900/30');
+            simUrlQuery.classList.add('bg-green-500/50', 'text-white');
+            setTimeout(() => {
+                simUrlQuery.classList.add('bg-green-900/30');
+                simUrlQuery.classList.remove('bg-green-500/50', 'text-white');
+            }, 300);
+        }
+
+        if(sliderTemp && sliderHumi) {
+            sliderTemp.addEventListener('input', updateQueryString);
+            sliderHumi.addEventListener('input', updateQueryString);
+        }
+
+        if(btnSend && animPacket) {
+            btnSend.addEventListener('click', () => {
+                // 鎖定按鈕防止連按
+                btnSend.disabled = true;
+                btnSend.classList.add('opacity-70', 'cursor-not-allowed');
+                
+                const temp = sliderTemp.value;
+                const humi = sliderHumi.value;
+
+                // 觸發封包飛行動畫
+                animPacket.style.left = '100%';
+                
+                setTimeout(() => {
+                    // 抵達目標後：重置動畫
+                    animPacket.style.transition = 'none';
+                    animPacket.style.left = '0';
+                    setTimeout(() => { animPacket.style.transition = 'all 700ms ease-in-out'; }, 50);
+                    
+                    // 取得假時間
+                    const now = new Date();
+                    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                    
+                    // 清除初始提示文字
+                    if (sheetRowCounter === 0) {
+                        sheetBody.innerHTML = '';
+                    }
+
+                    // 建立新的一列 (TableRow)
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition-colors bg-green-50 duration-500'; // 剛加進來亮底色
+                    tr.innerHTML = `
+                        <td class="px-3 py-2 text-slate-500">${timeStr}</td>
+                        <td class="px-3 py-2 font-bold text-red-600">${temp}</td>
+                        <td class="px-3 py-2 font-bold text-blue-600">${humi}</td>
+                    `;
+                    
+                    // 將新資料插在最上方
+                    sheetBody.insertBefore(tr, sheetBody.firstChild);
+                    sheetRowCounter++;
+                    
+                    // 保留最多 5 筆記錄，避免太長
+                    if(sheetBody.children.length > 5) {
+                        sheetBody.removeChild(sheetBody.lastChild);
+                    }
+
+                    // 漸變消除剛寫入的底色
+                    setTimeout(() => {
+                        tr.classList.remove('bg-green-50');
+                    }, 500);
+
+                    // 解除按鈕鎖定
+                    btnSend.disabled = false;
+                    btnSend.classList.remove('opacity-70', 'cursor-not-allowed');
+
+                }, 700); // 對應 CSS 動畫時間
+            });
+        }
+    </script>
+</body>
+</html>
