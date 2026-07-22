@@ -1231,27 +1231,34 @@
                 {/* 中間：ESP32 擴充板 (維持深色科技質感對比) */}
                 <div className="relative z-10 bg-[#1C1C1E] px-6 py-7 rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.2)] border border-[#2C2C2E] flex flex-col items-center select-none w-fit min-w-[24rem] self-start shrink-0 sticky top-4 mt-4">
                   <div className="text-[#FFCC00] font-bold mb-5 tracking-widest text-xs uppercase flex items-center gap-2 opacity-90">
-                    <span className="w-2 h-2 rounded-full bg-[#FF3B30] inline-block shadow-[0_0_8px_#FF3B30]"></span> ESP32 Sensor Shield V1
+                    <span className="w-2 h-2 rounded-full bg-[#FF3B30] inline-block shadow-[0_0_8px_#FF3B30]"></span>
+                    ESP32 Sensor Shield V1
                   </div>
                   
                   <div className="flex w-full justify-between items-stretch">
+                    
+                    {/* 左側排針區塊：順序改為 S, V, G */}
                     <div className="flex flex-col gap-1 w-fit">
                       <div className="flex text-[10px] text-[#8E8E93] font-mono mb-2 text-center font-bold tracking-wider">
-                        <span className="w-[42px] text-right pr-2">GPIO</span><span className="w-5">G</span><span className="w-5">V</span><span className="w-5">S</span>
+                        <span className="w-[42px] text-right pr-2">GPIO</span>
+                        <span className="w-5">S</span>
+                        <span className="w-5">V</span>
+                        <span className="w-5">G</span>
                       </div>
                       {LEFT_PINS.map(pin => (
                         <div key={pin.id} className="flex items-center gap-1.5 mb-0.5">
                           <span className="text-[#F2F2F7] font-mono text-[10px] w-[42px] text-right pr-1 font-medium opacity-80 whitespace-nowrap tracking-tighter">{pin.label}</span>
                           {pin.type === 'io' ? (
                             <React.Fragment>
-                              <PinButton type="shield" id={`${pin.id}_G`} pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} />
-                              <PinButton type="shield" id={`${pin.id}_V`} pinColor="red" activePin={activePin} connections={connections} onClick={handlePinClick} />
                               <PinButton type="shield" id={`${pin.id}_S`} pinColor="blue" activePin={activePin} connections={connections} onClick={handlePinClick} />
+                              <PinButton type="shield" id={`${pin.id}_V`} pinColor="red" activePin={activePin} connections={connections} onClick={handlePinClick} />
+                              <PinButton type="shield" id={`${pin.id}_G`} pinColor="black" activePin={activePin} connections={connections} onClick={handlePinClick} />
                             </React.Fragment>
                           ) : (
                             <React.Fragment>
-                              <div className="w-5 h-5"></div><div className="w-5 h-5"></div>
                               <PinButton type="shield" id={`${pin.id}_S`} pinColor={pin.color} activePin={activePin} connections={connections} onClick={handlePinClick} />
+                              <div className="w-5 h-5"></div>
+                              <div className="w-5 h-5"></div>
                             </React.Fragment>
                           )}
                         </div>
