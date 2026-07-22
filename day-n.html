@@ -23,11 +23,22 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        
+        .blk{color:#fff;border-radius:8px;padding:7px 11px;margin:5px 0;line-height:1.6; transition:box-shadow .15s, transform .15s;}
+        .blk.active{box-shadow:0 0 0 3px #1e293b; transform:translateX(3px);}
+        .blk.dim{opacity:.35;}
+        .blk.offline{opacity:.4;}
+        .blk.fail{background:#94a3b8 !important; text-decoration:line-through; text-decoration-thickness:2px;}
+        .blk .val{background:rgba(255,255,255,.25);padding:1px 8px;border-radius:99px;font-family:ui-monospace,monospace;}
+        .nest{margin-left:14px;border-left:4px solid rgba(0,0,0,.15);padding-left:9px;}
+        pre.code .hl{background:#334155;display:block;margin:0 -1rem;padding:0 1rem;}
+        .fan.spin{animation:spin .55s linear infinite;transform-origin:50% 50%;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        @media (prefers-reduced-motion:reduce){ .fan.spin{animation:none;} .blk.active{transform:none;} }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-    <!-- 導覽列 -->
     <nav class="glass-nav fixed w-full z-50 top-0 border-b border-slate-200 shadow-sm transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -106,7 +117,22 @@
 
             <div class="bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-slate-100">
                 <h3 class="text-2xl font-bold text-maker mb-2">🎯 專題目標：將環境數據即時記錄至 Google 試算表</h3>
-                <p class="text-slate-600 mb-6">學會了讀取感測器數值，下一步就是讓這些資料產生長期的價值。今天我們將解鎖 ESP32 的上網功能，將 DHT11 的溫濕度資料，透過 WiFi 即時傳送到 Google 試算表中，打造真正的「物聯網」數據中心！</p>
+                <p class="text-slate-600 mb-6">學會了讀取感測器數值，下一步就是讓這些資料產生長期的價值。今天我們將解鎖 ESP32 的上網功能，透過建立 <strong class="text-maker">Google 表單</strong> 作為資料接收的橋樑，將 DHT11 的溫濕度資料，即時傳送到後台的 Google 試算表中，打造真正的「物聯網」數據中心！</p>
+
+                <div class="mb-8 p-5 md:p-6 bg-slate-900 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-slate-800 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 text-slate-800 opacity-50 rotate-12">
+                        <i class="fa-solid fa-microchip text-9xl"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <h4 class="text-white font-bold text-lg md:text-xl flex items-center gap-2">
+                            <i class="fa-solid fa-desktop text-emerald-400 animate-pulse"></i> 全局運作模擬示範
+                        </h4>
+                        <p class="text-slate-400 text-sm mt-2 max-w-lg">在開始接線與寫程式前，先透過互動模擬器，觀察資料是如何從「感測器」經過「判斷」與「動作」，最終流向「雲端資料庫」的完整路徑。</p>
+                    </div>
+                    <button onclick="openSimModal()" class="w-full md:w-auto relative z-10 flex-none inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black py-3 px-6 rounded-lg transition-all active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:shadow-[0_0_25px_rgba(16,185,129,0.6)]">
+                        <i class="fa-solid fa-play"></i> 開啟智慧溫室模擬器
+                    </button>
+                </div>
 
                 <h4 class="text-lg font-bold text-slate-800 mb-4 border-l-4 border-maker pl-3">模組原理與概念總結</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -120,14 +146,14 @@
                             ESP32 內建強大的 WiFi 模組。在程式一開始，我們必須告訴它無線網路的名稱 (SSID) 與密碼，讓它連上網際網路，這是資料上傳的第一步。
                         </p>
                     </div>
-                    <!-- Google Apps Script -->
+                    <!-- Google 表單 -->
                     <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
                         <div class="flex items-center gap-2 mb-3">
                             <i class="fa-brands fa-google text-blue-500 text-xl"></i>
-                            <h5 class="font-bold text-slate-700">Google Apps Script</h5>
+                            <h5 class="font-bold text-slate-700">Google 表單 (資料閘門)</h5>
                         </div>
                         <p class="text-sm text-slate-600">
-                            試算表不會自己接收資料。我們需要撰寫一段簡單的「雲端小程式 (Apps Script)」，就像一個郵差，負責接收 ESP32 送來的包裹，並填入表格中。
+                            試算表不會自己接收外來資料。我們建立一個表單當作「收發室」，當表單收到 ESP32 送來的資料後，就會自動整理並填入試算表中，<strong class="text-slate-800">完全不需寫程式！</strong>
                         </p>
                     </div>
                     <!-- HTTP GET 請求 -->
@@ -137,38 +163,38 @@
                             <h5 class="font-bold text-slate-700">HTTP GET 請求</h5>
                         </div>
                         <p class="text-sm text-slate-600">
-                            就像在瀏覽器輸入網址一樣。我們將溫濕度資料打包成網址的一部分 (例如: <code class="text-xs bg-slate-200 px-1 rounded">?temp=25&humi=60</code>)，傳送給 Google Apps Script 執行寫入。
+                            就像在瀏覽器輸入網址一樣。我們利用表單專屬的題目代碼，將溫濕度打包成網址的一部分 (例如: <code class="text-[10px] bg-slate-200 px-1 rounded break-all">?entry.123=25</code>)，讓 ESP32 發送出填表請求。
                         </p>
                     </div>
                 </div>
 
                 <!-- 模組小試身手 Day N -->
                 <div class="mb-8 bg-blue-50/50 p-6 rounded-xl border border-blue-100">
-                    <h4 class="text-lg font-bold text-blue-800 mb-4 border-l-4 border-blue-500 pl-3"><i class="fa-solid fa-list-check mr-1"></i> 雲端設定三步曲</h4>
+                    <h4 class="text-lg font-bold text-blue-800 mb-4 border-l-4 border-blue-500 pl-3"><i class="fa-solid fa-list-check mr-1"></i> 雲端設定三步曲 (Google 表單法)</h4>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <!-- Task 1 -->
                         <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">1</span>
-                                <h5 class="font-bold text-slate-800">建立試算表</h5>
+                                <h5 class="font-bold text-slate-800">建立表單與試算表</h5>
                             </div>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
-                                <li>開啟 Google Sheets 建立空白試算表。</li>
-                                <li>在第一列 (A1, B1, C1) 依序輸入標題：「時間戳記」、「溫度」、「濕度」。</li>
+                                <li>新增 Google 表單，建立兩題「簡答題」：溫度、濕度。</li>
+                                <li>點擊上方「回覆」標籤，點選「連結至試算表」，建立一個全新的資料接收表。</li>
                             </ul>
                         </div>
                         <!-- Task 2 -->
                         <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 hover:border-blue-300 transition-colors flex flex-col">
                             <div class="flex items-center gap-2 mb-2 border-b pb-2">
                                 <span class="bg-slate-800 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">2</span>
-                                <h5 class="font-bold text-slate-800">部署 Apps Script</h5>
+                                <h5 class="font-bold text-slate-800">找出表單代碼 (Entry ID)</h5>
                             </div>
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
-                                <li>點選「擴充功能 ➜ Apps Script」。</li>
-                                <li>貼上老師提供的專用程式碼並存檔。</li>
-                                <li>部署為「網路應用程式」(權限設為所有人)，並取得 <strong>Web App URL</strong>。</li>
+                                <li>點擊表單右上角「取得預先填寫的連結」，隨便輸入數字後取得網址。</li>
+                                <li>從網址中找出溫度與濕度對應的 <code>entry.XXXXXX</code> 代號。</li>
+                                <li>將網址中的 <code>viewform</code> 改為 <code>formResponse</code>。</li>
                             </ul>
                         </div>
                         <!-- Task 3 -->
@@ -180,33 +206,27 @@
                             <p class="text-[13px] text-slate-700 mb-1"><strong>🎯 任務：</strong></p>
                             <ul class="text-[12px] text-slate-700 list-decimal list-inside space-y-1 ml-1 mb-2">
                                 <li>在 motoBlockly 設定 WiFi 帳密。</li>
-                                <li>將取得的 Web App URL 貼入積木。</li>
-                                <li>組裝讀取 DHT11 (Pin 33) 數值並上傳的積木邏輯。</li>
+                                <li>將修改好的表單網址貼入 HTTP GET 積木。</li>
+                                <li>組裝參數，將 Entry ID 與讀取到的 DHT11 數值連結並發送。</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-maker-light rounded-xl p-6 border border-maker/20 mb-8">
-                    <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-code text-maker mr-2"></i>Google Apps Script 雲端程式碼</h4>
-                    <p class="text-sm text-slate-700 mb-3">這是一段運行在 Google 伺服器上的程式，負責接收 ESP32 送來的 GET 請求，並將裡面的 <code>temp</code> 和 <code>humi</code> 參數寫入試算表的新一列。</p>
-                    <div class="bg-slate-800 rounded-lg p-4 text-xs font-mono text-slate-300 overflow-x-auto shadow-inner">
-<pre><code>function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  
-  <span class="text-slate-500">// 讀取 URL 中的參數 (?temp=XX&humi=XX)</span>
-  var temp = e.parameter.temp || "N/A";
-  var humi = e.parameter.humi || "N/A";
-  
-  <span class="text-slate-500">// 取得台灣時區的當前時間</span>
-  var tz = "Asia/Taipei";
-  var now = Utilities.formatDate(new Date(), tz, "yyyy/MM/dd HH:mm:ss");
-  
-  <span class="text-slate-500">// 寫入一列資料：[時間, 溫度, 濕度]</span>
-  sheet.appendRow([now, temp, humi]);
-  
-  return ContentService.createTextOutput("Data Received OK");
-}</code></pre>
+                    <h4 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-link text-maker mr-2"></i>表單網址解析</h4>
+                    <p class="text-sm text-slate-700 mb-3">Google 表單的網址藏著小秘密！只要把「預填網址」稍作修改，ESP32 就能像人類一樣，在背景偷偷幫我們把資料「送出 (Submit)」。</p>
+                    <div class="bg-slate-800 rounded-lg p-4 text-xs font-mono text-slate-300 overflow-x-auto shadow-inner leading-relaxed">
+                        <div class="mb-2 text-slate-400"># 步驟 1: 將原本網址最後的 <span class="text-red-400 line-through">viewform</span> 改為 <span class="text-green-400 font-bold">formResponse</span></div>
+                        <div>https://docs.google.com/forms/d/e/AKfy.../<span class="text-green-400 font-bold bg-green-900/30 px-1 rounded">formResponse</span></div>
+                        
+                        <div class="mt-4 mb-2 text-slate-400"># 步驟 2: 加上問號 (?)，並串接題目的 entry 代碼與數值 (用 & 符號連接)</div>
+                        <div>
+                            <span class="text-slate-500">?</span>
+                            <span class="text-yellow-400">entry.123456789</span><span class="text-slate-400">=28</span> 
+                            <span class="text-slate-500">&amp;</span> 
+                            <span class="text-blue-400">entry.987654321</span><span class="text-slate-400">=65</span>
+                        </div>
                     </div>
                 </div>
 
@@ -284,7 +304,7 @@
                         <!-- URL 顯示列 -->
                         <div class="w-full bg-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 break-all border border-slate-700 shadow-inner">
                             <span class="text-yellow-400 font-bold">GET</span> 
-                            <span class="text-slate-400">https://script.google.com/macros/s/AKfyc.../exec</span><span id="sim-url-query" class="text-green-400 font-bold bg-green-900/30 px-1 rounded transition-colors duration-300">?temp=28&humi=65</span>
+                            <span class="text-slate-400">https://docs.google.com/forms/d/e/AKfy.../formResponse</span><span id="sim-url-query" class="text-green-400 font-bold bg-green-900/30 px-1 rounded transition-colors duration-300">?entry.1111=28&entry.2222=65</span>
                         </div>
 
                     </div>
@@ -474,6 +494,261 @@
             </div>
         </div>
 
+        <!-- 智慧溫室模擬器浮動視窗 (Modal) -->
+        <div id="sim-modal" class="fixed inset-0 z-[110] hidden bg-black/80 items-center justify-center p-2 md:p-4 backdrop-blur-sm transition-opacity" onclick="closeSimModal()">
+            <div class="bg-slate-50 rounded-2xl w-full h-full max-w-[1400px] shadow-2xl relative overflow-hidden flex flex-col cursor-default" onclick="event.stopPropagation()">
+                
+                <!-- Modal 標題列 -->
+                <div class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl shadow-inner hidden sm:flex">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg md:text-xl font-bold text-slate-800 leading-tight">智慧溫室模擬：從感測器到雲端</h2>
+                            <p class="text-[11px] text-slate-500 hidden sm:block">不需硬體與網路，直接觀察資料流動的完整路徑</p>
+                        </div>
+                    </div>
+                    <button onclick="closeSimModal()" class="text-slate-400 hover:text-red-500 text-2xl transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-red-50 bg-slate-100 focus:outline-none">&times;</button>
+                </div>
+                
+                <!-- Modal 內容區 (可滾動) -->
+                <div class="overflow-y-auto p-4 md:p-6 flex-1 w-full">
+                    <div class="max-w-7xl mx-auto">
+                        <p class="text-sm md:text-base text-slate-600 mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                            這個模擬把一次「迴圈」拆成五個階段輪流亮起：<strong class="text-slate-800">讀取 → 判斷 → 動作 → 上傳 → 等待</strong>。
+                            按下「握住感測器」讓溫度上升，觀察積木在哪一格亮起、風扇何時開始轉、曲線何時越過門檻線。
+                        </p>
+
+                        <!-- 控制列 -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-3 items-center">
+                            <button id="runBtn" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-5 rounded-full transition-all shadow-sm active:scale-95 text-sm">
+                                <i class="fa-solid fa-pause"></i> <span>暫停</span>
+                            </button>
+                            <button id="wifiBtn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-full transition-all shadow-sm active:scale-95 text-sm">
+                                <i class="fa-solid fa-wifi"></i> <span>WiFi 已連線</span>
+                            </button>
+                            <button id="heatBtn" class="inline-flex items-center gap-2 bg-white hover:bg-red-50 text-red-600 border-2 border-red-200 font-bold py-2 px-5 rounded-full transition-all active:scale-95 text-sm">
+                                <i class="fa-solid fa-fire"></i> <span>握住感測器</span>
+                            </button>
+                            <button id="coolBtn" class="inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-200 font-bold py-2 px-5 rounded-full transition-all active:scale-95 text-sm">
+                                <i class="fa-solid fa-droplet"></i> <span>灑水降溫</span>
+                            </button>
+                            <button id="resetBtn" class="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 font-medium py-2 px-3 rounded-full transition-colors text-sm ml-auto">
+                                <i class="fa-solid fa-rotate-left"></i> 重設
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- ① 輸入 -->
+                            <section class="bg-white rounded-2xl p-5 md:p-6 shadow-lg border border-slate-100 relative">
+                                <span class="absolute -top-3 left-5 bg-slate-800 text-white px-3 py-0.5 text-xs font-bold rounded-full">① 輸入 · 偵測什麼</span>
+                                <h3 class="text-lg font-bold text-slate-800 mt-2 mb-3 border-l-4 border-maker pl-3">
+                                    <i class="fa-solid fa-temperature-half text-maker mr-1"></i> DHT11 溫濕度感測器
+                                </h3>
+
+                                <svg viewBox="0 0 420 260" class="w-full h-auto" aria-label="DHT11 與 ESP32 接線示意圖">
+                                    <circle id="heatGlow" cx="72" cy="120" r="0" fill="#ef4444" opacity="0.2"/>
+                                    <rect x="26" y="78" width="92" height="86" rx="6" fill="#3b82f6" stroke="#1d4ed8" stroke-width="2"/>
+                                    <g fill="#1d4ed8">
+                                    <circle cx="48" cy="100" r="3.2"/><circle cx="64" cy="100" r="3.2"/><circle cx="80" cy="100" r="3.2"/><circle cx="96" cy="100" r="3.2"/>
+                                    <circle cx="48" cy="116" r="3.2"/><circle cx="64" cy="116" r="3.2"/><circle cx="80" cy="116" r="3.2"/><circle cx="96" cy="116" r="3.2"/>
+                                    <circle cx="48" cy="132" r="3.2"/><circle cx="64" cy="132" r="3.2"/><circle cx="80" cy="132" r="3.2"/><circle cx="96" cy="132" r="3.2"/>
+                                    </g>
+                                    <text x="72" y="178" text-anchor="middle" font-size="13" fill="#334155" font-weight="700">DHT11</text>
+                                    <g font-size="9.5" fill="#64748b" font-family="ui-monospace,monospace">
+                                    <rect x="118" y="92" width="14" height="6" rx="1" fill="#eab308"/><text x="106" y="90" text-anchor="end">VCC</text>
+                                    <rect x="118" y="118" width="14" height="6" rx="1" fill="#eab308"/><text x="106" y="116" text-anchor="end">DATA</text>
+                                    <rect x="118" y="144" width="14" height="6" rx="1" fill="#eab308"/><text x="106" y="142" text-anchor="end">GND</text>
+                                    </g>
+                                    <path d="M132,95 C180,95 200,60 250,60" stroke="#dc2626" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+                                    <path id="dataWire" d="M132,121 C185,121 200,112 250,112" stroke="#eab308" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+                                    <path d="M132,147 C180,147 200,164 250,164" stroke="#334155" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+                                    <circle id="pulse" r="6.5" fill="#eab308" opacity="0">
+                                    <animateMotion id="pulseMove" dur="0.75s" begin="indefinite" fill="freeze"><mpath href="#dataWire"/></animateMotion>
+                                    </circle>
+                                    <rect x="250" y="34" width="132" height="192" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+                                    <rect x="286" y="20" width="60" height="26" rx="3" fill="#cbd5e1"/>
+                                    <path d="M292,33 h12 M292,27 h12 M310,27 h12 M310,39 h12 M328,33 h12" stroke="#94a3b8" stroke-width="2.5"/>
+                                    <rect x="272" y="86" width="88" height="60" rx="4" fill="#334155"/>
+                                    <text x="316" y="112" text-anchor="middle" font-size="13" fill="#e2e8f0" font-weight="700">ESP32</text>
+                                    <text x="316" y="130" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="ui-monospace,monospace">WROOM-32</text>
+                                    <rect x="296" y="212" width="40" height="20" rx="3" fill="#94a3b8"/>
+                                    <g font-size="9.5" fill="#cbd5e1" font-family="ui-monospace,monospace">
+                                    <rect x="244" y="57" width="14" height="6" rx="1" fill="#eab308"/><text x="266" y="55">3V3</text>
+                                    <rect x="244" y="109" width="14" height="6" rx="1" fill="#eab308"/><text x="266" y="107">D33</text>
+                                    <rect x="244" y="161" width="14" height="6" rx="1" fill="#eab308"/><text x="266" y="159">GND</text>
+                                    </g>
+                                </svg>
+
+                                <div class="grid grid-cols-2 gap-3 mt-3">
+                                    <div class="bg-red-50 border border-red-100 rounded-xl p-3 shadow-inner">
+                                        <div class="text-[11px] font-bold text-red-500">🌡️ 溫度 °C</div>
+                                        <div class="text-3xl font-black text-red-600 font-mono leading-tight" id="tNow">26.0</div>
+                                    </div>
+                                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 shadow-inner">
+                                        <div class="text-[11px] font-bold text-blue-500">💧 濕度 %</div>
+                                        <div class="text-3xl font-black text-blue-600 font-mono leading-tight" id="hNow">60.0</div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- ② 判斷 -->
+                            <section class="bg-white rounded-2xl p-5 md:p-6 shadow-lg border border-slate-100 relative">
+                                <span class="absolute -top-3 left-5 bg-slate-800 text-white px-3 py-0.5 text-xs font-bold rounded-full">② 判斷 · 什麼情況才動作</span>
+                                <h3 class="text-lg font-bold text-slate-800 mt-2 mb-3 border-l-4 border-blue-500 pl-3">
+                                    <i class="fa-solid fa-code text-blue-600 mr-1"></i> 程式邏輯
+                                </h3>
+
+                                <div class="flex gap-2 mb-3">
+                                    <button id="tabBlk" class="px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-white transition-colors">積木</button>
+                                    <button id="tabCode" class="px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Arduino</button>
+                                </div>
+
+                                <div id="viewBlk" class="text-[12px] md:text-[13px]">
+                                    <div class="blk bg-amber-600">程式開始（設定 Setup）
+                                        <div class="nest mt-1.5">
+                                            <div class="blk bg-blue-600" data-step="wifi">連線到 WiFi <span class="val">CAMP-2G</span> 密碼 <span class="val">••••••</span></div>
+                                            <div class="blk bg-blue-600" data-step="wifi">等待直到 WiFi 連線成功</div>
+                                            <div class="blk bg-violet-600" data-step="wifi">LCD 顯示「WiFi OK」</div>
+                                        </div>
+                                    </div>
+                                    <div class="blk bg-amber-600">重複執行（迴圈 Loop）
+                                        <div class="nest mt-1.5">
+                                            <div class="blk bg-teal-600" data-step="read">讀取 DHT11（腳位 <span class="val">33</span>） <span class="val" id="bTemp">26.0</span>°C <span class="val" id="bHumi">60.0</span>%</div>
+                                            <div class="blk bg-yellow-600" data-step="judge">如果 溫度 &gt; <span class="val" id="bThr">30</span> 那麼
+                                            <div class="nest mt-1.5" id="branchTrue">
+                                                <div class="blk bg-violet-600" data-step="act">繼電器 D5 → 高電位（風扇轉）</div>
+                                                <div class="blk bg-violet-600" data-step="act">LCD 顯示「警報！降溫中」</div>
+                                            </div>
+                                            <div class="mt-1.5">否則
+                                                <div class="nest mt-1.5" id="branchFalse">
+                                                <div class="blk bg-violet-600" data-step="act">繼電器 D5 → 低電位（風扇停）</div>
+                                                <div class="blk bg-violet-600" data-step="act">LCD 顯示「環境正常」</div>
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <div class="blk bg-blue-600" data-step="upload">上傳溫度、濕度到 Google 試算表</div>
+                                            <div class="blk bg-amber-600" data-step="wait">等待 <span class="val">2</span> 秒</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <pre class="code bg-slate-800 rounded-lg p-4 text-[11px] md:text-[11.5px] font-mono text-slate-300 overflow-x-auto shadow-inner leading-relaxed" id="viewCode" hidden><span class="text-slate-500">// DHT11 資料腳接在 GPIO 33</span>
+#define DHTPIN 33
+DHT dht(DHTPIN, DHT11);
+
+<span data-step="wifi"><span class="text-slate-500">// 只做一次：連上 WiFi</span>
+void setup() {
+    WiFi.begin("CAMP-2G", "password");
+    while (WiFi.status() != WL_CONNECTED) delay(500);
+    lcd.print("WiFi OK");
+}</span>
+
+void loop() {
+<span data-step="read">    float t = dht.readTemperature();   <span class="text-slate-500">// 讀溫度</span>
+    float h = dht.readHumidity();      <span class="text-slate-500">// 讀濕度</span></span>
+<span data-step="judge">    if (t &gt; <span id="cThr">30</span>) {                    <span class="text-slate-500">// 判斷門檻</span></span>
+<span data-step="act">    digitalWrite(RELAY, HIGH);       <span class="text-slate-500">// 風扇轉</span>
+    lcd.print("WARNING! FAN ON");
+    } else {
+    digitalWrite(RELAY, LOW);        <span class="text-slate-500">// 風扇停</span>
+    lcd.print("STATUS OK");
+    }</span>
+<span data-step="upload">    sendToGoogleSheet(t, h);           <span class="text-slate-500">// 上傳雲端</span></span>
+<span data-step="wait">    delay(2000);                       <span class="text-slate-500">// 等 2 秒</span></span>
+}</pre>
+
+                                <div class="mt-4 bg-maker-light rounded-xl p-4 border border-maker/20">
+                                    <label for="thrRange" class="text-sm font-bold text-slate-700 flex justify-between items-center">
+                                        <span>溫度門檻 <span class="text-maker-dark text-lg font-mono ml-1" id="thrVal">30</span> °C</span>
+                                        <span class="font-normal text-slate-500 text-xs">← 試著拖動改變設定</span>
+                                    </label>
+                                    <input type="range" id="thrRange" min="24" max="38" step="1" value="30" class="w-full accent-maker h-1.5 cursor-pointer mt-3">
+                                </div>
+                            </section>
+
+                            <!-- ③ 輸出 -->
+                            <section class="bg-white rounded-2xl p-5 md:p-6 shadow-lg border border-slate-100 relative flex flex-col">
+                                <span class="absolute -top-3 left-5 bg-slate-800 text-white px-3 py-0.5 text-xs font-bold rounded-full">③ 輸出 · 做出什麼反應</span>
+                                <h3 class="text-lg font-bold text-slate-800 mt-2 mb-3 border-l-4 border-violet-500 pl-3">
+                                    <i class="fa-solid fa-fan text-violet-600 mr-1"></i> 現場裝置
+                                </h3>
+
+                                <div id="lcd" class="bg-emerald-900 border-4 border-slate-400 rounded-lg px-4 py-3 font-mono text-emerald-300 text-base md:text-lg tracking-wider shadow-inner transition-colors duration-300">
+                                    <div id="lcd1">T:26.0C  H:60%</div>
+                                    <div id="lcd2">STATUS OK</div>
+                                </div>
+
+                                <div class="flex items-center gap-4 mt-4 mb-4">
+                                    <div class="w-20 flex-none bg-slate-50 rounded-xl p-2 border border-slate-200">
+                                        <svg viewBox="0 0 100 100" class="w-full" aria-label="風扇狀態">
+                                            <circle cx="50" cy="50" r="46" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="3"/>
+                                            <g id="fan" class="fan" fill="#64748b">
+                                            <path d="M50,50 C50,28 62,18 70,26 C78,34 66,44 50,50Z"/>
+                                            <path d="M50,50 C72,50 82,62 74,70 C66,78 56,66 50,50Z"/>
+                                            <path d="M50,50 C50,72 38,82 30,74 C22,66 34,56 50,50Z"/>
+                                            <path d="M50,50 C28,50 18,38 26,30 C34,22 44,34 50,50Z"/>
+                                            </g>
+                                            <circle cx="50" cy="50" r="7" fill="#1e293b"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-[13px] space-y-1.5 flex-1">
+                                        <div>WiFi：<span id="wifiChip" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">已連線</span></div>
+                                        <div>繼電器：<span id="relayChip" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">低電位 · 停</span></div>
+                                        <div class="text-slate-600">判斷結果：<span class="font-mono bg-slate-100 px-1 rounded" id="judgeText">26.0 &gt; 30 → 否</span></div>
+                                        <div class="text-slate-600">迴圈次數：<span class="font-mono bg-slate-100 px-1 rounded" id="loopN">0</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i>
+                                        <h4 class="font-bold text-slate-700 text-sm">雲端上傳紀錄</h4>
+                                    </div>
+                                    <div class="overflow-hidden border border-slate-200 rounded text-xs bg-white">
+                                        <table class="w-full text-left">
+                                            <thead class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                            <tr>
+                                                <th class="px-2 py-1.5 font-bold w-2/5">時間戳記</th>
+                                                <th class="px-2 py-1.5 font-bold text-red-600">溫度</th>
+                                                <th class="px-2 py-1.5 font-bold text-blue-600">濕度</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="sheetBody" class="divide-y divide-slate-100 font-mono text-slate-600">
+                                            <tr class="text-slate-400 italic"><td class="px-2 py-1.5" colspan="3">等待資料寫入…</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-2 text-right">累積 <span class="font-mono font-bold bg-emerald-100 text-emerald-800 px-1.5 rounded" id="upCount">0</span> 筆</p>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- ④ 雲端呈現 -->
+                        <section class="bg-white rounded-2xl p-5 md:p-6 shadow-lg border border-slate-100 mt-6">
+                            <div class="flex items-center gap-3 flex-wrap mb-3">
+                                <h3 class="text-lg font-bold text-slate-800 border-l-4 border-emerald-500 pl-3">
+                                    <i class="fa-solid fa-chart-line text-emerald-600 mr-1"></i> ④ 雲端試算表：即時數據趨勢圖
+                                </h3>
+                                <div class="flex gap-4 text-xs text-slate-500 ml-auto flex-wrap bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                                    <span><i class="inline-block w-5 border-t-[3px] border-red-500 align-middle mr-1"></i>溫度 °C</span>
+                                    <span><i class="inline-block w-5 border-t-[3px] border-dashed border-blue-600 align-middle mr-1"></i>濕度 %</span>
+                                    <span><i class="inline-block w-5 border-t-[3px] border-dotted border-slate-400 align-middle mr-1"></i>門檻線</span>
+                                </div>
+                            </div>
+                            <div id="flow" class="text-[13px] font-bold text-slate-500 mb-3 bg-slate-50 py-1.5 px-3 rounded inline-block">等待第一筆資料…</div>
+                            <svg id="chart" viewBox="0 0 1000 300" class="w-full h-auto bg-slate-50 rounded-xl border border-slate-200" role="img" aria-label="溫濕度即時折線圖"></svg>
+                        </section>
+                        
+                        <p class="text-xs text-slate-400 mt-6 text-center">
+                            💡 提示：此頁為本機模擬示範，不需連接實體硬體或網路。按下「WiFi 已連線」按鈕可模擬網路斷線情況。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- 頁尾 -->
@@ -521,6 +796,231 @@
             document.body.style.overflow = 'auto';
         }
 
+        // --- 智慧溫室模擬器視窗開關邏輯 ---
+        function openSimModal() {
+            const modal = document.getElementById('sim-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // 防止背景滾動
+        }
+
+        function closeSimModal() {
+            const modal = document.getElementById('sim-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- 智慧溫室模擬器核心邏輯 (使用 IIFE 封裝避免變數污染) ---
+        (function initSimulation() {
+            const S = {temp:26, humi:60, heating:false, cooling:false, relay:false,
+                    thr:30, loops:0, running:true, data:[], step:0,
+                    wifi:true, wasOffline:false, lost:0};
+            const $ = id => document.getElementById(id);
+            const STEPS = ["read","judge","act","upload","wait"];
+
+            function tick(){
+                if(!S.running) return;
+                const stage = STEPS[S.step];
+                highlight(stage);
+
+                if(stage === "read"){
+                    S.loops++;
+                    if(S.heating) S.temp += 0.85;
+                    if(S.cooling) S.temp -= 0.9;
+                    if(S.relay)   S.temp -= 0.55;
+                    S.temp += (26 - S.temp)*0.05 + (Math.random()-0.5)*0.12;
+                    S.temp = Math.min(44, Math.max(18, S.temp));
+                    S.humi += (S.heating ? -0.6 : (S.cooling ? 1.6 : 0.25)) + (Math.random()-0.5)*0.5;
+                    S.humi = Math.min(95, Math.max(28, S.humi));
+                    $("tNow").textContent = S.temp.toFixed(1);
+                    $("hNow").textContent = S.humi.toFixed(1);
+                    $("bTemp").textContent = S.temp.toFixed(1);
+                    $("bHumi").textContent = S.humi.toFixed(1);
+                    $("loopN").textContent = S.loops;
+                    firePulse();
+                }
+
+                if(stage === "judge"){
+                    const hot = S.temp > S.thr;
+                    $("judgeText").textContent = S.temp.toFixed(1) + " > " + S.thr + " → " + (hot ? "是" : "否");
+                    $("branchTrue").classList.toggle("dim", !hot);
+                    $("branchFalse").classList.toggle("dim", hot);
+                }
+
+                if(stage === "act"){
+                    S.relay = S.temp > S.thr;
+                    $("fan").classList.toggle("spin", S.relay);
+                    $("relayChip").textContent = S.relay ? "高電位 · 轉" : "低電位 · 停";
+                    $("relayChip").className = "inline-block px-2.5 py-0.5 rounded-full text-xs font-bold " +
+                    (S.relay ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600");
+                    $("lcd1").textContent = "T:" + S.temp.toFixed(1) + "C  H:" + Math.round(S.humi) + "%";
+                    $("lcd2").textContent = S.relay ? "WARNING! FAN ON" : "STATUS OK";
+                    $("lcd").className = "border-4 border-slate-400 rounded-lg px-4 py-3 font-mono text-base md:text-lg tracking-wider shadow-inner transition-colors duration-300 " +
+                    (S.relay ? "bg-amber-900 text-amber-200" : "bg-emerald-900 text-emerald-300");
+                }
+
+                if(stage === "upload"){
+                    const now = new Date();
+                    const ts = String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0")
+                            +":"+String(now.getSeconds()).padStart(2,"0");
+                    const up = document.querySelectorAll('[data-step="upload"]');
+                    if(S.wifi){
+                        S.data.push({t:ts, temp:+S.temp.toFixed(1), humi:+S.humi.toFixed(1), gap:S.wasOffline});
+                        S.wasOffline = false;
+                        if(S.data.length > 70) S.data.shift();
+                        up.forEach(el => el.classList.remove("fail"));
+                        addRow(ts, S.temp.toFixed(1), S.humi.toFixed(1));
+                        $("upCount").textContent = S.data.length;
+                        $("flow").textContent = "✅ 最新一筆已寫入試算表 " + ts;
+                        $("flow").className = "text-[13px] font-bold text-emerald-600 mb-3 bg-emerald-50 py-1.5 px-3 rounded inline-block";
+                    }else{
+                        S.wasOffline = true; S.lost++;
+                        up.forEach(el => el.classList.add("fail"));
+                        $("flow").textContent = "⚠ 沒有網路，資料送不出去，已遺失 " + S.lost + " 筆";
+                        $("flow").className = "text-[13px] font-bold text-red-600 mb-3 bg-red-50 py-1.5 px-3 rounded inline-block";
+                    }
+                    draw();
+                }
+
+                S.step = (S.step + 1) % STEPS.length;
+            }
+
+            function addRow(ts, t, h){
+                const tb = $("sheetBody");
+                if(tb.querySelector(".italic")) tb.innerHTML = "";
+                const tr = document.createElement("tr");
+                tr.className = "bg-emerald-100 transition-colors duration-700";
+                tr.innerHTML = '<td class="px-2 py-1.5">'+ts+'</td><td class="px-2 py-1.5 font-bold text-red-600">'+t+
+                                '</td><td class="px-2 py-1.5 font-bold text-blue-600">'+h+'</td>';
+                tb.prepend(tr);
+                setTimeout(() => tr.classList.remove("bg-emerald-100"), 500);
+                while(tb.children.length > 4) tb.lastElementChild.remove();
+            }
+
+            function highlight(stage){
+                document.querySelectorAll("[data-step]").forEach(el => {
+                    el.classList.toggle("active", el.dataset.step === stage);
+                    el.classList.toggle("hl", el.dataset.step === stage);
+                });
+            }
+
+            function firePulse(){
+                const p = $("pulse"), m = $("pulseMove");
+                p.setAttribute("opacity","1");
+                if(m && m.beginElement){ try{ m.beginElement(); }catch(e){} }
+                setTimeout(() => p.setAttribute("opacity","0"), 750);
+            }
+
+            function draw(){
+                const pts = S.data, W = 1000, H = 300, L = 56, R = 56, T = 16, B = 30;
+                if(!pts.length){ $("chart").innerHTML = ""; return; }
+                const x = i => L + (pts.length === 1 ? (W-L-R)/2 : i*(W-L-R)/(pts.length-1));
+                const tLo = Math.min(18, S.thr-4), tHi = Math.max(42, S.thr+6);
+                const yT = v => T + (H-T-B)*(1-(v-tLo)/(tHi-tLo));
+                const yH = v => T + (H-T-B)*(1-(v-20)/80);
+                let g = "";
+                for(let i=0;i<=8;i++){ const gy=T+(H-T-B)*i/8;
+                    g += `<line x1="${L}" y1="${gy}" x2="${W-R}" y2="${gy}" stroke="#e2e8f0" stroke-width="${i%4===0?1.3:.8}"/>`; }
+                for(let i=0;i<=12;i++){ const gx=L+(W-L-R)*i/12;
+                    g += `<line x1="${gx}" y1="${T}" x2="${gx}" y2="${H-B}" stroke="#e2e8f0" stroke-width=".8"/>`; }
+                for(let i=0;i<=4;i++){
+                    const v=tLo+(tHi-tLo)*i/4;
+                    g += `<text x="${L-8}" y="${yT(v)+5}" text-anchor="end" font-size="14" font-family="ui-monospace,monospace" fill="#dc2626">${v.toFixed(0)}</text>`;
+                    const v2=20+80*i/4;
+                    g += `<text x="${W-R+8}" y="${yH(v2)+5}" font-size="14" font-family="ui-monospace,monospace" fill="#2563eb">${v2.toFixed(0)}</text>`;
+                }
+                g += `<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="none" stroke="#cbd5e1" stroke-width="1.5" rx="4"/>`;
+                g += `<line x1="${L}" y1="${yT(S.thr)}" x2="${W-R}" y2="${yT(S.thr)}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 6"/>`;
+                g += `<text x="${L+8}" y="${yT(S.thr)-7}" font-size="14" fill="#64748b">門檻 ${S.thr}°C</text>`;
+                const line = (key,yf) => pts.map((p,i)=>x(i).toFixed(1)+","+yf(p[key]).toFixed(1)).join("L");
+                g += `<path d="M${line("humi",yH)}" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-dasharray="8 6" stroke-linejoin="round"/>`;
+                g += `<path d="M${line("temp",yT)}" fill="none" stroke="#ef4444" stroke-width="3.2" stroke-linejoin="round"/>`;
+                pts.forEach((p,i)=>{ if(p.gap && i>0){ const gx=(x(i-1)+x(i))/2;
+                    g += `<line x1="${gx}" y1="${T}" x2="${gx}" y2="${H-B}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="2 5"/>`;
+                    g += `<text x="${gx}" y="${T+16}" text-anchor="middle" font-size="13" fill="#64748b">斷線缺口</text>`; }});
+                const li = pts.length-1;
+                g += `<circle cx="${x(li)}" cy="${yT(pts[li].temp)}" r="6" fill="#ef4444" stroke="#fff" stroke-width="2"/>`;
+                g += `<circle cx="${x(li)}" cy="${yH(pts[li].humi)}" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>`;
+                if(pts.length>1){
+                    g += `<text x="${L}" y="${H-8}" font-size="13" font-family="ui-monospace,monospace" fill="#94a3b8">${pts[0].t}</text>`;
+                    g += `<text x="${W-R}" y="${H-8}" text-anchor="end" font-size="13" font-family="ui-monospace,monospace" fill="#94a3b8">${pts[li].t}</text>`;
+                }
+                $("chart").innerHTML = g;
+            }
+
+            /* 模擬器控制按鈕事件綁定 */
+            const HEAT_ON = "inline-flex items-center gap-2 bg-red-600 text-white border-2 border-red-600 font-bold py-2 px-5 rounded-full transition-all active:scale-95 text-sm shadow-md";
+            const HEAT_OFF = "inline-flex items-center gap-2 bg-white hover:bg-red-50 text-red-600 border-2 border-red-200 font-bold py-2 px-5 rounded-full transition-all active:scale-95 text-sm";
+            const COOL_ON = "inline-flex items-center gap-2 bg-blue-600 text-white border-2 border-blue-600 font-bold py-2 px-5 rounded-full transition-all active:scale-95 text-sm shadow-md";
+            const COOL_OFF = "inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-600 border-2 border-blue-200 font-bold py-2 px-5 rounded-full transition-all active:scale-95 text-sm";
+
+            function syncBtns(){
+                if($("heatBtn")) $("heatBtn").className = S.heating ? HEAT_ON : HEAT_OFF;
+                if($("coolBtn")) $("coolBtn").className = S.cooling ? COOL_ON : COOL_OFF;
+            }
+            if($("heatBtn")) $("heatBtn").onclick = () => { S.heating = !S.heating; if(S.heating) S.cooling = false; syncBtns(); };
+            if($("coolBtn")) $("coolBtn").onclick = () => { S.cooling = !S.cooling; if(S.cooling) S.heating = false; syncBtns(); };
+
+            if($("runBtn")) $("runBtn").onclick = e => {
+                S.running = !S.running;
+                const b = $("runBtn");
+                b.querySelector("span").textContent = S.running ? "暫停" : "執行";
+                b.querySelector("i").className = S.running ? "fa-solid fa-pause" : "fa-solid fa-play";
+                b.className = S.running ? "inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-5 rounded-full transition-all shadow-sm active:scale-95 text-sm" 
+                                        : "inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-5 rounded-full transition-all shadow-sm active:scale-95 text-sm";
+            };
+
+            if($("wifiBtn")) $("wifiBtn").onclick = () => {
+                S.wifi = !S.wifi;
+                const b = $("wifiBtn");
+                b.querySelector("span").textContent = S.wifi ? "WiFi 已連線" : "WiFi 已斷線";
+                b.className = "inline-flex items-center gap-2 font-bold py-2 px-5 rounded-full transition-all shadow-sm active:scale-95 text-sm text-white " +
+                (S.wifi ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-400 hover:bg-slate-500");
+                b.querySelector("i").className = S.wifi ? "fa-solid fa-wifi" : "fa-solid fa-ban";
+                $("wifiChip").textContent = S.wifi ? "已連線" : "斷線";
+                $("wifiChip").className = "inline-block px-2.5 py-0.5 rounded-full text-xs font-bold " +
+                (S.wifi ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-500");
+                document.querySelectorAll('[data-step="wifi"]').forEach(el => el.classList.toggle("offline", !S.wifi));
+                if(S.wifi) S.lost = 0;
+            };
+
+            if($("resetBtn")) $("resetBtn").onclick = () => {
+                Object.assign(S, {temp:26, humi:60, heating:false, cooling:false, relay:false,
+                                loops:0, data:[], step:0, wasOffline:false, lost:0});
+                syncBtns();
+                document.querySelectorAll('[data-step="upload"]').forEach(el => el.classList.remove("fail"));
+                $("fan").classList.remove("spin");
+                $("upCount").textContent = "0";
+                $("loopN").textContent = "0";
+                $("sheetBody").innerHTML = '<tr class="text-slate-400 italic"><td class="px-2 py-1.5" colspan="3">等待資料寫入…</td></tr>';
+                $("flow").textContent = "等待第一筆資料…";
+                $("flow").className = "text-[13px] font-bold text-slate-500 mb-3 bg-slate-50 py-1.5 px-3 rounded inline-block";
+                draw();
+            };
+
+            if($("thrRange")) $("thrRange").oninput = e => {
+                S.thr = +e.target.value;
+                $("thrVal").textContent = S.thr; $("bThr").textContent = S.thr; $("cThr").textContent = S.thr;
+                draw();
+            };
+
+            if($("tabBlk")) $("tabBlk").onclick = () => {
+                $("viewBlk").hidden = false; $("viewCode").hidden = true;
+                $("tabBlk").className = "px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-white transition-colors";
+                $("tabCode").className = "px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors";
+            };
+            if($("tabCode")) $("tabCode").onclick = () => {
+                $("viewBlk").hidden = true; $("viewCode").hidden = false;
+                $("tabCode").className = "px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-800 text-white transition-colors";
+                $("tabBlk").className = "px-4 py-1.5 rounded-lg text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors";
+            };
+
+            // 啟動模擬迴圈
+            setInterval(tick, 460);
+            draw();
+        })();
+
         // --- Day N: HTTP GET 傳輸原理模擬邏輯 ---
         const sliderTemp = document.getElementById('slider-url-temp');
         const sliderHumi = document.getElementById('slider-url-humi');
@@ -539,7 +1039,7 @@
             const humi = sliderHumi.value;
             simUrlTemp.textContent = temp;
             simUrlHumi.textContent = humi;
-            simUrlQuery.textContent = `?temp=${temp}&humi=${humi}`;
+            simUrlQuery.textContent = `?entry.1111=${temp}&entry.2222=${humi}`;
             
             // 讓 queryString 閃爍一下提示有變更
             simUrlQuery.classList.remove('bg-green-900/30');
