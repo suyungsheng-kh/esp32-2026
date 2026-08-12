@@ -9,6 +9,7 @@
 - [課程流程與功能](#課程流程與功能)
 - [檔案說明](#檔案說明)
 - [快速開始](#快速開始)
+- [15 分鐘設定檢查表](#15-分鐘設定檢查表首次啟用-ai-自評)
 - [發布靜態網站](#發布靜態網站)
 - [程式評測後端](#程式評測後端)
 - [帳號申請與服務設定](#帳號申請與服務設定)
@@ -34,6 +35,10 @@
 - **除錯闖關護照**：依「描述現象 → 接線 → 程式 → 查資源 → 問 AI → 求助 → 反思」七步驟逐步解鎖徽章。紀錄只存於學生目前的瀏覽器。
 - **專題設計單**：Day 3 內用浮動視窗開啟，學生先規劃問題、輸入／輸出、判斷邏輯與成功條件，再接線實作。
 - **分層任務卡**：每組從基礎關開始，可再進入挑戰關、創意關，降低整合專題的門檻。
+- **每日最低完成線**：Day 1～3 都先列出當日必達的小目標，讓學生先完成可驗證的核心功能，再延伸挑戰。
+- **上電前互相檢核**：小組在接上 USB 前共同確認 G/V/S、腳位與短路風險，完成三項才可上電。
+- **三分鐘下課回饋**：每一天都有可儲存、複製的回饋單，記錄成功內容、卡關點、嘗試方法與下一步需要的協助。
+- **三句式成果發表**：Day 3 以「問題 → 系統規則 → 解法」引導每組完成簡短且有重點的發表。
 
 ## 檔案說明
 
@@ -43,7 +48,9 @@
 | `day-1.html`～`day-3.html` | 三天的教學頁與互動模擬 | 否 |
 | `day-n.html` | 雲端資料庫延伸課 | 否 |
 | `circuit.html` | React 單檔接線練習器與挑戰關 | 否 |
+| `pre-power-check.html` | 上電前小組互相檢核卡 | 否 |
 | `debug-passport.html` | 除錯闖關護照與徽章 | 否 |
+| `daily-reflection.html` | 每日三分鐘回饋單；依 `?day=1`、`?day=2`、`?day=3` 切換 | 否 |
 | `project-design.html` | 專題設計單；由 Day 3 的浮動視窗載入，也可單獨開啟列印 | 否 |
 | `student.html` | 上傳 `.xml` 作品、取得 AI 自評結果 | **是** |
 | `XMLGrader_Colab.ipynb` | Colab 後端：XML 解析、Gemini 評分、Flask API、ngrok | **是** |
@@ -71,6 +78,54 @@
 6. 先以 `example.7z` 的 XML 範例試評，再開放學生使用。
 
 完整步驟見後面的「[程式評測後端](#程式評測後端)」。
+
+## 15 分鐘設定檢查表（首次啟用 AI 自評）
+
+這份清單適合首次使用、希望先讓 AI 自評正常運作的教師。首次啟用**不必設定 Firebase**；先使用 Colab 暫存設定，確認流程可用後，再依後文啟用永久保存。
+
+開始前，請先確認課程網站已可從網路開啟，而且你有權編輯 [student.html](student.html)。全程只會使用兩個必填 Secret，請勿把它們貼進 HTML、Notebook 儲存格或 GitHub。
+
+### 0～3 分鐘｜取得兩個必填資料
+
+- [ ] 申請 Gemini API Key，複製 API Key。
+- [ ] 註冊 ngrok，從 Dashboard 複製 Authtoken。
+- [ ] 準備一個可公開開啟的課程網站網址；若尚未發布，先完成「[發布靜態網站](#發布靜態網站)」。
+
+### 3～6 分鐘｜開啟 Notebook 與新增 Secret
+
+- [ ] 將 [XMLGrader_Colab.ipynb](XMLGrader_Colab.ipynb) 上傳到 Google Drive，再以 Google Colab 開啟。
+- [ ] 在 Colab 左側開啟 **Secrets**，新增 `XMLGRADER_NGROK_AUTHTOKEN`，貼上 ngrok Authtoken，並允許 Notebook 存取。
+- [ ] 新增 `XMLGRADER_GEMINI_API_KEY_1`，貼上 Gemini API Key，並允許 Notebook 存取。
+
+### 6～9 分鐘｜填寫「步驟 4：🔴 部署設定」
+
+在 Notebook 的「步驟 4：🔴 部署設定」只做下列設定：
+
+- [ ] `USE_FIREBASE = False`（首次測試不需 Firebase）。
+- [ ] `NGROK_STATIC_DOMAIN = ""`（沒有自己保留的 ngrok 固定網域時，保持空白）。
+- [ ] `SHOW_SCORE_TO_STUDENT = True` 或 `False`，依你是否要讓學生立即看分數決定。
+- [ ] 確認 `RUBRICS` 至少有一份 `is_open: True` 的作業；第一次可先保留範例規則，連線成功後再改成自己的題目。
+
+### 9～12 分鐘｜啟動並取得網址
+
+- [ ] 由上到下執行 Notebook 的所有儲存格。
+- [ ] 看到「`✅ API 已上線`」後，複製 `https://...ngrok...` 的**根網址**。
+- [ ] 在瀏覽器開啟 `<根網址>/api/health`，確認畫面出現 `"ok": true`。
+
+若看到 Secret 讀取錯誤，請回到 Colab Secrets 檢查名稱、內容與「允許 Notebook 存取」是否都正確；不需要在程式碼中填 token。
+
+### 12～15 分鐘｜連接學生頁並完成試評
+
+- [ ] 開啟 [student.html](student.html)，找到 `const SERVER_URL = '...'`，將引號內改成剛剛複製的 ngrok 根網址。
+- [ ] 重新發布靜態網站，並重新整理學生頁。
+- [ ] 從 `example.7z` 解壓一個 XML 範例，完成一次上傳試評。
+- [ ] 確認學生能看到作業名稱、收到回應，且瀏覽器沒有顯示「無法連線」。
+
+### 完成後要知道的事
+
+- 未設定固定網域時，每次 Colab 停止或重啟，ngrok 網址都會改變；請重做「12～15 分鐘」並重新發布 `student.html`。
+- `USE_FIREBASE = False` 時，評測設定和提交紀錄只保留到這次 Colab 執行結束。需要跨課保存時，再依後面的「🔴 必改 4：設定 Firebase，或明確關閉 Firebase」啟用 Firebase。
+- 課程頁、接線工具、除錯護照與專題設計單不依賴 AI 自評後端；後端暫停時，仍可照常上課。
 
 ## 發布靜態網站
 
@@ -128,7 +183,7 @@ ngrok HTTPS 公開網址
 3. 由上到下依序執行所有儲存格：
    - 安裝 Python 套件。
    - 產生 `xml_grader_core.py` 與 `colab_server.py`。
-   - 寫入評測設定。
+   - **在「步驟 4：部署設定」集中填寫課程設定，並從 Colab Secret 讀取私密值。**
    - 啟動 Flask 與 ngrok。
 4. 確認最後輸出含有：
 
@@ -201,34 +256,38 @@ Google 官方文件說明可由 AI Studio 建立 Gemini API Key，且 API key �
 
 ## 後端必改清單
 
-以下均位於 `XMLGrader_Colab.ipynb`，且是重新部署／交接時必須檢查的後端設定。
+以下均位於 `XMLGrader_Colab.ipynb` 的 **「步驟 4：🔴 部署設定」**。新版已將所有部署值集中於此；除非維護核心功能，**不要直接修改** `xml_grader_core.py` 或 `colab_server.py` 的設定來源。
+
+### Colab Secret 名稱
+
+在 Colab 左側面板開啟 **Secrets**，新增下列秘密並允許 Notebook 存取：
+
+| Secret 名稱 | 是否必填 | 用途 |
+| --- | --- | --- |
+| `XMLGRADER_NGROK_AUTHTOKEN` | 是 | ngrok tunnel 的認證 token |
+| `XMLGRADER_GEMINI_API_KEY_1` | 是 | Gemini XML 作業評分 |
+| `XMLGRADER_FIREBASE_PROJECT_ID` | Firestore 啟用時 | Firebase 專案 ID |
+| `XMLGRADER_FIREBASE_API_KEY` | Firestore 啟用時 | Firestore REST API 使用的 Web API key |
 
 ### 🔴 必改 1：撤銷現有 ngrok Authtoken，改用自己的 Token
 
-**位置：** Notebook 產生的 `colab_server.py`，`NGROK_AUTHTOKEN`。
+**操作：** 在 Colab Secret 新增 `XMLGRADER_NGROK_AUTHTOKEN`。新版 Notebook 會自動讀取，不需要再修改 `colab_server.py`。
 
-```python
-# ❌ 不要保留來源 Notebook 中的既有 token
-NGROK_AUTHTOKEN = "<從 ngrok Dashboard 取得的 token>"
-```
-
-更安全的寫法是放在 Colab Secret 或執行階段環境變數，再以 `os.environ` 讀取；不要把 token 寫入 Notebook 後同步到 GitHub。
+不要把 token 寫回 Notebook、`student.html` 或 GitHub。
 
 ### 🔴 必改 2：設定 ngrok 固定網域，或採用每次更新網址的流程
 
-**位置：** `colab_server.py` 的 `NGROK_STATIC_DOMAIN`。
+**操作：** 在「步驟 4：部署設定」填寫 `NGROK_STATIC_DOMAIN`。
 
 ```python
 NGROK_STATIC_DOMAIN = "<你保留的網域>.ngrok-free.app"
 ```
 
-若沒有固定網域，需改動啟動程式，讓 `ngrok.connect(PORT)` 不帶 `domain=`；每次重啟 Colab 都會得到新網址，並且都要同步更新 `student.html` 的 `SERVER_URL` 後重新發布前端。
+若沒有固定網域，將 `NGROK_STATIC_DOMAIN` 留為空字串即可；新版 Notebook 會自動建立暫時網址，不需要改動啟動程式。每次重啟 Colab 都會得到新網址，並且都要同步更新 `student.html` 的 `SERVER_URL` 後重新發布前端。
 
 ### 🔴 必改 3：設定 Gemini API Key 與評測規則
 
-**位置：** `xml_grader_core.py` 的設定資料（寫入 Firestore 或本機 `grader_config.json`）。
-
-目前 repository 沒有教師端設定介面，因此可在 Colab 新增一格、於「啟動伺服器前」執行以下範例。請依作業修改主題、規則與 `example_code`：
+**操作：** 在「步驟 4：部署設定」修改 `MODEL_NAME`、`SHOW_SCORE_TO_STUDENT` 與 `RUBRICS`。Notebook 會自動將 Gemini API Key 與評測標準寫入 Firebase 或本機 `grader_config.json`。請依作業修改主題、規則與 `example_code`：
 
 ```python
 import json
@@ -263,9 +322,7 @@ print(core.save_config(cfg))
 
 ### 🔴 必改 4：設定 Firebase，或明確關閉 Firebase
 
-**位置：** `xml_grader_core.py` 內的 `FIREBASE = {...}`。
-
-若使用 Firebase，至少更換：
+**操作：** 在「步驟 4：部署設定」將 `USE_FIREBASE = True`，並在 Colab Secret 新增 Firebase 的專案 ID 與 Web API key。Notebook 會轉成下列後端環境參數：
 
 ```python
 FIREBASE = {
@@ -278,10 +335,10 @@ FIREBASE = {
 }
 ```
 
-若不使用 Firebase：
+若不使用 Firebase，請在「步驟 4：🔴 部署設定」設定：
 
 ```python
-FIREBASE = {"enabled": False}
+USE_FIREBASE = False
 ```
 
 此時設定檔會寫入 `/content/XMLGrader/grader_config.json`，只在目前的 Colab 執行階段有效。要長期保留，需自行掛載 Google Drive 或改用安全的雲端資料庫。
@@ -342,10 +399,11 @@ Notebook 的 `_require_admin()` 目前一律放行，`/api/teacher/config`、`/a
 2. 測試前導課程的 G/V/S 接線與安全找錯題。
 3. 開啟 `circuit.html`，加入模組、接線並檢查結果。
 4. 開啟除錯護照，勾選步驟並確認徽章解鎖；重新整理後確認暫存仍在。
-5. 在 Day 3 開啟浮動式專題設計單，輸入內容、關閉後再開啟，確認內容仍在。
-6. 啟動 Colab，開啟 `/api/health`。
-7. 用 `example.7z` 解壓出的 XML 完成一次 `student.html` 試評。
-8. 確認學生頁只看得到 `is_open: True` 的作業。
+5. 在任一 Day 頁開啟「上電前檢核」與「下課回饋」，確認回饋內容重新整理後仍在。
+6. 在 Day 3 開啟浮動式專題設計單，輸入內容、關閉後再開啟，確認內容仍在；確認三句式發表卡可直接填空練習。
+7. 啟動 Colab，開啟 `/api/health`。
+8. 用 `example.7z` 解壓出的 XML 完成一次 `student.html` 試評。
+9. 確認學生頁只看得到 `is_open: True` 的作業。
 
 ### 常見問題
 

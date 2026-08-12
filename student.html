@@ -125,8 +125,9 @@
 </div>
 
 <script>
-// 內建伺服器網址（自動偵測，學生不需填寫）
-const SERVER_URL = 'https://noncontinuable-megaphonic-annabell.ngrok-free.dev';
+// 🔴 部署前必填：依 README「15 分鐘設定檢查表」貼上本次 Colab 顯示的 ngrok 根網址。
+// 例如：https://your-domain.ngrok-free.app（不要加上 /api/...）
+const SERVER_URL = 'https://<your-ngrok-domain>';
 const $ = id => document.getElementById(id);
 const base = () => SERVER_URL;
 const H = {'ngrok-skip-browser-warning':'true'};
