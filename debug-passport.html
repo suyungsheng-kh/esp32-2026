@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 x motoBlockly - 除錯闖關護照</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Noto Sans TC"', 'sans-serif'] }, colors: { maker: { light: '#fff7ed', DEFAULT: '#f97316', dark: '#c2410c' } } } } }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased">
+  <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur">
+    <div class="max-w-5xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+      <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="flex items-center gap-2 font-bold text-slate-800"><i class="fa-solid fa-microchip text-maker text-xl"></i><span class="hidden sm:inline">Lung-Hwa <span class="text-maker">物聯網創客</span></span></a>
+      <a href="https://suyungsheng-kh.github.io/esp32-2026/circuit.html" class="rounded-lg bg-maker-light px-3 py-2 text-sm font-bold text-maker-dark transition-colors hover:bg-orange-100"><i class="fa-solid fa-plug-circle-check mr-1"></i>接線練習</a>
+    </div>
+  </nav>
+
+  <header class="bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-12 text-center text-white sm:py-16">
+    <p class="text-sm font-bold tracking-[.22em] text-maker-light">DEBUG PASSPORT</p>
+    <h1 class="mt-3 text-3xl font-black sm:text-4xl">除錯闖關護照</h1>
+    <p class="mx-auto mt-3 max-w-2xl text-slate-300">卡關不是失敗。照順序檢查、留下紀錄，每跨一步就解鎖一枚徽章。</p>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 sm:py-12">
+    <section class="rounded-2xl border border-orange-200 bg-maker-light p-5 sm:p-6">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div><h2 class="font-black text-maker-dark"><i class="fa-solid fa-compass mr-1"></i>本次除錯進度</h2><p class="mt-1 text-sm text-slate-600">請在真的完成一個檢查動作後再打勾。</p></div>
+        <span id="progress-text" class="rounded-full bg-white px-4 py-2 text-sm font-black text-maker-dark shadow-sm">0 / 7 關</span>
+      </div>
+      <div class="mt-4 h-3 overflow-hidden rounded-full bg-orange-100"><div id="progress-bar" class="h-full w-0 rounded-full bg-maker transition-all duration-300"></div></div>
+    </section>
+
+    <section class="mt-8 grid gap-5 lg:grid-cols-[1.25fr_.75fr]">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <h2 class="text-xl font-black">依序過關</h2>
+        <p class="mt-1 text-sm text-slate-500">先讓大家知道「哪裡沒有照預期動作」，再往下查。</p>
+        <div id="passport-steps" class="mt-5 space-y-3">
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="1" class="mt-1 h-5 w-5 accent-maker"><span><b>① 描述現象</b><small class="mt-1 block text-slate-500">我看得懂錯在哪嗎？例如：燈不亮、馬達不轉、LCD 沒顯示。</small></span></label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="2" class="mt-1 h-5 w-5 accent-maker"><span><b>② 檢查接線</b><small class="mt-1 block text-slate-500">先斷電，再核對電源、G／V／S、鬆脫與模組腳位。</small></span></label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="3" class="mt-1 h-5 w-5 accent-maker"><span><b>③ 檢查程式</b><small class="mt-1 block text-slate-500">積木順序、腳位、條件與等待時間有沒有對應硬體？</small></span></label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="4" class="mt-1 h-5 w-5 accent-maker"><span><b>④ 查課程資源</b><small class="mt-1 block text-slate-500">比對接線圖、範例程式或網站中的模組說明。</small></span></label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="5" class="mt-1 h-5 w-5 accent-maker"><span><b>⑤ 好好問 AI</b><small class="mt-1 block text-slate-500">告訴它「現象＋接法＋我已經試過什麼」，不要只說「壞掉了」。</small></span></label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="6" class="mt-1 h-5 w-5 accent-maker"><span><b>⑥ 求助與互教</b><small class="mt-1 block text-slate-500">向老師或同學說明你的檢查歷程；聽建議後自己完成修改。</small></span></label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-maker/50"><input type="checkbox" data-step="7" class="mt-1 h-5 w-5 accent-maker"><span><b>⑦ 寫下原因</b><small class="mt-1 block text-slate-500">解決後記下真正的原因，下一次就能更快找到答案。</small></span></label>
+        </div>
+        <label for="debug-note" class="mt-6 block text-sm font-bold text-slate-700">這次卡關的原因與解法</label>
+        <textarea id="debug-note" class="mt-2 min-h-28 w-full rounded-xl border border-slate-300 p-3 text-sm outline-none transition focus:border-maker focus:ring-4 focus:ring-orange-100" placeholder="例如：DHT11 的訊號線接到了錯誤腳位；重新核對接線圖後改接 Pin 33，就能顯示溫度。"></textarea>
+      </div>
+
+      <aside class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <h2 class="text-xl font-black"><i class="fa-solid fa-medal text-yellow-500 mr-1"></i>已解鎖徽章</h2>
+        <p class="mt-1 text-sm text-slate-500">徽章會隨完成的步驟自動點亮。</p>
+        <div class="mt-5 space-y-3">
+          <div data-badge="2" class="badge rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-40 grayscale transition-all"><b class="block text-slate-700">🔎 現象觀察者</b><span class="text-xs text-slate-500">完成 2 個檢查步驟</span></div>
+          <div data-badge="4" class="badge rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-40 grayscale transition-all"><b class="block text-slate-700">🔌 接線偵探</b><span class="text-xs text-slate-500">完成 4 個檢查步驟</span></div>
+          <div data-badge="6" class="badge rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-40 grayscale transition-all"><b class="block text-slate-700">🧭 資源導航員</b><span class="text-xs text-slate-500">完成 6 個檢查步驟</span></div>
+          <div data-badge="7" class="badge rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-40 grayscale transition-all"><b class="block text-slate-700">🏆 自主除錯者</b><span class="text-xs text-slate-500">完成全部步驟並留下解法</span></div>
+        </div>
+        <button id="reset-passport" type="button" class="mt-6 w-full rounded-lg border border-slate-300 py-2 text-sm font-bold text-slate-500 transition-colors hover:bg-slate-50">重設這次紀錄</button>
+        <p class="mt-4 text-center text-xs text-slate-400">紀錄只暫存在這台裝置的瀏覽器。</p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const passportKey = 'esp32-debug-passport-v1';
+    const checks = [...document.querySelectorAll('[data-step]')];
+    const note = document.getElementById('debug-note');
+    const badges = [...document.querySelectorAll('[data-badge]')];
+    let passport = {};
+    try { passport = JSON.parse(localStorage.getItem(passportKey) || '{}'); } catch (error) { passport = {}; }
+    checks.forEach(check => check.checked = Boolean(passport[check.dataset.step]));
+    note.value = passport.note || '';
+
+    function savePassport() {
+      const data = { note: note.value };
+      checks.forEach(check => data[check.dataset.step] = check.checked);
+      localStorage.setItem(passportKey, JSON.stringify(data));
+    }
+    function updatePassport() {
+      const complete = checks.filter(check => check.checked).length;
+      document.getElementById('progress-text').textContent = `${complete} / 7 關`;
+      document.getElementById('progress-bar').style.width = `${complete / 7 * 100}%`;
+      badges.forEach(badge => {
+        const needed = Number(badge.dataset.badge);
+        const unlocked = complete >= needed && (needed < 7 || note.value.trim().length > 0);
+        badge.classList.toggle('opacity-40', !unlocked);
+        badge.classList.toggle('grayscale', !unlocked);
+        badge.classList.toggle('border-maker', unlocked);
+        badge.classList.toggle('bg-maker-light', unlocked);
+      });
+      savePassport();
+    }
+    checks.forEach(check => check.addEventListener('change', updatePassport));
+    note.addEventListener('input', updatePassport);
+    document.getElementById('reset-passport').addEventListener('click', () => {
+      if (!window.confirm('確定要重設這次的除錯紀錄嗎？')) return;
+      checks.forEach(check => check.checked = false);
+      note.value = '';
+      localStorage.removeItem(passportKey);
+      updatePassport();
+    });
+    updatePassport();
+  </script>
+</body>
+</html>

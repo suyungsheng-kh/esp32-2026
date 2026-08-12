@@ -19,7 +19,7 @@
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased">
-  <nav class="glass-nav no-print sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+  <nav id="project-nav" class="glass-nav no-print sticky top-0 z-50 border-b border-slate-200 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="flex items-center gap-2 font-bold text-slate-800 whitespace-nowrap">
         <i class="fa-solid fa-microchip text-maker text-xl"></i><span class="hidden sm:inline">Lung-Hwa <span class="text-maker">物聯網創客</span></span>
@@ -122,6 +122,11 @@
   </main>
 
   <script>
+    if (new URLSearchParams(window.location.search).get('embed') === '1') {
+      document.getElementById('project-nav').classList.add('hidden');
+      document.body.classList.add('embedded');
+    }
+
     const storageKey = 'esp32-project-design-v1';
     const fields = document.querySelectorAll('[data-save]');
     let saved = {};

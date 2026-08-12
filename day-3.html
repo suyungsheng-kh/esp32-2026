@@ -84,6 +84,9 @@
                 <a href="https://suyungsheng-kh.github.io/esp32-2026/circuit.html" class="inline-flex items-center gap-2 bg-maker hover:bg-maker-dark text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-maker/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
                     <i class="fa-solid fa-graduation-cap"></i> 接線練習
                 </a>
+                <a href="https://suyungsheng-kh.github.io/esp32-2026/debug-passport.html" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-sky-600/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-compass"></i> 除錯護照
+                </a>
                 <button onclick="openQRCodeModal()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-emerald-600/30 hover:-translate-y-1 w-full sm:w-auto justify-center">
                     <i class="fa-solid fa-qrcode"></i> 成果分享
                 </button>
@@ -113,9 +116,9 @@
                         <h4 class="font-bold text-maker-dark"><i class="fa-solid fa-pen-ruler mr-1"></i>先完成專題設計，再開始接線</h4>
                         <p class="mt-1 text-sm text-slate-600">依序釐清問題、模組、判斷邏輯與成功條件，讓小組的創意可以落地實作。</p>
                     </div>
-                    <a href="https://suyungsheng-kh.github.io/esp32-2026/project-design.html" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-maker px-4 py-3 font-bold text-white shadow-sm transition-colors hover:bg-maker-dark">
+                    <button type="button" onclick="openProjectDesignModal()" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-maker px-4 py-3 font-bold text-white shadow-sm transition-colors hover:bg-maker-dark">
                         <i class="fa-solid fa-clipboard-list"></i> 開啟專題設計單
-                    </a>
+                    </button>
                 </div>
 
                 <h4 class="text-lg font-bold text-slate-800 mb-4 border-l-4 border-maker pl-3">模組原理與概念總結</h4>
@@ -257,6 +260,24 @@
                                 <span class="bg-slate-700 px-2 py-1 rounded">1602A LCD</span>
                                 <span class="bg-slate-700 px-2 py-1 rounded">伺服馬達</span>
                                 <span class="bg-slate-700 px-2 py-1 rounded">繼電器 (+風扇)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 relative z-10">
+                        <h5 class="text-white font-bold mb-3"><i class="fa-solid fa-layer-group text-yellow-400"></i> 分層任務卡：每組都從基礎關開始</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200 text-slate-700">
+                                <p class="text-sm font-black text-emerald-700">① 基礎關｜先讓它動</p>
+                                <p class="mt-2 text-xs leading-5">選 1 個輸入＋1 個輸出，完成一個「如果…那麼…」功能，並能現場操作驗證。</p>
+                            </div>
+                            <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 text-slate-700">
+                                <p class="text-sm font-black text-amber-700">② 挑戰關｜讓它更聰明</p>
+                                <p class="mt-2 text-xs leading-5">調整判斷數值或條件，再加入一種回饋，例如 LCD 顯示、聲音或第二個輸出。</p>
+                            </div>
+                            <div class="bg-violet-50 p-4 rounded-lg border border-violet-200 text-slate-700">
+                                <p class="text-sm font-black text-violet-700">③ 創意關｜讓它解決問題</p>
+                                <p class="mt-2 text-xs leading-5">依專題設計單加入自訂功能，完成一段測試情境，並說明你修改的原因。</p>
                             </div>
                         </div>
                     </div>
@@ -431,6 +452,17 @@
             </div>
         </div>
 
+        <!-- 專題設計單浮動視窗 -->
+        <div id="project-design-modal" class="fixed inset-0 z-[110] hidden bg-slate-950/70 items-center justify-center p-2 sm:p-4 backdrop-blur-sm" onclick="closeProjectDesignModal()">
+            <div class="w-full max-w-5xl h-[94vh] overflow-hidden rounded-2xl bg-white shadow-2xl" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-between bg-slate-900 px-4 py-3 text-white">
+                    <span class="font-bold"><i class="fa-solid fa-pen-ruler text-maker mr-2"></i>ESP32 專題設計單</span>
+                    <button type="button" aria-label="關閉專題設計單" onclick="closeProjectDesignModal()" class="w-9 h-9 rounded-full text-xl text-slate-300 transition-colors hover:bg-white/10 hover:text-white">&times;</button>
+                </div>
+                <iframe id="project-design-frame" title="ESP32 專題設計單" src="project-design.html?embed=1" class="h-[calc(94vh-56px)] w-full border-0"></iframe>
+            </div>
+        </div>
+
     </main>
 
     <!-- 頁尾 -->
@@ -490,6 +522,21 @@
             const card = document.getElementById('qrcode-card');
             card.classList.remove('scale-100');
             card.classList.add('scale-95');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- 專題設計單浮動視窗 ---
+        function openProjectDesignModal() {
+            const modal = document.getElementById('project-design-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProjectDesignModal() {
+            const modal = document.getElementById('project-design-modal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.style.overflow = 'auto';

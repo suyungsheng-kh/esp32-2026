@@ -193,6 +193,30 @@
                             <button onclick="resetWiring()" class="text-xs text-maker hover:underline"><i class="fa-solid fa-rotate-right"></i> 重新接線</button>
                         </div>
                     </div>
+
+                    <div class="mt-6 rounded-xl border border-red-200 bg-red-50/60 p-4">
+                        <h4 class="text-base font-bold text-red-800"><i class="fa-solid fa-shield-heart mr-1"></i> 接線與用電安全闖關</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 text-sm">
+                            <div class="rounded-lg bg-white p-3 border border-red-100"><strong class="block text-red-700">① 先斷電再接線</strong><span class="text-xs text-slate-600">修改任何線路前，先拔除 USB 電源。</span></div>
+                            <div class="rounded-lg bg-white p-3 border border-red-100"><strong class="block text-red-700">② 冒煙立刻拔電</strong><span class="text-xs text-slate-600">聞到焦味、摸到異常發熱，都要馬上停止。</span></div>
+                            <div class="rounded-lg bg-white p-3 border border-red-100"><strong class="block text-red-700">③ 不確定先問</strong><span class="text-xs text-slate-600">先核對 G／V／S，再請老師或同學複查。</span></div>
+                        </div>
+                        <div class="mt-4 rounded-lg border border-red-100 bg-white p-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div><p class="font-bold text-slate-800">小組找錯接線</p><p class="text-xs text-slate-500">下方三條中有 2 條接錯；請先點選錯誤的接法，再一起確認。</p></div>
+                                <span id="safety-status" class="text-xs font-bold text-slate-500">尚未作答</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+                                <button id="safety-vcc-gnd" type="button" onclick="toggleSafetyError('vcc-gnd')" class="safety-choice rounded-lg border-2 border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 transition-colors">VCC → G</button>
+                                <button id="safety-gnd-vcc" type="button" onclick="toggleSafetyError('gnd-vcc')" class="safety-choice rounded-lg border-2 border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 transition-colors">GND → V</button>
+                                <button id="safety-sig-s" type="button" onclick="toggleSafetyError('sig-s')" class="safety-choice rounded-lg border-2 border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 transition-colors">SIG → S</button>
+                            </div>
+                            <div class="flex items-center gap-3 mt-3">
+                                <button type="button" onclick="checkSafetyPuzzle()" class="rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-red-700">確認答案</button>
+                                <button type="button" onclick="resetSafetyPuzzle()" class="text-xs font-bold text-slate-500 hover:text-maker">重新挑戰</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -469,6 +493,45 @@
             });
             document.getElementById('wiring-status').textContent = "等待連線...";
             document.getElementById('wiring-status').className = 'text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded shadow-sm text-center';
+        }
+
+        // --- 接線安全：小組找錯接線 ---
+        let selectedSafetyErrors = new Set();
+        const actualSafetyErrors = new Set(['vcc-gnd', 'gnd-vcc']);
+
+        function toggleSafetyError(id) {
+            const button = document.getElementById(`safety-${id}`);
+            if (selectedSafetyErrors.has(id)) {
+                selectedSafetyErrors.delete(id);
+                button.className = 'safety-choice rounded-lg border-2 border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 transition-colors';
+            } else {
+                selectedSafetyErrors.add(id);
+                button.className = 'safety-choice rounded-lg border-2 border-amber-400 bg-amber-50 px-3 py-3 text-sm font-bold text-amber-800 transition-colors';
+            }
+            document.getElementById('safety-status').textContent = `已選 ${selectedSafetyErrors.size} 條，請小組確認後送出`;
+            document.getElementById('safety-status').className = 'text-xs font-bold text-amber-700';
+        }
+
+        function checkSafetyPuzzle() {
+            const correct = selectedSafetyErrors.size === actualSafetyErrors.size && [...actualSafetyErrors].every(id => selectedSafetyErrors.has(id));
+            const status = document.getElementById('safety-status');
+            if (correct) {
+                status.textContent = '🏅 安全接線通關：V 要接 V、G 要接 G、SIG 才接 S。';
+                status.className = 'text-xs font-bold text-green-700';
+            } else {
+                status.textContent = '再看一次：VCC 和 GND 分別應該接到哪一排？';
+                status.className = 'text-xs font-bold text-red-700';
+            }
+        }
+
+        function resetSafetyPuzzle() {
+            selectedSafetyErrors = new Set();
+            ['vcc-gnd', 'gnd-vcc', 'sig-s'].forEach(id => {
+                document.getElementById(`safety-${id}`).className = 'safety-choice rounded-lg border-2 border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-700 transition-colors';
+            });
+            const status = document.getElementById('safety-status');
+            status.textContent = '尚未作答';
+            status.className = 'text-xs font-bold text-slate-500';
         }
 
         renderWires();
