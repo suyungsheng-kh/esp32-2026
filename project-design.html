@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 x motoBlockly - 專題設計單</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Noto Sans TC"', 'sans-serif'] }, colors: { maker: { light: '#fff7ed', DEFAULT: '#f97316', dark: '#c2410c' } } } } }
+  </script>
+  <style>
+    .glass-nav { background: rgba(255,255,255,.9); backdrop-filter: blur(10px); }
+    .field { width:100%; border:1px solid #cbd5e1; border-radius:.75rem; padding:.75rem .9rem; color:#1e293b; background:#fff; outline:none; transition:.15s; }
+    .field:focus { border-color:#f97316; box-shadow:0 0 0 3px rgba(249,115,22,.16); }
+    textarea.field { min-height:5.5rem; resize:vertical; }
+    @media print { .no-print { display:none !important; } body { background:#fff !important; } main { max-width:none !important; padding:0 !important; } .print-sheet { box-shadow:none !important; border:0 !important; } .step-card { break-inside:avoid; } }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+  <nav class="glass-nav no-print sticky top-0 z-50 border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="flex items-center gap-2 font-bold text-slate-800 whitespace-nowrap">
+        <i class="fa-solid fa-microchip text-maker text-xl"></i><span class="hidden sm:inline">Lung-Hwa <span class="text-maker">物聯網創客</span></span>
+      </a>
+      <div class="flex items-center gap-2 text-sm font-bold">
+        <a href="https://suyungsheng-kh.github.io/esp32-2026/day-3.html" class="text-slate-600 hover:bg-slate-100 px-3 py-2 rounded-lg transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i>Day 3</a>
+        <button type="button" onclick="window.print()" class="bg-maker hover:bg-maker-dark text-white px-3 sm:px-4 py-2 rounded-lg transition-colors"><i class="fa-solid fa-print mr-1"></i>列印</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <section class="print-sheet bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+      <header class="bg-gradient-to-br from-slate-800 to-slate-900 px-6 sm:px-10 py-8 text-white">
+        <p class="text-maker-light font-bold tracking-[.2em] text-xs mb-3">ESP32 × motoBlockly · DAY 3</p>
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+          <div>
+            <h1 class="text-3xl sm:text-4xl font-black tracking-wide">ESP32 專題設計單</h1>
+            <p class="text-slate-300 mt-2">動手接線前，先把想法接起來。</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-sm w-full sm:w-[22rem]">
+            <label>組別<input class="field mt-1" data-save="group" aria-label="組別"></label>
+            <label>組員<input class="field mt-1" data-save="members" aria-label="組員"></label>
+          </div>
+        </div>
+      </header>
+
+      <div class="p-6 sm:p-10">
+        <details class="no-print mb-8 rounded-xl border border-orange-200 bg-maker-light p-4 text-sm text-slate-600">
+          <summary class="cursor-pointer font-bold text-maker-dark">查看範例：智慧溫室環控</summary>
+          <p class="mt-3 leading-7">溫室白天太熱會把作物悶壞，但沒有人能一直盯著溫度。輸入使用 DHT11 溫濕度感測器；輸出使用繼電器＋風扇、LCD 顯示器。若溫度高於 30°C，就啟動風扇並在 LCD 顯示警報；否則停止風扇、顯示正常。用手握住 DHT11 讓溫度上升，風扇轉起來且 LCD 跳出警報，就算成功。</p>
+        </details>
+
+        <form id="design-form" class="space-y-7">
+          <fieldset class="step-card grid grid-cols-[2.5rem_1fr] gap-4">
+            <div class="w-10 h-10 rounded-full border-2 border-maker text-maker font-black flex items-center justify-center">1</div>
+            <div>
+              <label for="title" class="block text-lg font-black">專題名稱 <span class="text-sm font-normal text-slate-400">取個有記憶點的名字</span></label>
+              <input id="title" class="field mt-3" data-save="title" placeholder="例如：植物自動保母">
+            </div>
+          </fieldset>
+
+          <fieldset class="step-card grid grid-cols-[2.5rem_1fr] gap-4">
+            <div class="w-10 h-10 rounded-full border-2 border-maker text-maker font-black flex items-center justify-center">2</div>
+            <div>
+              <label for="problem" class="block text-lg font-black">想解決什麼問題？</label>
+              <p class="mt-1 text-sm text-slate-400">當我＿＿＿＿的時候，常常會＿＿＿＿，很困擾。</p>
+              <textarea id="problem" class="field mt-3" data-save="problem" placeholder="描述一個生活中真正會遇到的情境"></textarea>
+            </div>
+          </fieldset>
+
+          <fieldset class="step-card grid grid-cols-[2.5rem_1fr] gap-4">
+            <div class="w-10 h-10 rounded-full border-2 border-maker text-maker font-black flex items-center justify-center">3</div>
+            <div>
+              <legend class="text-lg font-black">使用模組</legend>
+              <div class="grid md:grid-cols-2 gap-4 mt-3">
+                <div class="rounded-xl border border-slate-200 p-4 bg-slate-50">
+                  <label for="input-module" class="block font-bold text-slate-700">輸入 <span class="font-normal text-sm text-slate-400">／偵測什麼</span></label>
+                  <textarea id="input-module" class="field mt-3" data-save="input" placeholder="例如：DHT11，偵測環境溫度"></textarea>
+                </div>
+                <div class="rounded-xl border border-slate-200 p-4 bg-slate-50">
+                  <label for="output-module" class="block font-bold text-slate-700">輸出 <span class="font-normal text-sm text-slate-400">／做出什麼反應</span></label>
+                  <textarea id="output-module" class="field mt-3" data-save="output" placeholder="例如：繼電器＋風扇，幫溫室散熱"></textarea>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="step-card grid grid-cols-[2.5rem_1fr] gap-4">
+            <div class="w-10 h-10 rounded-full border-2 border-maker text-maker font-black flex items-center justify-center">4</div>
+            <div>
+              <legend class="text-lg font-black">判斷邏輯 <span class="text-sm font-normal text-slate-400">在什麼情況下才動作？</span></legend>
+              <div class="space-y-3 mt-3">
+                <label class="flex flex-col sm:flex-row sm:items-center gap-2"><span class="w-16 rounded-md bg-slate-800 text-white text-center font-bold py-2">如果</span><input class="field flex-1" data-save="if" placeholder="例如：溫度高於 30°C"></label>
+                <label class="flex flex-col sm:flex-row sm:items-center gap-2"><span class="w-16 rounded-md bg-maker text-white text-center font-bold py-2">那麼</span><input class="field flex-1" data-save="then" placeholder="例如：啟動風扇，LCD 顯示警報"></label>
+                <label class="flex flex-col sm:flex-row sm:items-center gap-2"><span class="w-16 rounded-md border border-dashed border-slate-400 text-slate-500 text-center font-bold py-2">否則</span><input class="field flex-1" data-save="else" placeholder="選填，例如：停止風扇，LCD 顯示正常"></label>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="step-card grid grid-cols-[2.5rem_1fr] gap-4">
+            <div class="w-10 h-10 rounded-full border-2 border-maker text-maker font-black flex items-center justify-center">5</div>
+            <div>
+              <label for="success" class="block text-lg font-black">怎樣算成功？ <span class="text-sm font-normal text-slate-400">先訂一個今天做得完的版本</span></label>
+              <p class="mt-1 text-sm text-slate-400">當我做＿＿＿＿這個動作，它就會＿＿＿＿，就算成功。</p>
+              <textarea id="success" class="field mt-3" data-save="success" placeholder="寫下可實際操作與觀察的驗證方式"></textarea>
+            </div>
+          </fieldset>
+        </form>
+
+        <div class="no-print flex flex-col sm:flex-row justify-between items-center gap-3 mt-10 pt-6 border-t border-slate-200">
+          <p class="text-sm text-slate-500"><i class="fa-solid fa-floppy-disk text-maker mr-1"></i>內容會暫存在這台裝置的瀏覽器中。</p>
+          <div class="flex gap-3">
+            <button type="button" id="clear-form" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 font-bold hover:bg-slate-50 transition-colors">清除內容</button>
+            <button type="button" onclick="window.print()" class="px-4 py-2 rounded-lg bg-maker hover:bg-maker-dark text-white font-bold transition-colors"><i class="fa-solid fa-print mr-1"></i>列印設計單</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const storageKey = 'esp32-project-design-v1';
+    const fields = document.querySelectorAll('[data-save]');
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch (error) { saved = {}; }
+    fields.forEach(field => {
+      field.value = saved[field.dataset.save] || '';
+      field.addEventListener('input', () => {
+        const data = {};
+        fields.forEach(item => data[item.dataset.save] = item.value);
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      });
+    });
+    document.getElementById('clear-form').addEventListener('click', () => {
+      if (!window.confirm('確定要清除這張設計單的所有內容嗎？')) return;
+      fields.forEach(field => field.value = '');
+      localStorage.removeItem(storageKey);
+    });
+  </script>
+</body>
+</html>
