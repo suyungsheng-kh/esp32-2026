@@ -1051,32 +1051,32 @@
       return (
         <div className="h-screen w-full bg-ios-bg text-ios-text font-sans flex flex-col overflow-hidden">
           
-          <header className="bg-ios-card/80 backdrop-blur-xl px-6 py-4 flex justify-between items-center shrink-0 z-30">
-            <div className="flex items-center">
-              <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2">
+          <header className="bg-ios-card/80 backdrop-blur-xl px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center shrink-0 z-30">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-[17px] font-semibold tracking-tight flex items-center gap-2 whitespace-nowrap">
                 <i className="fa-solid fa-bolt text-ios-yellow"></i> ESP32 接線練習 {appMode === 'challenge' && activeChallenge ? ` - ${activeChallenge.title}` : ''}
               </h1>
               <a 
                 href="https://suyungsheng-kh.github.io/esp32-2026/" 
-                className="ml-4 text-[13px] font-bold text-ios-blue bg-ios-blue/10 px-3 py-1.5 rounded-full hover:bg-ios-blue/20 transition-colors flex items-center gap-1.5"
+                className="sm:ml-2 text-[13px] font-bold text-ios-blue bg-ios-blue/10 px-3 py-1.5 rounded-full hover:bg-ios-blue/20 transition-colors flex items-center gap-1.5"
               >
                 <i className="fa-solid fa-house"></i> 回到課程首頁
               </a>
             </div>
-            <div className="text-[13px] font-medium text-ios-gray flex items-center gap-2">
+            <div className="text-[12px] sm:text-[13px] font-medium text-ios-gray flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-ios-green animate-pulse"></span>
               模擬引擎啟動中：接線正確後即可點擊元件互動！
             </div>
           </header>
 
-          <div className="bg-[#FFF8E1] border-y border-[#FFECB3] px-6 py-2 flex items-center justify-center gap-2 text-[#F57F17] shrink-0 z-20 shadow-sm relative">
+          <div className="bg-[#FFF8E1] border-y border-[#FFECB3] px-4 sm:px-6 py-2 flex items-center justify-center gap-2 text-[#F57F17] shrink-0 z-20 shadow-sm relative text-center">
              <i className="fa-solid fa-lightbulb"></i>
              <span className="font-bold text-[13px] tracking-wide">📌 提醒：所有模組皆需將 VCC 與 GND 接至擴充板同一排的 V 與 G 孔位，才能正常通電運作！</span>
           </div>
 
-          <div className="flex flex-1 overflow-hidden relative">
+          <div className="flex flex-1 overflow-x-auto lg:overflow-hidden relative">
             
-            <aside className="w-[300px] bg-ios-bg border-r border-ios-grayLight flex flex-col z-20 shrink-0 h-full">
+            <aside className="w-[280px] sm:w-[300px] bg-ios-bg border-r border-ios-grayLight flex flex-col z-20 shrink-0 h-full">
               
               <div className="mx-4 mt-6 p-1 bg-ios-grayLight rounded-[10px] flex shadow-inner shrink-0">
                 <button 
@@ -1159,7 +1159,7 @@
               </div>
             </aside>
 
-            <main className="flex-1 flex flex-col relative h-full overflow-hidden bg-[#F2F2F7]">
+            <main className="min-w-[940px] flex-1 flex flex-col relative h-full overflow-hidden bg-[#F2F2F7]">
               
               <div className="absolute top-0 w-full z-30 px-6 py-4 pointer-events-none flex flex-col items-center">
                 {challengeSuccess && (
