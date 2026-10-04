@@ -1,5 +1,8 @@
 .venv/
 .publish/
+# 獨立版僅以 Releases 附件分享，不把產物放回原始碼。
+XMLGrader_Standalone/
+XMLGrader_Standalone.zip
 __pycache__/
 *.pyc
 XML_Grader/runtime/

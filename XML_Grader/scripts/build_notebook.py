@@ -1,4 +1,4 @@
-"""由共用後端產生兩個相同 Notebook；不要直接編輯產生的 Python 儲存格。"""
+"""由唯一後端來源產生根目錄 Notebook；不要直接編輯產生的 Python 儲存格。"""
 import json
 from pathlib import Path
 
@@ -94,11 +94,8 @@ def build():
     ])
     notebook = {"cells": cells, "metadata": {"kernelspec": {"display_name": "Python 3", "name": "python3"}, "language_info": {"name": "python"}}, "nbformat": 4, "nbformat_minor": 0}
     text = json.dumps(notebook, ensure_ascii=False, indent=2) + "\n"
-    for destination in (BASE / "XMLGrader_Colab.ipynb", BASE.parent / "XMLGrader_Colab.ipynb"):
-        destination.write_text(text, encoding="utf-8", newline="\n")
-    # 相容舊 cloudrun 資料夾：此副本為自動同步，Docker 直接使用根目錄核心。
-    (BASE / "cloudrun" / "xml_grader_core.py").write_text((BASE / "xml_grader_core.py").read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
-    print("Notebook 與相容核心副本已同步：2026-10-04-unified")
+    (BASE.parent / "XMLGrader_Colab.ipynb").write_text(text, encoding="utf-8", newline="\n")
+    print("唯一 Colab 入口已產生：XMLGrader_Colab.ipynb（2026-10-04-unified）")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,0 @@
-.venv/
-.publish/
-__pycache__/
-*.pyc
-XML_Grader/runtime/
-tests/.artifacts/
-*.sqlite3
-grader_config.json

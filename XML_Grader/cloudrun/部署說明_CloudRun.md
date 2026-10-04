@@ -91,4 +91,4 @@ Docker 使用單一共用核心；未再以 HF／Colab 的副本部署。
 | 教師登入失敗 | 核對 `XMLGRADER_ADMIN_TOKEN` 對應的 Secret 值 |
 | 瀏覽器無法連線 | Service URL、CORS origin、健康檢查與部署日誌 |
 
-原 `cloudrun/app.py` 僅為舊路徑相容入口；正式映像直接啟動 `api_server:app`。
+只有 `XML_Grader/Dockerfile` 一份容器設定，直接啟動同目錄的 `api_server:app`；不要使用舊版 `cloudrun/app.py`、核心副本或 Dockerfile。

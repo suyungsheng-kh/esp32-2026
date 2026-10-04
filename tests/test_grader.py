@@ -160,13 +160,16 @@ class GraderTests(unittest.TestCase):
 
     def test_generated_notebooks_match_canonical_sources(self):
         rootbook = (BASE / "XMLGrader_Colab.ipynb").read_bytes()
-        self.assertEqual(rootbook, (BASE / "XML_Grader" / "XMLGrader_Colab.ipynb").read_bytes())
+        self.assertEqual(list((BASE / "XML_Grader").rglob("*.ipynb")), [])
+        self.assertFalse((BASE / "XML_Grader" / "XMLGrader_Colab.ipynb").exists())
         book = json.loads(rootbook)
         for name in ["xml_grader_core.py", "api_server.py", "colab_server.py"]:
             source = next("".join(c["source"]).split("\n", 1)[1] for c in book["cells"]
                           if "".join(c.get("source", [])).startswith("%%writefile " + name))
             self.assertEqual(source, (BASE / "XML_Grader" / name).read_text(encoding="utf-8"))
-        self.assertEqual((BASE / "XML_Grader/xml_grader_core.py").read_bytes(), (BASE / "XML_Grader/cloudrun/xml_grader_core.py").read_bytes())
+        for name in ("xml_grader_core.py", "app.py", "Dockerfile"):
+            self.assertFalse((BASE / "XML_Grader" / "cloudrun" / name).exists())
+        self.assertTrue((BASE / "XML_Grader" / "Dockerfile").exists())
 
 
 if __name__ == "__main__":

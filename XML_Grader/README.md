@@ -7,9 +7,9 @@
 - 共用核心：`xml_grader_core.py`。
 - 共用 API：`api_server.py`，教師路由須通過 `XMLGRADER_ADMIN_TOKEN` 驗證。
 - Colab 啟動器：`colab_server.py`。
-- Colab Notebook：[XMLGrader_Colab.ipynb](XMLGrader_Colab.ipynb)，與網站根目錄 Notebook 相同。
+- Colab Notebook：[根目錄唯一啟動檔](../XMLGrader_Colab.ipynb)，由共用原始碼產生。
 - Cloud Run：[部署說明](cloudrun/部署說明_CloudRun.md)，使用根目錄 Dockerfile 與相同核心。
-- `XMLGrader_teacher.html`／`XMLGrader_student.html` 保留為新版入口的導向頁。
+- 唯一教師／學生入口是網站根目錄 `teacher.html`／`student.html`，不另放相同功能的頁面。
 
 ## 整合內容
 
@@ -26,6 +26,6 @@ Gemini 金鑰只由後端環境參數提供，不儲存到 Firestore 或下發�
 python XML_Grader/scripts/build_notebook.py
 ```
 
-它會同步兩份 Notebook 與相容的 `cloudrun/xml_grader_core.py` 副本。
-不可單獨修改 Notebook 的後端儲存格或 cloudrun 核心副本，避免版本分歧。
+它只產生根目錄的一個 Notebook；不可單獨修改其步驟 2 的後端儲存格，避免與原始碼分歧。
+Cloud Run 只使用本目錄的 Dockerfile、API 與核心，`cloudrun/` 只保留相依套件與部署說明。
 `esp32/` 中的 XML 範例保留，可供教師試評。

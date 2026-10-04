@@ -20,7 +20,18 @@
 
 目前使用 **XMLGrader 整合版 `2026-10-04-unified`**。
 
-若只想分享 AI 評分系統，可直接提供 [XMLGrader_Standalone 資料夾](XMLGrader_Standalone/README.md) 或 [XMLGrader_Standalone.zip](XMLGrader_Standalone.zip)。獨立包有自己的首頁、教師／學生頁與完整 README，不需要其他課程檔案，也不沿用此網站的後端網址。
+只想使用 AI 評分系統，請下載 [Releases 的 XMLGrader 獨立版 ZIP](https://github.com/suyungsheng-kh/esp32-2026/releases/latest/download/XMLGrader_Standalone.zip)，依 [獨立版安裝說明](XML_Grader/STANDALONE.md) 操作。ZIP 內有自己的首頁、教師／學生頁及完整 README，不需要其他課程檔案，也不沿用此網站的後端網址。
+
+### 選一種下載方式，不要混用
+
+| 使用目的 | 唯一下載入口 | 不需要另外下載 |
+| --- | --- | --- |
+| 使用完整 ESP32 課程 | 本儲存庫的 Code → Download ZIP，或複製儲存庫 | Releases 獨立版 |
+| 只使用 XML 作業評分 | 上方 Releases 的 `XMLGrader_Standalone.zip` 附件 | 本儲存庫原始碼；Releases 下方自動附帶的 Source code ZIP／tar.gz |
+
+儲存庫只保留一份後端原始碼、一個根目錄 Colab 啟動檔及一份 Dockerfile；不再放獨立版資料夾與 ZIP 副本。兩種下載方式使用相同評分核心，不是兩套系統。
+
+**一般教師只需設定：**Notebook 步驟 4 的部署選項、Colab Secrets，以及 `grader-settings.js` 的 `serverUrl`。評分規則從教師網頁管理；不需改後端 Python 或 Notebook 步驟 2。
 
 ## 課程流程與功能
 
@@ -162,7 +173,7 @@ student.html ── XML／學號 ─┘                        └─ Firestore 
 - 教師 API 全部驗證 `X-Admin-Token`。未設定教師密碼時，管理功能保持關閉。
 - Gemini 額度／速率限制與服務異常不算成 0 分，也不建立成績。
 - 成功的學生評測會記錄真實分數；「學生不顯示分數」只影響畫面，不影響教師成績。
-- `XML_Grader/XMLGrader_teacher.html` 與 `XMLGrader_student.html` 保留為新版入口的導向頁。
+- 教師／學生入口僅使用根目錄 `teacher.html`／`student.html`，不再保留舊版入口副本。
 
 ### 選擇部署方式
 
@@ -232,7 +243,7 @@ service cloud.firestore {
 2. 重新設定自己的金鑰與教師密碼，不沿用原檔內建的憑證與網域。
 3. 啟用 Firestore 時，改用服務帳戶授權；不再需要 `XMLGRADER_FIREBASE_API_KEY`。
 4. 在新版教師頁載入舊作業後儲存。新版會移除設定內的 `api_key_1`、`api_key_2`、`admin_token` 欄位，金鑰改從後端 Secrets 取得。
-5. 更新 `grader-settings.js` 後重新發布。舊入口會導向目前網站的新頁面。
+5. 更新 `grader-settings.js` 後重新發布。若曾分享舊版入口，改提供根目錄的 `teacher.html`／`student.html`。
 6. 若舊憑證曾公開分享，請撤銷並換新。
 
 ## 設定評測標準
@@ -306,7 +317,7 @@ python XML_Grader/scripts/build_notebook.py
 python XML_Grader/scripts/build_notebook.py
 ```
 
-這會產生兩份相同 Notebook，並同步相容的 Cloud Run 核心副本。Cloud Run 映像直接使用共用核心，不維護另一套評分演算法。
+這只產生根目錄的 `XMLGrader_Colab.ipynb`。其步驟 2 是供 Colab 自足執行的自動產生區，請勿直接修改；部署選項可在步驟 4 調整。Cloud Run 直接使用 `XML_Grader/` 的共用核心與唯一 Dockerfile，不複製另一套後端。
 
 更新後要重新產生獨立分享包，於本專案根目錄執行：
 
@@ -314,6 +325,8 @@ python XML_Grader/scripts/build_notebook.py
 python XML_Grader/scripts/package_standalone.py
 ```
 
-它只打包指定的程式、文件與 XML 範例，不包含本機執行環境、成績或憑證。如果獨立包內的檔案已自行修改，會停止並要求先保留修改，避免覆蓋。
+它只打包指定的程式、文件與 XML 範例，不包含本機執行環境、成績或憑證。產物只存於已忽略的 `.publish/dist/XMLGrader_Standalone.zip`；不會在儲存庫建立第二份可修改的原始碼資料夾。獨立版文件的維護來源是 `XML_Grader/STANDALONE.md`。
+
+發布前執行 `.venv\Scripts\python.exe tests/test_package.py`，確認 ZIP 能獨立使用。通過後，在 GitHub **Releases → Draft a new release** 選擇這次提交、建立版本標籤，附上該 ZIP，並發布為最新版本。README 的下載連結會指向最新 Release 的附件；不要把 ZIP 或解壓資料夾提交回 `main`。
 
 若有不相容變更，同步更新 `api_server.py` 的 `SERVER_VERSION` 與 `grader-settings.js` 的 `expectedVersion`。備份作業規則與成績時，不要把私密憑證一起分享。

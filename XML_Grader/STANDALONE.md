@@ -1,5 +1,9 @@
 # XMLGrader 獨立版
 
+下載入口：[獨立版 ZIP](https://github.com/suyungsheng-kh/esp32-2026/releases/latest/download/XMLGrader_Standalone.zip)。請下載此附件並解壓，只使用解壓後的資料夾；不必另外下載課程網站原始碼。
+
+以下檔案位置以 ZIP 解壓後的 `XMLGrader_Standalone/` 為準。本文件也會以 `README.md` 放進 ZIP。
+
 版本：`2026-10-04-unified`。這個資料夾包含完整的教師／學生網頁及評分後端，可以直接分享、搬移和自行部署，不需要 ESP32 課程網站。
 
 系統支援 Blockly XML（例如 motoBlockly／Motoduino／Arduino 積木匯出的 `.xml`），不接受 Scratch `.sb3`。未收錄的積木會保留原始類型供 AI 判讀；請先以自己的作業範例確認解析與評語。
@@ -20,7 +24,6 @@ XMLGrader_Standalone/
     api_server.py            共用 API（含教師密碼驗證）
     xml_grader_core.py        共用 XML 解析／Gemini 評分
     colab_server.py          Colab＋ngrok 啟動器
-    XMLGrader_Colab.ipynb     與根目錄相同的啟動檔
     Dockerfile               Cloud Run 容器
     cloudrun/                相依套件與 Cloud Run 部署說明
     esp32/                   22 份 XML 練習範例
@@ -65,7 +68,7 @@ XMLGrader_Standalone/
 
 ### 9～12 分鐘：發布前端檔案
 
-- [ ] 🔴 修改 [grader-settings.js](grader-settings.js) 的 `serverUrl`，填入上一步取得的 HTTPS **根網址**，不要加 `/api/...`。
+- [ ] 🔴 修改根目錄 `grader-settings.js` 的 `serverUrl`，填入上一步取得的 HTTPS **根網址**，不要加 `/api/...`。
 
 ```javascript
 window.XMLGRADER_SETTINGS = Object.freeze({
@@ -119,7 +122,7 @@ service cloud.firestore {
 
 ## 選用：Cloud Run 持續提供服務
 
-完整步驟請閱讀 [Cloud Run 部署說明](XML_Grader/cloudrun/部署說明_CloudRun.md)。必須從本套件的 `XML_Grader` 目錄部署，不能只上傳 `cloudrun/` 子資料夾。
+完整步驟請閱讀 [Cloud Run 部署說明](cloudrun/部署說明_CloudRun.md)。解壓後的文件位置是 `XML_Grader/cloudrun/部署說明_CloudRun.md`。必須從本套件的 `XML_Grader` 目錄部署，不能只上傳 `cloudrun/` 子資料夾。
 
 Cloud Run 與 Colab 使用同一份核心與 API；不需要 ngrok。取得 Service URL 後，同樣填入根目錄的 `grader-settings.js`。長期保存請啟用 Firestore，服務費用依自己的 Google Cloud 帳戶與用量確認。
 
@@ -146,7 +149,9 @@ Cloud Run 與 Colab 使用同一份核心與 API；不需要 ngrok。取得 Serv
 python XML_Grader/scripts/build_notebook.py
 ```
 
-它會同步兩份 Notebook 及相容的 Cloud Run 核心副本。此命令只需要 Python；首次生成的套件也可以直接使用，不必執行此命令。
+它只產生根目錄的一個 Notebook；Cloud Run 直接使用 `XML_Grader/` 的唯一核心及 Dockerfile。此命令只需要 Python；首次生成的套件也可以直接使用，不必執行此命令。
+
+**修改位置只有三種：**公開後端網址改 `grader-settings.js`；部署選項在 Notebook 步驟 4 調整，私密值放 Secrets；評分程式只改 `XML_Grader/*.py` 再產生 Notebook，不要改步驟 2 的自動產生區。
 
 維護者可建立本機環境並驗證後端：
 
