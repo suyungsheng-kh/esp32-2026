@@ -38,7 +38,7 @@
          background:linear-gradient(135deg,var(--bg1),var(--bg2));transition:.15s}
   button:hover{filter:brightness(1.06)} button:disabled{opacity:.5;cursor:not-allowed}
   .status{text-align:center;font-size:.85rem;margin-top:10px;min-height:1.2em}
-  .status.err{color:var(--err)} .status.busy{color:var(--warn)}
+  .status.err{color:var(--err)} .status.busy{color:var(--warn)} .status.notice{color:#a16207}
   .light{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;font-weight:700;
          justify-content:center;width:100%;margin-bottom:12px;color:var(--muted)}
   .dot{width:13px;height:13px;border-radius:50%;background:#c9cfda;transition:.2s}
@@ -70,7 +70,7 @@
 <body>
 <div class="course-home">
   <div class="course-home__inner">
-    <a href="https://suyungsheng-kh.github.io/esp32-2026/" class="home-link">
+    <a href="index.html" class="home-link">
       <i class="fa-solid fa-house"></i> 回到課程首頁
     </a>
   </div>
@@ -118,20 +118,21 @@
       <div id="scoreMsg" style="font-weight:700"></div>
     </div>
     <div class="sec good" id="secCreative"><h4>💡 創意亮點</h4><div id="creativeText"></div></div>
+    <div class="sec" id="secLogic"><h4>🧠 邏輯分析</h4><div id="logicText"></div></div>
     <div class="sec" id="secComment"><h4>📝 助教講評</h4><div id="commentText"></div></div>
     <div class="sec bad" id="secDeduct"><h4>📉 可以再加強的地方</h4><div id="deductText"></div></div>
     <button class="again" onclick="reset()">🔄 修改後再測一次</button>
   </div>
 </div>
 
+<script src="grader-settings.js"></script>
 <script>
-// 🔴 部署前必填：依 README「15 分鐘設定檢查表」貼上本次 Colab 顯示的 ngrok 根網址。
-// 例如：https://your-domain.ngrok-free.app（不要加上 /api/...）
-const SERVER_URL = 'https://<your-ngrok-domain>';
+// 與教師端共用連線設定；只需修改 grader-settings.js。
+const SERVER_URL = window.XMLGRADER_SETTINGS.serverUrl.replace(/\/$/, '');
 const $ = id => document.getElementById(id);
 const base = () => SERVER_URL;
 const H = {'ngrok-skip-browser-warning':'true'};
-let chosen=null, showScore=true;
+let chosen=null, showScore=true, ready=false, grading=false;
 window.rubrics=[]; window.curRubricId=null;
 function setLight(state,text){ $('dot').className='dot '+state; $('connText').textContent=text; }
 
@@ -145,7 +146,7 @@ drop.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) pick(e.dataTransfe
 function pick(f){
   if(!f) return;
   if(!f.name.toLowerCase().endsWith('.xml')){ setStatus('請選擇 .xml 檔案喔！','err'); return; }
-  chosen=f; $('fileName').textContent='✅ '+f.name; $('gradeBtn').disabled=false; setStatus('');
+  chosen=f; $('fileName').textContent='✅ '+f.name; $('gradeBtn').disabled=!ready || grading; setStatus('');
 }
 function setStatus(m,c){ const e=$('status'); e.textContent=m; e.className='status '+(c||''); }
 
@@ -173,6 +174,9 @@ $('rubricSelect').addEventListener('change',e=>{
 
 // 載入任務資訊 + 自動偵測連線（紅/綠燈）
 async function loadTask(){
+  if(grading) return;
+  ready=false; $('gradeBtn').disabled=true;
+  if(!SERVER_URL){ setLight('off','老師尚未設定自評服務，請詢問老師。'); return; }
   setLight('wait','偵測連線中…');
   try{
     const r=await fetch(base()+'/api/student/config',{headers:H});
@@ -204,7 +208,8 @@ async function loadTask(){
       sel.value = window.curRubricId;
       $('rubricPick').style.display = rubrics.length>1 ? 'block' : 'none';
       renderRubric();
-      $('gradeBtn').disabled = !chosen;   // 有選檔才可按
+      ready=!!c.has_api_key;
+      $('gradeBtn').disabled = !chosen || !ready || grading;
       if(!c.has_api_key){
         $('setupHint').textContent='⚠️ 老師尚未完成設定，暫時無法自評。';
         setLight('on','🟢 已連線（老師尚未完成設定）');
@@ -222,18 +227,21 @@ loadTask();
 setInterval(loadTask, 20000);  // 每 20 秒自動重新偵測
 
 async function grade(){
-  if(!chosen) return;
+  if(!chosen || !ready || grading) return;
   const sid=$('studentId').value.trim();
   if(!sid){ setStatus('請先輸入你的學號！','err'); $('studentId').focus(); return; }
+  grading=true; $('resultCard').style.display='none';
   $('gradeBtn').disabled=true; setStatus('🧠 AI 助教正在仔細檢查你的積木...','busy');
   const fd=new FormData(); fd.append('file',chosen); fd.append('student_id',sid);
   if(window.curRubricId) fd.append('rubric_id',window.curRubricId);
   try{
     const r=await fetch(base()+'/api/student/grade',{method:'POST',headers:H,body:fd});
     const j=await r.json();
-    if(!j.ok){ setStatus('❌ '+(j.error||'自評失敗'),'err'); $('gradeBtn').disabled=false; return; }
-    render(j.result); setStatus('');
-  }catch(e){ setStatus('❌ '+e.message,'err'); $('gradeBtn').disabled=false; }
+    if(!j.ok){ setStatus((j.quota_exceeded?'⏳ ':'❌ ')+(j.error||'自評失敗'),j.quota_exceeded?'notice':'err'); return; }
+    showScore=j.show_score!==false;
+    render(j.result); setStatus(j.record_saved===false?'已完成自評，但成績暫時未能保存，請將結果提供給老師。':'');
+  }catch(e){ setStatus('❌ 連線中斷，請稍後再試或通知老師。','err'); }
+  finally{ grading=false; $('gradeBtn').disabled=!chosen || !ready; }
 }
 
 function render(d){
@@ -254,6 +262,7 @@ function render(d){
     $('scoreMsg').textContent = sc>=90?'太厲害了，幾乎完美！🎉':sc>=70?'不錯喔，再補強一下就更棒了！💪':sc>=60?'及格了！還有進步空間，加油！':'再挑戰一次，你可以的！🔥';
   }
   fill('secCreative','creativeText',d.creative_highlights);
+  fill('secLogic','logicText',d.logic_analysis);
   $('commentText').textContent=d.comments||'—';
   fill('secDeduct','deductText',d.deducted_items);
   $('resultCard').scrollIntoView({behavior:'smooth'});

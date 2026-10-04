@@ -1,0 +1,117 @@
+<xml xmlns="https://www.motoduino.com/">
+  <workspace>
+    <field name="DEVICE">esp32</field>
+    <field name="VERSION">(v1.10.1</field>
+  </workspace>
+  <block type="arduino_setup" id="xvhO%gdZ{j5;hE6B=wlf" x="38" y="-12">
+    <statement name="MySetup">
+      <block type="i2clcd_setting_v2" id="++5(H+My|z`lOVWfmAUq">
+        <field name="I2CADDRESS">27</field>
+        <value name="COL">
+          <block type="math_number" id="5*h?V5i:rXu$v*2L2Ii`">
+            <field name="NUM">16</field>
+          </block>
+        </value>
+        <value name="ROW">
+          <block type="math_number" id="LW*l%laTT|D5SVK+*|SO">
+            <field name="NUM">2</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+    <statement name="MyLoop">
+      <block type="i2clcd_print_v2" id="AJ-L..m93Y|i?XnsO{Ys">
+        <value name="ROW">
+          <block type="math_number" id="^uzb^`Ila.8d(z#h^9Mx">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="COL">
+          <block type="math_number" id="wilnh{~}Y?n[BZ@j,s^[">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="PRINT">
+          <block type="text_join" id="idTl.X4=)5W2gOhf6s56">
+            <mutation items="2"></mutation>
+            <value name="ADD0">
+              <block type="text" id="x:n8/I#Y3!dcOe()JAFv">
+                <field name="TEXT">R:</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="inout_analog_read" id="#HE)IiYkCXP$frKIf^ns">
+                <field name="PIN">33</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="i2clcd_print_v2" id="NOZasA2-k)GVp;};-yG7">
+            <value name="ROW">
+              <block type="math_number" id="(B`hh4h]DshJBoElppYZ">
+                <field name="NUM">1</field>
+              </block>
+            </value>
+            <value name="COL">
+              <block type="math_number" id="Q:gn$7uS57q.1`yXbzxJ">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+            <value name="PRINT">
+              <block type="text_join" id=":l+In0[,FP;1]c^#|%95">
+                <mutation items="2"></mutation>
+                <value name="ADD0">
+                  <block type="text" id="+I_v~duNbeQ{%5ge6?6_">
+                    <field name="TEXT">L:</field>
+                  </block>
+                </value>
+                <value name="ADD1">
+                  <block type="base_map" id="-tXK-D%`_aGkNJE=CuM*">
+                    <value name="NUM">
+                      <block type="inout_analog_read" id="}Xty,vwb9Fk]y@R821Km">
+                        <field name="PIN">33</field>
+                      </block>
+                    </value>
+                    <value name="AMIN">
+                      <shadow type="math_number" id="QCHXR5?AlXvhu#:`RjC7">
+                        <field name="NUM">0</field>
+                      </shadow>
+                    </value>
+                    <value name="AMAX">
+                      <shadow type="math_number" id="$Ck-f#*FsGw*V,|nh|xG">
+                        <field name="NUM">4096</field>
+                      </shadow>
+                    </value>
+                    <value name="DMIN">
+                      <shadow type="math_number" id="g#CV~XW)_d|{4pp11E1G">
+                        <field name="NUM">0</field>
+                      </shadow>
+                    </value>
+                    <value name="DMAX">
+                      <shadow type="math_number" id="onhDDhX(SO!vGg5Bt-7i">
+                        <field name="NUM">255</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="delay_custom" id="o:5sy|7`dp?q`Jr~pniJ">
+                <value name="DELAY_TIME">
+                  <block type="math_number" id="0Kof8-14LWdJ`@:g|-ja">
+                    <field name="NUM">100</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="i2clcd_clear" id="60u?Mn/dP$6;2YzXEeKV"></block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

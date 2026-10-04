@@ -1,0 +1,104 @@
+<xml xmlns="https://www.motoduino.com/">
+  <workspace>
+    <field name="DEVICE">esp32</field>
+    <field name="VERSION">(v1.10.1</field>
+  </workspace>
+  <block type="arduino_setup" id="xvhO%gdZ{j5;hE6B=wlf" x="38" y="13">
+    <statement name="MySetup">
+      <block type="i2clcd_setting_v2" id="++5(H+My|z`lOVWfmAUq">
+        <field name="I2CADDRESS">27</field>
+        <value name="COL">
+          <block type="math_number" id="5*h?V5i:rXu$v*2L2Ii`">
+            <field name="NUM">16</field>
+          </block>
+        </value>
+        <value name="ROW">
+          <block type="math_number" id="LW*l%laTT|D5SVK+*|SO">
+            <field name="NUM">2</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+    <statement name="MyLoop">
+      <block type="i2clcd_print_v2" id="AJ-L..m93Y|i?XnsO{Ys">
+        <value name="ROW">
+          <block type="math_number" id="^uzb^`Ila.8d(z#h^9Mx">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="COL">
+          <block type="math_number" id="wilnh{~}Y?n[BZ@j,s^[">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="PRINT">
+          <block type="text_join" id="idTl.X4=)5W2gOhf6s56">
+            <mutation items="3"></mutation>
+            <value name="ADD0">
+              <block type="text" id="x:n8/I#Y3!dcOe()JAFv">
+                <field name="TEXT">T:</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="sensors_dht11_get" id="D|pI#{bu*,=^?Rp9UBcB">
+                <field name="TYPE">DHT11</field>
+                <field name="PIN">33</field>
+                <field name="DATATYPE">TEMP</field>
+              </block>
+            </value>
+            <value name="ADD2">
+              <block type="text" id="/R~):^0/za,cJ*M{LW@^">
+                <field name="TEXT"> ^C</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="i2clcd_print_v2" id=",IP]!8vTAohU+8G4@X`Y">
+            <value name="ROW">
+              <block type="math_number" id="q+}9uCkp8D`haMn;-t=;">
+                <field name="NUM">1</field>
+              </block>
+            </value>
+            <value name="COL">
+              <block type="math_number" id="S)6M2N-VBxv~.lJSSYMw">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+            <value name="PRINT">
+              <block type="text_join" id=")`!D_h,4L8Z7_mJa[SYe">
+                <mutation items="3"></mutation>
+                <value name="ADD0">
+                  <block type="text" id="X!eWJ%GRI5/O1]2ZD!0_">
+                    <field name="TEXT">H:</field>
+                  </block>
+                </value>
+                <value name="ADD1">
+                  <block type="sensors_dht11_get" id="7euOeu1#l8=0o/R0Il#Y">
+                    <field name="TYPE">DHT11</field>
+                    <field name="PIN">33</field>
+                    <field name="DATATYPE">HUMI</field>
+                  </block>
+                </value>
+                <value name="ADD2">
+                  <block type="text" id="SBb}/TvB@tl%k=}!tk6!">
+                    <field name="TEXT"> % </field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="delay_custom" id="bnbg+?5Qb%K~dXH*+mi,">
+                <value name="DELAY_TIME">
+                  <block type="math_number" id="nQ}4{JPduad/%7Cd@,s5">
+                    <field name="NUM">500</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

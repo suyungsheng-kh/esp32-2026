@@ -1,0 +1,4 @@
+# 部署時不需要上傳的檔案
+__pycache__/
+*.pyc
+部署說明_CloudRun.md

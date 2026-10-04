@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>積木程式 XML AI 批改 — 教師端</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#fff; --ink:#2c3e50; --muted:#7f8c8d;
+    --primary:#d97706; --primary-d:#b45309; --ok:#2ecc71; --warn:#e67e22; --err:#e74c3c;
+    --line:#e3e8ee;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:0;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.6}
+  h1{font-size:1.4rem;margin:0 0 4px}
+  h2{font-size:1.05rem;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+  .wrap{max-width:960px;margin:0 auto}
+  .sub{color:var(--muted);font-size:.85rem;margin-bottom:16px}
+  .card{background:var(--card);border-radius:14px;padding:18px 20px;margin-bottom:16px;
+        box-shadow:0 2px 8px rgba(0,0,0,.05)}
+  label{display:block;font-size:.85rem;font-weight:600;margin:10px 0 4px}
+  input[type=text],input[type=password],input[type=number],select,textarea{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+    font-size:.9rem;font-family:inherit;background:#fbfcfd}
+  textarea{resize:vertical}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1 1 200px}
+  .chk{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:.88rem;font-weight:600}
+  .chk input{width:auto}
+  button{cursor:pointer;border:none;border-radius:9px;padding:10px 16px;font-size:.9rem;
+         font-weight:700;font-family:inherit;transition:.15s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-d)}
+  .btn-ghost{background:#eef1f6;color:var(--ink)}
+  .btn-ghost:hover{background:#e2e7ef}
+  .btnbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .status{font-size:.82rem;margin-top:8px;min-height:1.2em}
+  .status.ok{color:var(--ok)} .status.err{color:var(--err)} .status.busy{color:var(--warn)}
+  .light{display:inline-flex;align-items:center;gap:9px;font-size:.95rem;font-weight:700}
+  .dot{width:14px;height:14px;border-radius:50%;background:#c3c9d2;transition:.2s;
+       box-shadow:0 0 0 4px rgba(0,0,0,.04)}
+  .dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+  .dot.off{background:var(--err);box-shadow:0 0 10px var(--err)}
+  .dot.wait{background:var(--warn);box-shadow:0 0 10px var(--warn)}
+  pre{background:#0f1729;color:#d6e2ff;padding:12px;border-radius:9px;overflow:auto;
+      font-size:.78rem;max-height:340px;white-space:pre-wrap}
+  table{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:10px}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:#34495e;color:#fff;position:sticky;top:0}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700}
+  .hint{font-size:.78rem;color:var(--muted);margin-top:4px}
+  details summary{cursor:pointer;font-weight:700;font-size:.9rem;margin:6px 0}
+  @media(max-width:640px){body{padding:12px}.card{padding:14px}}
+.course-nav{background:#0f172a;color:#fff;padding:16px 24px;display:flex;gap:20px;justify-content:space-between}.course-nav a{color:#fbbf24;text-decoration:none;font-weight:700}.wrap{padding:24px 16px}.table-scroll{overflow:auto}.status,.hint{overflow-wrap:anywhere}.status.notice{color:#a16207}input:focus,textarea:focus,select:focus{outline:2px solid #fbbf24;outline-offset:2px}
+</style>
+</head>
+<body>
+<nav class="course-nav"><a href="index.html">Lung-Hwa 物聯網創客</a><a href="student.html">學生自評</a></nav>
+<div class="wrap">
+  <h1>🧩 積木程式 XML AI 批改系統 — 教師端</h1>
+  <div class="sub">設定評分規則與金鑰 → 登入 → 儲存評測標準 → 學生端即可自評。所有評分在伺服器端完成。</div>
+
+  <!-- 連線狀態（自動偵測） -->
+  <div class="card">
+    <h2>① 教師登入與連線</h2>
+    <div class="light"><span class="dot wait" id="dot"></span><span id="connText">偵測連線中…</span></div>
+    <label for="adminToken">教師管理密碼</label><input type="password" id="adminToken" autocomplete="current-password" placeholder="輸入老師在後端設定的密碼">
+    <div class="hint">密碼只保留在本頁記憶體；關閉或重新整理後需要重新輸入。</div>
+    <div class="btnbar">
+      <button class="btn-primary" onclick="login()">登入</button><button class="btn-ghost" onclick="logout()">登出</button>
+      <button class="btn-ghost" onclick="autoDetect()">🔄 重新偵測</button>
+      <button class="btn-ghost" onclick="loadConfig()">📥 載入現有設定</button>
+    </div>
+    <div class="status" id="connStatus"></div>
+  </div>
+
+  <!-- 金鑰與模型 -->
+  <div class="card">
+    <h2>② 模型與檔案設定</h2>
+    <div class="hint" id="keyStatus">Gemini 金鑰由後端 Secrets 管理，不需在網頁輸入。</div>
+    <div class="row">
+      <div>
+        <label for="modelName">批改模型</label>
+        <button type="button" class="btn-ghost" style="padding:2px 8px;font-size:.72rem;margin-bottom:6px" onclick="loadModels()">🔄 讀取可用模型</button>
+        <select id="modelName">
+          <option selected>gemini-2.5-flash</option>
+          <option>gemini-2.5-flash-lite</option>
+          <option>gemini-2.0-flash</option>
+        </select>
+        <div class="status" id="modelStatus"></div>
+      </div>
+      <div><label>單檔上限 (MB)</label><input type="number" id="maxSizeMb" value="10"></div>
+    </div>
+  </div>
+
+  <!-- 作業與規則 -->
+  <div class="card">
+    <h2>③ 作業主題與評分規則（可建立多份）</h2>
+    <div class="hint">可建立多份評測標準，學生端會用「標準名稱」下拉選取要被評的那一份。下方所有欄位（含④範本/解答）都屬於「目前選取的這一份」。</div>
+    <div class="row" style="align-items:flex-end">
+      <div style="flex:2 1 260px">
+        <label>目前編輯的評測標準</label>
+        <select id="rubricSelect"></select>
+      </div>
+      <div style="flex:0 0 auto;display:flex;gap:8px;padding-bottom:1px">
+        <button type="button" class="btn-ghost" onclick="addRubric()">➕ 新增一份</button>
+        <button type="button" class="btn-ghost" onclick="deleteRubric()">🗑️ 刪除此份</button>
+      </div>
+    </div>
+    <label>標準名稱（學生端下拉會看到）</label>
+    <input type="text" id="rubricName" placeholder="例：作業一・LED 閃爍">
+    <label>作業主題 / 名稱</label>
+    <input type="text" id="theme" placeholder="例：按鈕控制三顆 LED">
+    <label>評分規則（老師設定的評分法律）</label>
+    <textarea id="rules" rows="9" placeholder="逐條列出評分項目與配分..."></textarea>
+    <div class="chk"><input type="checkbox" id="isStandard" checked><label style="margin:0" for="isStandard">標準答案題型（與參考解答一致即滿分；開放題請取消）</label></div>
+    <div class="chk"><input type="checkbox" id="isOpen" checked><label style="margin:0" for="isOpen">✅ 開放學生自評這一份（取消勾選＝暫不開放，學生端看不到也評不了）</label></div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+    <div class="chk"><input type="checkbox" id="showScore" checked><label style="margin:0" for="showScore">學生自評時顯示分數（全域設定，所有評測標準共用）</label></div>
+  </div>
+
+  <!-- 範本與解答 -->
+  <div class="card">
+    <h2>④ 初始範本 / 參考解答（可選）</h2>
+    <div class="hint">屬於「③目前選取的評測標準」。上傳後系統會轉成虛擬碼存進該份標準，評分時用於偵測交白卷與參考解答比對。</div>
+    <div class="row">
+      <div>
+        <label>初始空白範本 .xml</label>
+        <input type="file" id="templateFile" accept=".xml">
+        <div class="status" id="templateStatus"></div>
+      </div>
+      <div>
+        <label>老師參考解答 .xml</label>
+        <input type="file" id="exampleFile" accept=".xml">
+        <div class="status" id="exampleStatus"></div>
+      </div>
+    </div>
+    <div class="btnbar">
+      <button class="btn-ghost" onclick="suggestRules()">🤖 依參考解答自動生成主題與規則</button>
+    </div>
+    <div class="hint">會使用後端已設定的 Gemini 金鑰與批改模型，依「老師參考解答」產生建議的主題與評分規則，
+      填入下方③供你檢查調整（會覆蓋③目前的內容）。</div>
+    <div class="status" id="suggestStatus"></div>
+  </div>
+
+  <!-- 儲存 -->
+  <div class="card">
+    <h2>⑤ 儲存設定</h2>
+    <div class="hint">儲存後，學生重新載入作業清單即可使用。啟用 Firestore 時永久保存；未啟用時只保存在目前的後端執行環境。</div>
+    <div class="btnbar">
+      <button class="btn-primary" onclick="saveConfig()">💾 儲存設定</button>
+    </div>
+    <div class="status" id="saveStatus"></div>
+  </div>
+
+  <!-- 試評 -->
+  <div class="card">
+    <h2>⑥ 單檔試評</h2>
+    <div class="hint">上傳一份 .xml（例如參考解答）測試目前規則是否合理。會使用尚未儲存的即時設定。</div>
+    <input type="file" id="testFile" accept=".xml">
+    <div class="btnbar"><button class="btn-ghost" onclick="testGrade()">▶️ 試評這份作業</button></div>
+    <div class="status" id="testStatus"></div>
+    <pre id="testResult" style="display:none"></pre>
+  </div>
+
+  <!-- 學生成績紀錄 -->
+  <div class="card">
+    <h2>⑦ 學生成績紀錄</h2>
+    <div class="hint">成功的自評才會記錄；額度限制或服務失敗不計分。這裡顯示學號、分數與評測時間（新到舊）。</div>
+    <div class="btnbar">
+      <button class="btn-primary" onclick="loadSubmissions()">🔄 讀取學生成績</button>
+    </div>
+    <div class="status" id="subStatus"></div>
+    <div id="subTable" class="table-scroll"></div>
+  </div>
+</div>
+
+<script src="grader-settings.js"></script>
+<script>
+// 教師與學生共用 grader-settings.js 的公開連線設定。
+const SERVER_URL = window.XMLGRADER_SETTINGS.serverUrl.replace(/\/$/, '');
+const EXPECTED_VERSION = window.XMLGRADER_SETTINGS.expectedVersion;
+const $ = id => document.getElementById(id);
+const base = () => SERVER_URL;
+function headers(json){
+  const h = {'ngrok-skip-browser-warning':'true'};
+  if($('adminToken').value) h['X-Admin-Token']=$('adminToken').value;
+  if(json) h['Content-Type']='application/json';
+  return h;
+}
+function setStatus(id,msg,cls){ const e=$(id); e.textContent=msg; e.className='status '+(cls||''); }
+function setLight(state,text){
+  $('dot').className = 'dot '+state;   // on / off / wait
+  $('connText').textContent = text;
+}
+
+// 自動偵測伺服器連線；輸入教師密碼後才載入設定。
+let _autoLoaded = false;
+async function autoDetect(){
+  if(!SERVER_URL){ setLight('off','請先依 README 設定後端網址。'); return; }
+  setLight('wait','偵測連線中…');
+  try{
+    const r = await fetch(base()+'/api/health',{headers:headers()});
+    const j = await r.json();
+    if(j.ok){
+      if(j.version && j.version!==EXPECTED_VERSION){
+        setLight('wait','🟠 已連線，後端版本與網站不同（執行中 '+j.version+'，應為 '+EXPECTED_VERSION+'）→ 請更新網站或後端');
+      }else{
+        setLight('on','🟢 伺服器已連線（版本 '+(j.version||'?')+'）');
+      }
+      if(!_autoLoaded && $('adminToken').value){ await loadConfig(); }  // 只自動載入一次，避免蓋掉編輯中的內容
+    } else setLight('off','🔴 伺服器回應異常');
+  }catch(e){ setLight('off','🔴 未連線（請確認後端已啟動與網址正確）'); }
+}
+async function login(){ _autoLoaded=false; await loadConfig(); }
+function logout(){ $('adminToken').value=''; _autoLoaded=false; window.rubrics=[blankRubric()]; window.curRubric=0; refreshRubricSelect(); loadRubricIntoFields(0); $('subTable').replaceChildren(); $('testResult').style.display='none'; setStatus('connStatus','已登出。'); }
+autoDetect();
+setInterval(autoDetect, 20000);  // 每 20 秒自動重新偵測（不會再重複載入設定）
+
+// ── 多份評測標準（rubrics）狀態 ─────────────────────────────
+// 每份：{id,name,theme,rules,is_standard_answer,is_open,use_custom_extension,extension_rules,template_code,example_code}
+window.rubrics = [];
+window.curRubric = 0;
+
+function blankRubric(){
+  return { id:'r'+Date.now()+Math.floor(Math.random()*1000), name:'', theme:'', rules:'',
+           is_standard_answer:true, is_open:true, use_custom_extension:false, extension_rules:'',
+           template_code:'', example_code:'' };
+}
+// 把目前表單欄位存回第 i 份 rubric
+function readFieldsIntoRubric(i){
+  const r = window.rubrics[i]; if(!r) return;
+  r.name = $('rubricName').value.trim();
+  r.theme = $('theme').value;
+  r.rules = $('rules').value;
+  r.is_standard_answer = $('isStandard').checked;
+  r.is_open = $('isOpen').checked;
+  r.template_code = window._templateCode||'';
+  r.example_code = window._exampleCode||'';
+  if(!r.name) r.name = r.theme || ('評測標準 '+(i+1));
+}
+// 把第 i 份 rubric 載入表單欄位
+function loadRubricIntoFields(i){
+  const r = window.rubrics[i]; if(!r) return;
+  $('rubricName').value = r.name||'';
+  $('theme').value = r.theme||'';
+  $('rules').value = r.rules||'';
+  $('isStandard').checked = r.is_standard_answer!==false;
+  $('isOpen').checked = r.is_open!==false;
+  window._templateCode = r.template_code||'';
+  window._exampleCode = r.example_code||'';
+  setStatus('templateStatus', window._templateCode?'已載入此份標準的範本虛擬碼':'', window._templateCode?'ok':'');
+  setStatus('exampleStatus', window._exampleCode?'已載入此份標準的解答虛擬碼':'', window._exampleCode?'ok':'');
+}
+// 重建下拉選單
+function refreshRubricSelect(){
+  const sel=$('rubricSelect'); sel.innerHTML='';
+  window.rubrics.forEach((r,idx)=>{
+    const o=document.createElement('option'); o.value=idx;
+    const closed = r.is_open===false ? '（未開放）' : '';
+    o.textContent=(r.name||r.theme||('評測標準 '+(idx+1)))+closed;
+    sel.appendChild(o);
+  });
+  sel.value=window.curRubric;
+}
+$('rubricSelect').addEventListener('change',e=>{
+  readFieldsIntoRubric(window.curRubric);
+  window.curRubric = parseInt(e.target.value)||0;
+  loadRubricIntoFields(window.curRubric);
+});
+// 切換「開放學生自評」時，即時更新下拉的（未開放）標示（仍需按⑤儲存才生效）
+$('isOpen').addEventListener('change',()=>{ readFieldsIntoRubric(window.curRubric); refreshRubricSelect(); });
+function addRubric(){
+  readFieldsIntoRubric(window.curRubric);
+  window.rubrics.push(blankRubric());
+  window.curRubric = window.rubrics.length-1;
+  refreshRubricSelect(); loadRubricIntoFields(window.curRubric);
+  $('rubricName').focus();
+}
+function deleteRubric(){
+  if(window.rubrics.length<=1){ alert('至少要保留一份評測標準。'); return; }
+  const nm = window.rubrics[window.curRubric].name || ('評測標準 '+(window.curRubric+1));
+  if(!confirm('確定刪除「'+nm+'」這份評測標準嗎？（記得按⑤儲存才會生效）')) return;
+  window.rubrics.splice(window.curRubric,1);
+  window.curRubric = Math.max(0, window.curRubric-1);
+  refreshRubricSelect(); loadRubricIntoFields(window.curRubric);
+}
+
+async function loadConfig(){
+  if(!SERVER_URL){ setStatus('connStatus','請先依 README 設定後端網址。','err'); return; }
+  if(!$('adminToken').value){ setStatus('connStatus','請輸入教師管理密碼後登入。','err'); return; }
+  setStatus('connStatus','載入設定中...','busy');
+  try{
+    const r = await fetch(base()+'/api/teacher/config',{headers:headers()});
+    const j = await r.json();
+    if(!j.ok){ setStatus('connStatus','❌ '+(j.error||'載入失敗'),'err'); return; }
+    const c = j.config;
+    // 後端只回傳是否已有金鑰，不回填私密值。
+    _autoLoaded=true;
+    $('keyStatus').textContent=c.has_api_key?'✅ 後端已設定 Gemini 金鑰。':'⚠️ 後端尚未設定 Gemini 金鑰，請依 README 設定 Secrets。';
+    // 若儲存的模型不在清單中（例如舊的無效名稱），先補進選單再選取，避免下拉變空白
+    if(c.model_name){
+      const sel=$('modelName');
+      if(![...sel.options].some(o=>o.value===c.model_name)){
+        const o=document.createElement('option'); o.value=c.model_name;
+        o.textContent=c.model_name+'（已存設定）'; sel.appendChild(o);
+      }
+      sel.value=c.model_name;
+    }
+    $('maxSizeMb').value=c.max_size_mb ?? 10;
+    $('showScore').checked=c.student_show_score!==false;
+
+    // 解析評測標準清單（rubrics_json）；若無則從舊的單一設定遷移出一份
+    let rubrics=[];
+    if(c.rubrics_json){
+      try{ const arr=JSON.parse(c.rubrics_json); if(Array.isArray(arr)) rubrics=arr.filter(x=>x&&typeof x==='object'); }catch(e){}
+    }
+    if(!rubrics.length){
+      if(c.theme||c.rules||c.example_code||c.template_code){
+        rubrics=[{ id:'legacy', name:c.theme||'預設評分標準', theme:c.theme||'', rules:c.rules||'',
+                   is_standard_answer:c.is_standard_answer!==false, use_custom_extension:!!c.use_custom_extension,
+                   extension_rules:c.extension_rules||'', template_code:c.template_code||'', example_code:c.example_code||'', is_open:true }];
+      } else {
+        rubrics=[blankRubric()];
+      }
+    }
+    rubrics.forEach((r,idx)=>{ if(!r.id) r.id='r'+Date.now()+idx; if(!r.name) r.name=r.theme||('評測標準 '+(idx+1)); if(r.is_open===undefined) r.is_open=true; });
+    window.rubrics=rubrics; window.curRubric=0;
+    refreshRubricSelect(); loadRubricIntoFields(0);
+
+    if(c.updated_at) setStatus('connStatus','✅ 已載入設定（更新於 '+c.updated_at+'）｜共 '+rubrics.length+' 份評測標準','ok');
+    else setStatus('connStatus','ℹ️ 伺服器上尚無已儲存的設定，請填寫後按⑤「儲存設定」','busy');
+  }catch(e){ setStatus('connStatus','❌ '+e.message,'err'); }
+}
+
+async function convertXml(fileInput, statusId, target){
+  const f = $(fileInput).files[0];
+  if(!f) return;
+  setStatus(statusId,'轉換中...','busy');
+  const fd = new FormData(); fd.append('file',f); fd.append('max_size_mb',$('maxSizeMb').value);
+  try{
+    const r = await fetch(base()+'/api/teacher/convert_xml',{method:'POST',headers:headers(),body:fd});
+    const j = await r.json();
+    if(j.ok){ window[target]=j.clean_code; setStatus(statusId,'✅ 已轉換（'+j.clean_code.length+' 字元）','ok'); }
+    else setStatus(statusId,'❌ '+(j.error||'轉換失敗'),'err');
+  }catch(e){ setStatus(statusId,'❌ '+e.message,'err'); }
+}
+$('templateFile').addEventListener('change',()=>convertXml('templateFile','templateStatus','_templateCode'));
+$('exampleFile').addEventListener('change',()=>convertXml('exampleFile','exampleStatus','_exampleCode'));
+
+// 向 API 讀取這把金鑰實際可用的模型，填入下拉選單
+async function loadModels(){
+  setStatus('modelStatus','讀取可用模型中…','busy');
+  try{
+    const r=await fetch(base()+'/api/teacher/models',{method:'POST',headers:headers(true),
+      body:JSON.stringify({})});
+    const j=await r.json();
+    if(j.ok && j.models && j.models.length){
+      const cur=$('modelName').value;
+      const sel=$('modelName'); sel.innerHTML='';
+      j.models.forEach(m=>{ const o=document.createElement('option'); o.value=m; o.textContent=m; sel.appendChild(o); });
+      // 保留原選擇；否則優先選 gemini-2.5-flash
+      if(j.models.includes(cur)) sel.value=cur;
+      else if(j.models.includes('gemini-2.5-flash')) sel.value='gemini-2.5-flash';
+      setStatus('modelStatus','✅ 已載入 '+j.models.length+' 個可用模型','ok');
+    } else setStatus('modelStatus','❌ '+(j.error||'讀取失敗'),'err');
+  }catch(e){ setStatus('modelStatus','❌ '+e.message,'err'); }
+}
+
+// 由參考解答用 AI 自動生成主題與評分規則
+async function suggestRules(){
+  if(!window._exampleCode){ setStatus('suggestStatus','請先上傳「老師參考解答 .xml」','err'); return; }
+  if(($('theme').value.trim() || $('rules').value.trim()) &&
+     !confirm('這會覆蓋③目前的主題與評分規則，確定要用 AI 生成的內容取代嗎？')) return;
+  setStatus('suggestStatus','🤖 AI 生成中，請稍候...','busy');
+  try{
+    const r=await fetch(base()+'/api/teacher/suggest_rules',{method:'POST',headers:headers(true),
+      body:JSON.stringify({model_name:$('modelName').value,clean_code:window._exampleCode})});
+    const j=await r.json();
+    if(j.ok){
+      $('theme').value=j.theme||''; $('rules').value=j.rules||'';
+      setStatus('suggestStatus','✅ 已生成，請檢查/調整③的內容後再按「儲存設定」','ok');
+    } else setStatus('suggestStatus','❌ '+(j.error||'生成失敗'),'err');
+  }catch(e){ setStatus('suggestStatus','❌ '+e.message,'err'); }
+}
+
+function currentRubric(){
+  readFieldsIntoRubric(window.curRubric);
+  return window.rubrics[window.curRubric] || blankRubric();
+}
+function gatherConfig(){
+  readFieldsIntoRubric(window.curRubric);           // 先把目前表單存回這一份
+  const first = window.rubrics[0] || blankRubric();
+  const cfg = {
+    model_name:$('modelName').value,
+    max_size_mb:parseInt($('maxSizeMb').value)||10,
+    student_show_score:$('showScore').checked,
+    // 多份評測標準
+    rubrics_json: JSON.stringify(window.rubrics),
+    // 舊版單一欄位：同步成第一份，讓相容路徑仍可運作
+    theme:first.theme||'', rules:first.rules||'',
+    is_standard_answer:first.is_standard_answer!==false,
+    use_custom_extension:!!first.use_custom_extension, extension_rules:first.extension_rules||'',
+    template_code:first.template_code||'', example_code:first.example_code||'',
+  };
+  return cfg;
+}
+
+async function saveConfig(){
+  setStatus('saveStatus','儲存中...','busy');
+  try{
+    const r = await fetch(base()+'/api/teacher/config',
+      {method:'POST',headers:headers(true),body:JSON.stringify(gatherConfig())});
+    const j = await r.json();
+    if(j.ok){
+      setStatus('saveStatus','✅ 已儲存（'+j.updated_at+'）→ '+j.saved_to,'ok');
+    } else setStatus('saveStatus','❌ '+(j.error||'儲存失敗'),'err');
+  }catch(e){ setStatus('saveStatus','❌ '+e.message,'err'); }
+}
+
+async function testGrade(){
+  const f=$('testFile').files[0];
+  if(!f){ setStatus('testStatus','請先選擇檔案','err'); return; }
+  setStatus('testStatus','AI 試評中，請稍候...','busy');
+  const fd=new FormData(); fd.append('file',f);
+  fd.append('overrides',JSON.stringify(gatherConfig()));
+  fd.append('rubric_override',JSON.stringify(currentRubric()));  // 試評「目前編輯中」的這份標準
+  try{
+    const r=await fetch(base()+'/api/teacher/test',{method:'POST',headers:headers(),body:fd});
+    const j=await r.json();
+    if(!j.ok){ $('testResult').style.display='none'; setStatus('testStatus',(j.quota_exceeded?'⏳ ':'❌ ')+(j.error||'試評失敗'),j.quota_exceeded?'notice':'err'); return; }
+    const d=j.result;
+    $('testResult').style.display='block';
+    $('testResult').textContent=
+      `📋 評測標準：${d.rubric_name||'（未命名）'}\n🎯 分數：${d.score}\n\n🧠 邏輯分析：\n${d.logic_analysis||'無'}\n\n`+
+      `💡 創意亮點：\n${d.creative_highlights||'無'}\n\n📝 講評：\n${d.comments||'無'}\n\n`+
+      `📉 扣分項目：\n${d.deducted_items||'無'}`;
+    setStatus('testStatus','✅ 試評完成（提醒：試評不會儲存，學生要能自評請回⑤按「儲存設定」）','ok');
+  }catch(e){ setStatus('testStatus','❌ '+e.message,'err'); }
+}
+
+// 讀取學生成績紀錄（學號 / 分數 / 評測時間）
+async function loadSubmissions(){
+  setStatus('subStatus','讀取中…','busy');
+  $('subTable').innerHTML='';
+  try{
+    const r=await fetch(base()+'/api/teacher/submissions',{headers:headers()});
+    const j=await r.json();
+    if(!j.ok){ setStatus('subStatus','❌ '+(j.error||'讀取失敗'),'err'); return; }
+    const rows=j.submissions||[];
+    if(!rows.length){ setStatus('subStatus','（目前尚無學生自評紀錄）','ok'); return; }
+    let h='<table><thead><tr><th>學號</th><th>分數</th><th>評測時間</th><th>評測標準</th><th>作業主題</th></tr></thead><tbody>';
+    rows.forEach(r=>{
+      const sc=(r.score===undefined||r.score===null||r.score===-1)?'—':r.score;
+      const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      h+=`<tr><td class="sid">${esc(r.student_id)}</td><td style="font-weight:700">${esc(sc)}</td>`+
+         `<td>${esc(r.created_at)}</td><td>${esc(r.rubric_name)}</td><td>${esc(r.theme)}</td></tr>`;
+    });
+    h+='</tbody></table>';
+    $('subTable').innerHTML=h;
+    setStatus('subStatus','✅ 共 '+rows.length+' 筆紀錄'+(j.storage==='local'?'（本次執行環境暫存）':''),'ok');
+  }catch(e){ setStatus('subStatus','❌ '+e.message,'err'); }
+}
+
+</script>
+</body>
+</html>

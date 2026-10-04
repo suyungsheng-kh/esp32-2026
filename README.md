@@ -2,7 +2,7 @@
 
 給國中生使用的 ESP32 軟硬整合課程網站。課程以積木程式、實體接線、除錯與小組專題為主線，並提供 XML 作業的 AI 自評功能。
 
-> 本專案的課程頁是靜態 HTML；只有「程式評測」會連到 Google Colab 上的 Flask 後端。除了 `student.html` 以外，其餘工具即使沒有啟動後端也可以使用。
+> 本專案的課程頁是靜態 HTML；「學生自評」與「教師管理」連到共用 Flask 後端（Colab 或 Cloud Run）；其餘課程工具不需要啟動後端。
 
 ## 目錄
 
@@ -17,6 +17,10 @@
 - [設定評測標準](#設定評測標準)
 - [測試與故障排除](#測試與故障排除)
 - [安全注意事項](#安全注意事項)
+
+目前使用 **XMLGrader 整合版 `2026-10-04-unified`**。
+
+若只想分享 AI 評分系統，可直接提供 [XMLGrader_Standalone 資料夾](XMLGrader_Standalone/README.md) 或 [XMLGrader_Standalone.zip](XMLGrader_Standalone.zip)。獨立包有自己的首頁、教師／學生頁與完整 README，不需要其他課程檔案，也不沿用此網站的後端網址。
 
 ## 課程流程與功能
 
@@ -53,380 +57,263 @@
 | `daily-reflection.html` | 每日三分鐘回饋單；依 `?day=1`、`?day=2`、`?day=3` 切換 | 否 |
 | `project-design.html` | 專題設計單；由 Day 3 的浮動視窗載入，也可單獨開啟列印 | 否 |
 | `student.html` | 上傳 `.xml` 作品、取得 AI 自評結果 | **是** |
-| `XMLGrader_Colab.ipynb` | Colab 後端：XML 解析、Gemini 評分、Flask API、ngrok | **是** |
+| `teacher.html` | 教師登入、作業規則、XML 試評、成績查詢 | **是** |
+| `grader-settings.js` | 教師與學生共用的公開後端根網址 | 否 |
+| `XML_Grader/*.py` | Colab／Cloud Run 共用評分核心、API 與啟動器 | **是** |
+| `XMLGrader_Colab.ipynb` | 整合版 Colab 啟動檔；由共用後端自動產生 | **是** |
 | `example.7z` | 各天可測試的 motoBlockly XML 範例 | 否 |
 
 ## 快速開始
 
-### 僅使用課程與互動工具
+課程網站與 AI 自評可以分開使用。課程頁、接線、安全、除錯、設計單與回饋單不需要後端；學生自評與教師管理需要啟動後端。
 
-1. 將整個資料夾放在靜態網站主機，或使用本機 HTTP 伺服器開啟。
-2. 開啟 `index.html`。
-3. 依前導課程、Day 1～3 的順序上課。
+1. 將網站資料夾發布到 GitHub Pages、學校網站空間或其他靜態主機。
+2. 開啟 `index.html`，依前導、Day 1～3 的順序上課。
+3. 要啟用自評，再完成下方檢查表。
+4. 首頁「教師管理」會開啟 `teacher.html`；學生從「程式評測」進入 `student.html`。
 
-> 請不要以 `file://` 直接雙擊開啟作為正式使用方式。雖多數頁面可運作，但 Day 3 的專題設計單使用 iframe，透過 HTTP／HTTPS 開啟會更穩定。
-
-### 啟用學生程式自評
-
-除了發布前端外，還要完成：
-
-1. 申請 Gemini API Key。
-2. 申請並設定 ngrok。
-3. 建立 Firestore，或先使用 Colab 暫存設定。
-4. 執行 `XMLGrader_Colab.ipynb`。
-5. 在 `student.html` 設定後端網址。
-6. 先以 `example.7z` 的 XML 範例試評，再開放學生使用。
-
-完整步驟見後面的「[程式評測後端](#程式評測後端)」。
+請透過 HTTP／HTTPS 使用網站。專題設計單會在 Day 3 的浮動視窗中載入，回饋與除錯護照保存在目前瀏覽器。
 
 ## 15 分鐘設定檢查表（首次啟用 AI 自評）
 
-這份清單適合首次使用、希望先讓 AI 自評正常運作的教師。首次啟用**不必設定 Firebase**；先使用 Colab 暫存設定，確認流程可用後，再依後文啟用永久保存。
+適合帳號已準備好的教師；第一次申請帳號、等待驗證或發布網站可能需要額外時間。先使用 Colab、關閉 Firestore，就能啟用自評與本次課程的成績紀錄。
 
-開始前，請先確認課程網站已可從網路開啟，而且你有權編輯 [student.html](student.html)。全程只會使用兩個必填 Secret，請勿把它們貼進 HTML、Notebook 儲存格或 GitHub。
+### 0～3 分鐘｜準備帳號、網站與三個 Secret
 
-### 0～3 分鐘｜取得兩個必填資料
+- [ ] 在 [Google AI Studio](https://aistudio.google.com/apikey) 取得自己的 Gemini API Key。
+- [ ] 在 [ngrok Dashboard](https://dashboard.ngrok.com/) 取得自己的 Authtoken。
+- [ ] 自行設定一組教師管理密碼，建議使用密碼管理器產生。
+- [ ] 確認課程網站已發布，而且能修改 `grader-settings.js`。
 
-- [ ] 申請 Gemini API Key，複製 API Key。
-- [ ] 註冊 ngrok，從 Dashboard 複製 Authtoken。
-- [ ] 準備一個可公開開啟的課程網站網址；若尚未發布，先完成「[發布靜態網站](#發布靜態網站)」。
+### 3～6 分鐘｜開啟 Colab
 
-### 3～6 分鐘｜開啟 Notebook 與新增 Secret
+- [ ] 上傳根目錄的 [XMLGrader_Colab.ipynb](XMLGrader_Colab.ipynb) 到自己的 Google Drive，以 [Google Colab](https://colab.research.google.com/) 開啟。
+- [ ] 左側 **Secrets** 新增下列三個名稱，填入對應值，逐項允許 Notebook 存取。
 
-- [ ] 將 [XMLGrader_Colab.ipynb](XMLGrader_Colab.ipynb) 上傳到 Google Drive，再以 Google Colab 開啟。
-- [ ] 在 Colab 左側開啟 **Secrets**，新增 `XMLGRADER_NGROK_AUTHTOKEN`，貼上 ngrok Authtoken，並允許 Notebook 存取。
-- [ ] 新增 `XMLGRADER_GEMINI_API_KEY_1`，貼上 Gemini API Key，並允許 Notebook 存取。
+| Secret 名稱（逐字相同） | 填入內容 | 必填 |
+| --- | --- | --- |
+| `XMLGRADER_NGROK_AUTHTOKEN` | 自己的 ngrok Authtoken | 是 |
+| `XMLGRADER_GEMINI_API_KEY_1` | 自己的 Gemini API Key | 是 |
+| `XMLGRADER_ADMIN_TOKEN` | 自己設定的教師管理密碼 | 是 |
+| `XMLGRADER_GEMINI_API_KEY_2` | 第二把 Gemini Key | 選填備援 |
 
-### 6～9 分鐘｜填寫「步驟 4：🔴 部署設定」
+不要把實際值貼入 HTML、Notebook 程式碼或公開 repository。
 
-在 Notebook 的「步驟 4：🔴 部署設定」只做下列設定：
+### 6～9 分鐘｜步驟 4 的集中設定
 
-- [ ] `USE_FIREBASE = False`（首次測試不需 Firebase）。
-- [ ] `NGROK_STATIC_DOMAIN = ""`（沒有自己保留的 ngrok 固定網域時，保持空白）。
-- [ ] `SHOW_SCORE_TO_STUDENT = True` 或 `False`，依你是否要讓學生立即看分數決定。
-- [ ] 確認 `RUBRICS` 至少有一份 `is_open: True` 的作業；第一次可先保留範例規則，連線成功後再改成自己的題目。
+- [ ] `USE_FIREBASE = False`：初次測試不需要 Firebase 帳號。
+- [ ] `NGROK_STATIC_DOMAIN = ""`：有自己保留的固定網域才填入，格式不含 `https://`。
+- [ ] `SHOW_SCORE_TO_STUDENT` 決定學生是否立即看分數。
+- [ ] `REPLACE_SAVED_RUBRICS = False` 保持預設，避免重跑 Notebook 時覆蓋教師已修改的作業。
+- [ ] 首次可保留範例 `RUBRICS`，連線後從教師網頁調整規則。
 
-### 9～12 分鐘｜啟動並取得網址
+### 9～12 分鐘｜啟動與共用網址
 
-- [ ] 由上到下執行 Notebook 的所有儲存格。
-- [ ] 看到「`✅ API 已上線`」後，複製 `https://...ngrok...` 的**根網址**。
-- [ ] 在瀏覽器開啟 `<根網址>/api/health`，確認畫面出現 `"ok": true`。
+- [ ] 由上到下執行 Notebook；看到「✅ API 已上線」。
+- [ ] 開啟輸出的 `<根網址>/api/health`，確認 `"ok": true` 與版本 `2026-10-04-unified`。
+- [ ] 🔴 修改網站 [grader-settings.js](grader-settings.js)，只更動 `serverUrl`：
 
-若看到 Secret 讀取錯誤，請回到 Colab Secrets 檢查名稱、內容與「允許 Notebook 存取」是否都正確；不需要在程式碼中填 token。
+```javascript
+window.XMLGRADER_SETTINGS = Object.freeze({
+  serverUrl: 'https://<你的-ngrok-網域>',
+  expectedVersion: '2026-10-04-unified'
+});
+```
 
-### 12～15 分鐘｜連接學生頁並完成試評
+- [ ] 重新發布網站。教師與學生會共用同一網址，無需分別改 HTML。
 
-- [ ] 開啟 [student.html](student.html)，找到 `const SERVER_URL = '...'`，將引號內改成剛剛複製的 ngrok 根網址。
-- [ ] 重新發布靜態網站，並重新整理學生頁。
-- [ ] 從 `example.7z` 解壓一個 XML 範例，完成一次上傳試評。
-- [ ] 確認學生能看到作業名稱、收到回應，且瀏覽器沒有顯示「無法連線」。
+### 12～15 分鐘｜教師登入與試評
 
-### 完成後要知道的事
+- [ ] 開啟首頁「教師管理」，輸入 `XMLGRADER_ADMIN_TOKEN` 的密碼登入。
+- [ ] 確認畫面顯示「後端已設定 Gemini 金鑰」。
+- [ ] 修改或新增作業名稱、主題、配分規則，勾選「開放學生自評」，按「儲存設定」。
+- [ ] 用 `XML_Grader/esp32/` 或 `example.7z` 的 XML 做「單檔試評」。
+- [ ] 開啟學生頁，輸入測試學號，選作業並上傳 XML，確認收到評語。
+- [ ] 回教師頁讀取成績：學生自評會記錄；教師試評不會記錄。
 
-- 未設定固定網域時，每次 Colab 停止或重啟，ngrok 網址都會改變；請重做「12～15 分鐘」並重新發布 `student.html`。
-- `USE_FIREBASE = False` 時，評測設定和提交紀錄只保留到這次 Colab 執行結束。需要跨課保存時，再依後面的「🔴 必改 4：設定 Firebase，或明確關閉 Firebase」啟用 Firebase。
-- 課程頁、接線工具、除錯護照與專題設計單不依賴 AI 自評後端；後端暫停時，仍可照常上課。
+完成後，Colab 必須維持執行。沒有固定 ngrok 網域時，每次重啟要重新更新 `grader-settings.js`。教師密碼只存在頁面記憶體，重新整理後需重新登入。
 
 ## 發布靜態網站
 
-本專案沒有建置步驟、套件安裝或資料庫遷移；可直接部署至 GitHub Pages、學校網站空間或任一靜態主機。
+本網站沒有前端建置步驟，可直接發布 HTML 與 `grader-settings.js`。
 
-### GitHub Pages 建議流程
+### GitHub Pages
 
-1. 在 GitHub 建立 repository，將此資料夾內的 HTML、Notebook、範例與 `README.md` 上傳。
-2. 到 repository 的 **Settings → Pages**，選擇從分支部署。
-3. 選擇含有 `index.html` 的分支與根目錄，儲存後等待網址建立。
-4. 以 `https://<帳號>.github.io/<repository>/` 開啟網站。
-5. 分別測試前導、Day 1～3、接線練習、除錯護照、專題設計單與程式評測。
+1. 將課程 HTML、`teacher.html`、`student.html`、`grader-settings.js` 與文件上傳 repository。
+2. **Settings → Pages** 選擇從分支發布，指定根目錄。
+3. 待網址建立後，開啟 `https://<帳號>.github.io/<repository>/`。
+4. 確認課程頁、設計單、教師登入與學生自評入口可開啟。
 
-### ⚠️ 前端網址改動提醒
-
-目前各頁導覽列多使用既有 GitHub Pages 的完整網址。如果更換網站帳號、repository 名稱或網域，請在所有 `.html` 檔搜尋並更換：
-
-```text
-https://suyungsheng-kh.github.io/esp32-2026/
-```
-
-PowerShell 可用：
-
-```powershell
-rg -n "suyungsheng-kh.github.io/esp32-2026" -g "*.html"
-```
+網站內部導覽已改成相對路徑，更換帳號或 repository 不需逐頁修改網址。只需在 `grader-settings.js` 更新後端根網址。請勿上傳 `.venv/`、`runtime/`、SQLite 成績檔或服務帳戶 JSON；專案的 `.gitignore` 已列出本機執行資料。
 
 ## 程式評測後端
 
-### 架構
+整合版版本為 `2026-10-04-unified`，兩種部署共用相同解析、評分與 API：
 
 ```text
-學生 student.html
-      │ 上傳 XML + 學號
-      ▼
-Google Colab：Flask API（XMLGrader_Colab.ipynb）
-      ├─ XML 解析、積木／腳位事實檢查
-      ├─ Gemini API 評分
-      ├─ Firestore：設定與成績紀錄（可選）
-      ▼
-ngrok HTTPS 公開網址
+teacher.html ── 教師密碼 ──┐
+                          ├─ api_server.py ── xml_grader_core.py ── Gemini
+student.html ── XML／學號 ─┘                        └─ Firestore 或本機暫存
+                     └─ Colab＋ngrok / Cloud Run
 ```
 
-學生頁使用兩個端點：
+- 教師可管理多份作業、上傳範本與參考解答、生成規則、單檔試評及查詢成績。
+- 學生只取得開放中的作業名稱、主題與規則，不取得金鑰、教師密碼、未開放作業或參考解答。
+- 教師 API 全部驗證 `X-Admin-Token`。未設定教師密碼時，管理功能保持關閉。
+- Gemini 額度／速率限制與服務異常不算成 0 分，也不建立成績。
+- 成功的學生評測會記錄真實分數；「學生不顯示分數」只影響畫面，不影響教師成績。
+- `XML_Grader/XMLGrader_teacher.html` 與 `XMLGrader_student.html` 保留為新版入口的導向頁。
 
-| 方法 | 端點 | 用途 |
+### 選擇部署方式
+
+| 方式 | 適用情況 | 操作 |
 | --- | --- | --- |
-| `GET` | `/api/student/config` | 讀取已開放的評測標準與顯示設定 |
-| `POST` | `/api/student/grade` | 接收 `.xml` 與學號，回傳 AI 評語與分數 |
+| Colab＋ngrok | 先試用、單次工作坊、教師手動啟動 | 依 15 分鐘檢查表 |
+| Cloud Run | 需要持續可用、固定服務網址 | 依 [Cloud Run 部署說明](XML_Grader/cloudrun/部署說明_CloudRun.md) |
 
-### 在 Colab 啟動
-
-1. 將 [XMLGrader_Colab.ipynb](XMLGrader_Colab.ipynb) 上傳至自己的 Google Drive，並以 Google Colab 開啟。
-2. 依「[後端必改清單](#後端必改清單)」完成帳號、金鑰與專案設定。
-3. 由上到下依序執行所有儲存格：
-   - 安裝 Python 套件。
-   - 產生 `xml_grader_core.py` 與 `colab_server.py`。
-   - **在「步驟 4：部署設定」集中填寫課程設定，並從 Colab Secret 讀取私密值。**
-   - 啟動 Flask 與 ngrok。
-4. 確認最後輸出含有：
-
-```text
-✅ API 已上線（背景執行）：https://<你的網域>
-健康檢查：https://<你的網域>/api/health
-```
-
-5. 在瀏覽器開啟健康檢查網址，應回傳類似：
-
-```json
-{"ok": true, "version": "..."}
-```
-
-6. 將相同的根網址填入 `student.html` 的 `SERVER_URL`，重新發布網站。
-
-### Colab 依賴套件
-
-Notebook 目前會安裝：
-
-```text
-flask
-flask-cors
-pyngrok
-pandas
-google-genai
-```
-
-Colab 執行階段停止後，Flask 與 ngrok 都會停止；學生頁會無法評測，直到重新執行 Notebook。
+Cloud Run 的服務建立與計費須依自己的 Google Cloud 帳戶確認；本專案不保證免費。學生不用登入 Google Cloud，教師仍須輸入管理密碼。
 
 ## 帳號申請與服務設定
 
-### 1. Google Colab
+### Colab、Gemini 與 ngrok（必需）
 
-1. 使用 Google 帳號登入 [Google Colab](https://colab.research.google.com/)。
-2. 將 Notebook 放到自己的 Google Drive，避免直接在來源檔上保存私人金鑰。
-3. 開課當天開啟 Notebook，確認執行階段可連網。
+1. 使用 Google 帳號登入 [Colab](https://colab.research.google.com/)，上傳 Notebook。
+2. 在 [Google AI Studio API Keys](https://aistudio.google.com/apikey) 建立 Gemini Key；若頁面要求專案，依頁面完成建立／選擇。
+3. 註冊 [ngrok](https://dashboard.ngrok.com/)，複製自己的 Authtoken；固定網域可選填。
+4. 在 Colab Secrets 新增三個必填值。教師管理密碼是你自己設定的，不是 Google 密碼。
 
-### 2. Gemini API Key（AI 批改）
+### Firestore（需要跨課保存時才啟用）
 
-1. 前往 [Google AI Studio 的 API key 頁面](https://aistudio.google.com/app/apikey)。
-2. 以 Google 帳號登入，選擇或建立 Google Cloud 專案。
-3. 建立 Gemini API Key，僅保存於 Colab 或其他伺服器端環境。
-4. 在 Google Cloud 的 **Credentials** 為金鑰設定 API 限制，只允許 Gemini API；並依授課情況設定預算、警示與額度。
+未啟用時，設定與成績存在 Colab 本機；重跑儲存格不會清除，但 Colab 執行環境被釋放後就不保留。Cloud Run 本機檔案也不是永久儲存。
 
-Google 官方文件說明可由 AI Studio 建立 Gemini API Key，且 API key 應加以限制：[Gemini API key 文件](https://ai.google.dev/gemini-api/docs/api-key)、[Google Cloud API key 管理](https://cloud.google.com/docs/authentication/api-keys)。
+新版透過服務帳戶存取 Firestore，移除舊版 Web API key 與匿名公開讀寫方式。OAuth 服務帳戶請求依 IAM 授權，與 Firebase 使用者的安全規則不同，詳見 [Firestore REST 驗證文件](https://firebase.google.com/docs/firestore/use-rest-api)。
 
-### 3. ngrok（讓 Colab 後端具有 HTTPS 網址）
+1. 在 [Firebase Console](https://console.firebase.google.com/) 建立自己的專案與 Cloud Firestore 資料庫，使用 `(default)` 資料庫。
+2. 建立專用服務帳戶，授予該專案 **Cloud Datastore User**（`roles/datastore.user`）。
+3. **Colab**：為該服務帳戶建立 JSON 金鑰，整份 JSON 放進 `XMLGRADER_FIREBASE_SERVICE_ACCOUNT_JSON` Secret，專案 ID 放進 `XMLGRADER_FIREBASE_PROJECT_ID` Secret。
+4. 在 Notebook 步驟 4 改為 `USE_FIREBASE = True`，重跑設定與啟動。
+5. **Cloud Run**：直接使用執行服務帳戶的權限；不需下載 JSON，依 Cloud Run 文件操作。
 
-1. 到 [ngrok Dashboard](https://dashboard.ngrok.com/signup) 建立帳號。
-2. 在 Dashboard 取得 Authtoken。
-3. 若要固定網址，於 Dashboard 建立／保留一個網域，並將該網域填入 Notebook。
-4. 在課前測試此網域可由 Colab 正常連線；若系統顯示 `ERR_NGROK_334`，代表仍有舊 agent 占用該網域，請在 Dashboard 停止舊 agent 或重啟舊的 Colab 執行階段。
+前端不直接讀寫 Firestore；若此專案沒有其他需要用戶端直接存取的功能，可使用：
 
-參考：[ngrok Reserved Domains 文件](https://ngrok.com/docs/api-reference/reserveddomains/create)。固定網域是否可用取決於 ngrok 目前的帳戶方案與設定。
-
-### 4. Firebase / Cloud Firestore（保存評測設定與成績）
-
-若只做短暫單人測試，可先將 `FIREBASE["enabled"]` 設為 `False`，由 Colab 的本機 `grader_config.json` 保存資料；但每次 Colab 重置後，本機資料可能消失。
-
-若要跨次上課保存設定與成績：
-
-1. 前往 [Firebase Console](https://console.firebase.google.com/) 建立專案。
-2. 在 **Build → Firestore Database** 建立 Native mode Firestore 資料庫，選擇資料庫地區。
-3. 在專案設定中新增 Web app，取得 `project_id` 與 Web API key。
-4. 將值填入 Notebook 的 `FIREBASE` 設定區。
-5. 先以測試資料做讀寫驗證，再設計符合使用情境的 Firestore Security Rules。
-
-> **重要：目前 Notebook 以 Firestore REST API + Web API key 讀寫設定與成績，並沒有使用 Firebase Authentication。** 若 Firestore 規則允許匿名讀寫，任何知道 API 的人都可能讀寫資料。正式對外使用前，應改為由受保護的後端憑證存取，或導入 Firebase Authentication 與安全規則。Firestore 官方也明確提醒，允許所有讀寫的規則不能用於正式環境：[Firestore Security Rules 文件](https://firebase.google.com/docs/firestore/security/get-started)。
-
-## 後端必改清單
-
-以下均位於 `XMLGrader_Colab.ipynb` 的 **「步驟 4：🔴 部署設定」**。新版已將所有部署值集中於此；除非維護核心功能，**不要直接修改** `xml_grader_core.py` 或 `colab_server.py` 的設定來源。
-
-### Colab Secret 名稱
-
-在 Colab 左側面板開啟 **Secrets**，新增下列秘密並允許 Notebook 存取：
-
-| Secret 名稱 | 是否必填 | 用途 |
-| --- | --- | --- |
-| `XMLGRADER_NGROK_AUTHTOKEN` | 是 | ngrok tunnel 的認證 token |
-| `XMLGRADER_GEMINI_API_KEY_1` | 是 | Gemini XML 作業評分 |
-| `XMLGRADER_FIREBASE_PROJECT_ID` | Firestore 啟用時 | Firebase 專案 ID |
-| `XMLGRADER_FIREBASE_API_KEY` | Firestore 啟用時 | Firestore REST API 使用的 Web API key |
-
-### 🔴 必改 1：撤銷現有 ngrok Authtoken，改用自己的 Token
-
-**操作：** 在 Colab Secret 新增 `XMLGRADER_NGROK_AUTHTOKEN`。新版 Notebook 會自動讀取，不需要再修改 `colab_server.py`。
-
-不要把 token 寫回 Notebook、`student.html` 或 GitHub。
-
-### 🔴 必改 2：設定 ngrok 固定網域，或採用每次更新網址的流程
-
-**操作：** 在「步驟 4：部署設定」填寫 `NGROK_STATIC_DOMAIN`。
-
-```python
-NGROK_STATIC_DOMAIN = "<你保留的網域>.ngrok-free.app"
-```
-
-若沒有固定網域，將 `NGROK_STATIC_DOMAIN` 留為空字串即可；新版 Notebook 會自動建立暫時網址，不需要改動啟動程式。每次重啟 Colab 都會得到新網址，並且都要同步更新 `student.html` 的 `SERVER_URL` 後重新發布前端。
-
-### 🔴 必改 3：設定 Gemini API Key 與評測規則
-
-**操作：** 在「步驟 4：部署設定」修改 `MODEL_NAME`、`SHOW_SCORE_TO_STUDENT` 與 `RUBRICS`。Notebook 會自動將 Gemini API Key 與評測標準寫入 Firebase 或本機 `grader_config.json`。請依作業修改主題、規則與 `example_code`：
-
-```python
-import json
-import xml_grader_core as core
-
-cfg = core.load_config()
-cfg.update({
-    "api_key_1": "<你的 Gemini API Key>",
-    "api_key_2": "",  # 選填：第二把 key，可在額度限制時輪替
-    "model_name": "gemini-2.5-flash",
-    "student_show_score": True,
-    "max_size_mb": 10,
-    "rubrics_json": json.dumps([{
-        "id": "day1-traffic-light",
-        "name": "Day 1 有聲紅綠燈",
-        "theme": "有聲紅綠燈",
-        "rules": "1. 正確設定紅、黃、綠 LED 腳位（30 分）\n2. 依序控制燈號（40 分）\n3. 加入蜂鳴器提示與合理等待時間（30 分）",
-        "is_open": True,
-        "is_standard_answer": False,
-        "use_custom_extension": False,
-        "extension_rules": "",
-        "template_code": "",
-        "example_code": ""
-    }], ensure_ascii=False)
-})
-print(core.save_config(cfg))
-```
-
-- `is_open: True` 才會出現在學生頁的評測標準選單。
-- 開放創意題時建議使用 `is_standard_answer: False`，避免完全相同於老師範例時才給滿分的指示。
-- 若有老師參考作業 XML，可先用 `/api/teacher/convert_xml` 將其轉為虛擬碼後填入 `example_code`；但目前 repository 沒有教師管理頁，需要自行透過 API 或 Colab 呼叫完成。
-
-### 🔴 必改 4：設定 Firebase，或明確關閉 Firebase
-
-**操作：** 在「步驟 4：部署設定」將 `USE_FIREBASE = True`，並在 Colab Secret 新增 Firebase 的專案 ID 與 Web API key。Notebook 會轉成下列後端環境參數：
-
-```python
-FIREBASE = {
-    "enabled": True,
-    "project_id": "<Firebase project ID>",
-    "api_key": "<Firebase Web API key>",
-    "config_collection": "xmlgrader",
-    "config_doc": "config",
-    "submissions_collection": "xmlgrader_submissions",
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} { allow read, write: if false; }
+  }
 }
 ```
 
-若不使用 Firebase，請在「步驟 4：🔴 部署設定」設定：
+不要把此規則套用到另有其他應用程式共用的資料庫；請先確認它們的存取需求。
 
-```python
-USE_FIREBASE = False
-```
+## 後端必改清單
 
-此時設定檔會寫入 `/content/XMLGrader/grader_config.json`，只在目前的 Colab 執行階段有效。要長期保留，需自行掛載 Google Drive 或改用安全的雲端資料庫。
+🔴 私密值只設在 Colab Secrets 或 Cloud Run Secrets；公開網域只設在 `grader-settings.js`。
 
-### 🔴 必改 5：設定學生頁的後端根網址
+| 設定 | Colab | Cloud Run |
+| --- | --- | --- |
+| Gemini 主金鑰 | `XMLGRADER_GEMINI_API_KEY_1` Secret | 同名 Secret |
+| Gemini 備援金鑰 | `XMLGRADER_GEMINI_API_KEY_2` Secret（可選） | 同名 Secret（可選） |
+| 教師管理密碼 | `XMLGRADER_ADMIN_TOKEN` Secret | 同名 Secret |
+| ngrok Token | `XMLGRADER_NGROK_AUTHTOKEN` Secret | 不需要 |
+| 固定 ngrok 網域 | 步驟 4 的 `NGROK_STATIC_DOMAIN` | 不需要 |
+| 網站來源 | 步驟 4 的 `CORS_ORIGINS` | `XMLGRADER_CORS_ORIGINS` |
+| Firestore 啟用 | `USE_FIREBASE` | `XMLGRADER_FIREBASE_ENABLED=true` |
+| Firestore 專案 | `XMLGRADER_FIREBASE_PROJECT_ID` Secret | 同名環境變數 |
+| Firestore 授權 | `XMLGRADER_FIREBASE_SERVICE_ACCOUNT_JSON` Secret | 執行服務帳戶與 IAM |
+| 前端共用根網址 | `grader-settings.js` 的 `serverUrl` | 同一欄填 Service URL |
 
-**位置：** `student.html`。
+`CORS_ORIGINS` 填網站 **origin**（例 `https://your-name.github.io`），不加 `/repository/` 路徑；多個來源以逗號分隔。它限制瀏覽器來源，教師授權仍由密碼驗證。
 
-```javascript
-const SERVER_URL = 'https://<你的-ngrok-網域>';
-```
+### 從舊版遷移
 
-只填網域根網址，不要加上 `/api/student/grade`；程式會自行接上 API 路徑。網址變更後，重新部署靜態網站並用 `/api/health` 先確認服務。
-
-### 🟠 建議改 6：保護教師端 API
-
-Notebook 的 `_require_admin()` 目前一律放行，`/api/teacher/config`、`/api/teacher/test` 與成績紀錄端點沒有登入保護。若未來加入教師頁或對外公開端點，至少要：
-
-1. 實作管理者驗證，而非直接 `return None`。
-2. 將管理 token 放入 Colab Secret，不放在前端與 repository。
-3. 為 API 設定允許來源（CORS），不要長期使用 `origins: "*"`。
-4. 將 Firestore 的匿名讀寫權限移除，改由伺服器端服務帳戶或使用者驗證控制。
+1. 以新版 Notebook 取代原啟動檔；原 `xmlgrader/config` 與 `xmlgrader_submissions` 集合名稱保留，可讀取原規則與成績。
+2. 重新設定自己的金鑰與教師密碼，不沿用原檔內建的憑證與網域。
+3. 啟用 Firestore 時，改用服務帳戶授權；不再需要 `XMLGRADER_FIREBASE_API_KEY`。
+4. 在新版教師頁載入舊作業後儲存。新版會移除設定內的 `api_key_1`、`api_key_2`、`admin_token` 欄位，金鑰改從後端 Secrets 取得。
+5. 更新 `grader-settings.js` 後重新發布。舊入口會導向目前網站的新頁面。
+6. 若舊憑證曾公開分享，請撤銷並換新。
 
 ## 設定評測標準
 
-一份 rubric 至少包含：
+從首頁「教師管理」登入後：
 
-| 欄位 | 用途 |
-| --- | --- |
-| `id` | 不重複的識別碼，例如 `day2-servo` |
-| `name` | 學生頁顯示名稱 |
-| `theme` | 作業主題 |
-| `rules` | 評分規則與配分，建議總分 100 分 |
-| `is_open` | 是否開放學生自評 |
-| `is_standard_answer` | 是否視老師範例為標準答案 |
-| `template_code` | 選填：初始空白範本的虛擬碼 |
-| `example_code` | 選填：老師參考解答的虛擬碼 |
+1. 在「③ 作業主題與評分規則」新增一份，填標準名稱、主題、規則與配分。
+2. 固定練習可用標準答案模式；創意專題取消「標準答案題型」。
+3. 視需要在④上傳初始範本或老師參考解答，系統會轉成虛擬碼。
+4. 可用 AI 生成規則，但需由教師檢查後儲存。
+5. 勾選「開放學生自評」，按⑤儲存。取消勾選會使學生看不到且無法提交該作業。
+6. 先做⑥教師試評，再讓學生上傳。
+7. 從⑦讀取成績。學生輸入的學號與 XML 屬作業資料，請依學校的保存與使用安排管理。
 
-建議每次只開放當日作業：
+Gemini 金鑰不能從教師網頁修改；要變更時回後端 Secrets。模型可以由教師頁的「讀取可用模型」選取，以目前帳號實際可用的清單為準。
 
-```python
-"is_open": True   # 今日作業
-"is_open": False  # 尚未開放的作業
-```
+### 本機暫存與 Firestore
 
-學生評測前檢查：
+| 模式 | 規則 | 成績 | 保留範圍 |
+| --- | --- | --- | --- |
+| 未啟用 Firestore | `grader_config.json` | `submissions.sqlite3` | 目前後端的檔案系統 |
+| 啟用 Firestore | `xmlgrader/config` | `xmlgrader_submissions` | 跨執行環境保留 |
 
-- 至少已有一把 Gemini API Key。
-- 至少一份 rubric 的 `is_open` 為 `True`。
-- `student.html` 的 `SERVER_URL` 可連到 API。
-- API 根網址與 `/api/health` 都正常。
+Firestore 失敗時會退回本機保存；教師頁的儲存回應及本機紀錄提示可用來確認。Cloud Run 的本機暫存不會跨執行個體同步，正式長期使用請啟用 Firestore。
 
 ## 測試與故障排除
 
-### 開課前建議驗收
+### 開課前驗收
 
-1. 用手機與電腦各開一次課程首頁。
-2. 測試前導課程的 G/V/S 接線與安全找錯題。
-3. 開啟 `circuit.html`，加入模組、接線並檢查結果。
-4. 開啟除錯護照，勾選步驟並確認徽章解鎖；重新整理後確認暫存仍在。
-5. 在任一 Day 頁開啟「上電前檢核」與「下課回饋」，確認回饋內容重新整理後仍在。
-6. 在 Day 3 開啟浮動式專題設計單，輸入內容、關閉後再開啟，確認內容仍在；確認三句式發表卡可直接填空練習。
-7. 啟動 Colab，開啟 `/api/health`。
-8. 用 `example.7z` 解壓出的 XML 完成一次 `student.html` 試評。
-9. 確認學生頁只看得到 `is_open: True` 的作業。
+- [ ] 手機與電腦能開啟首頁、Day 1～3、接線、安全、除錯護照、回饋與設計單。
+- [ ] `/api/health` 顯示整合版版本。
+- [ ] 正確密碼可登入教師管理；錯誤密碼無法讀取設定與成績。
+- [ ] 新增與儲存一份開放作業後，學生能選到；關閉後學生不再看見。
+- [ ] 教師試評與學生自評各一次，確認學生那筆出現在成績清單。
+- [ ] 若取消顯示學生分數，學生只看評語，教師仍能讀到真實分數。
 
 ### 常見問題
 
-| 現象 | 可能原因 | 處理方式 |
-| --- | --- | --- |
-| 學生頁顯示無法連線 | Colab 已停止、ngrok 網址錯誤或 `SERVER_URL` 未更新 | 重啟 Notebook，先測 `/api/health`，再更新學生頁網址 |
-| `ERR_NGROK_334` | 同一固定網域被舊 ngrok agent 占用 | 在 ngrok Dashboard 停止舊 agent，或中斷舊 Colab runtime |
-| 顯示老師尚未設定 API Key | `grader_config` 沒有 `api_key_1`／`api_key_2` | 執行 README 的設定儲存格後重啟服務 |
-| 評測標準沒有出現 | 所有 rubric 都是 `is_open: False` 或 `rubrics_json` 格式錯誤 | 檢查 JSON，至少開放一份 rubric |
-| Firestore 讀寫失敗 | Firebase 設定、API key、資料庫或 Security Rules 不正確 | 暫時設 `FIREBASE["enabled"] = False` 確認評測本身可運作，再檢查 Firebase |
-| AI 顯示 429／503 | API 額度不足或服務忙碌 | 等待後重試；可設定第二把 API Key，並檢查帳戶額度／預算 |
+| 現象 | 檢查與處理 |
+| --- | --- |
+| 老師尚未設定自評服務 | 填寫 `grader-settings.js` 的 `serverUrl`，重新發布網站 |
+| 無法連線 | 先開 `/api/health`；檢查 Colab／ngrok 是否停止、網址是否已變 |
+| 教師密碼錯誤 | 核對後端 `XMLGRADER_ADMIN_TOKEN`；不是 Gemini Key 或 Google 密碼 |
+| 教師管理尚未啟用 | 在後端設好 `XMLGRADER_ADMIN_TOKEN` 後重啟 |
+| 學生沒有可選作業 | 教師勾選「開放學生自評」，儲存後讓學生重新整理 |
+| 尚未設定 Gemini 金鑰 | 檢查主金鑰 Secret 名稱、存取許可與後端是否重啟 |
+| 額度／速率限制 | 等待後重試，或使用自己的備援金鑰；這次不評分也不記錄 |
+| Firestore 失敗／只顯示本機紀錄 | 核對專案 ID、資料庫與服務帳戶 IAM，不要改成公開讀寫 |
+| 網站／後端版本不同 | 同步新版 Notebook、HTML 與 `grader-settings.js`，再重啟與發布 |
+
+### 維護者驗證
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r XML_Grader/cloudrun/requirements.txt
+python XML_Grader/scripts/build_notebook.py
+.venv\Scripts\python.exe tests/test_grader.py
+```
+
+離線測試使用模擬 Gemini 回應，不消耗 API 額度。涵蓋教師驗證、金鑰隔離、作業開放、正常評分、額度與服務失敗、真實分數紀錄，以及附帶的 XML 範例解析。
 
 ## 安全注意事項
 
-1. **立即撤銷來源 Notebook 中已明碼出現的 ngrok token，並產生新 token。** 不要沿用、不要複製到新 repository。
-2. Gemini API Key 只能留在 Colab／受保護後端，絕不可寫進 `student.html`、GitHub Pages 或公開 Git repository。
-3. Firebase Web API key 不是用來保護資料的登入憑證；真正的資料保護取決於 Firestore Security Rules 與身分驗證。
-4. 學生學號與評測紀錄屬於教育資料。正式使用前應確認校內資料保護規範，並限制可查看成績的教師帳號。
-5. `CORS origins: "*"` 與未保護的教師端 API 只適合短期測試；公開授課前應完成存取控制。
+教師密碼與 Gemini Key 只存在後端環境／Secrets，不寫入 HTML、Notebook 程式碼或設定資料庫。學生可免登入提交作業，學號為自行輸入，不能視為已驗證身分。對外大規模使用時，請依需求加入學生身分與流量限制。
 
 ## 維護建議
 
-- 若新增課程頁，複製既有 Day 頁的導覽列、Hero 和頁尾，再更新目前頁面的高亮樣式。
-- 若新增積木類型，補到 Notebook 的 `BLOCK_DICT` 與 `FIELD_DICT`，讓 XML 轉譯與 AI 評分更準確。
-- 若後端路由或回傳格式有改動，調高 `SERVER_VERSION`，重新執行 Colab，並在學生頁試評。
-- 課後可從 Firestore 的 `xmlgrader_submissions` 彙整常見錯誤，回頭優化接線題、除錯護照與下一次的任務卡。
+後端只維護 `XML_Grader/xml_grader_core.py`、`api_server.py`、`colab_server.py`。修改後執行：
+
+```powershell
+python XML_Grader/scripts/build_notebook.py
+```
+
+這會產生兩份相同 Notebook，並同步相容的 Cloud Run 核心副本。Cloud Run 映像直接使用共用核心，不維護另一套評分演算法。
+
+更新後要重新產生獨立分享包，於本專案根目錄執行：
+
+```powershell
+python XML_Grader/scripts/package_standalone.py
+```
+
+它只打包指定的程式、文件與 XML 範例，不包含本機執行環境、成績或憑證。如果獨立包內的檔案已自行修改，會停止並要求先保留修改，避免覆蓋。
+
+若有不相容變更，同步更新 `api_server.py` 的 `SERVER_VERSION` 與 `grader-settings.js` 的 `expectedVersion`。備份作業規則與成績時，不要把私密憑證一起分享。

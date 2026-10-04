@@ -1,0 +1,220 @@
+<xml xmlns="https://www.motoduino.com/">
+  <workspace>
+    <field name="DEVICE">esp32</field>
+    <field name="VERSION">(v1.10.1</field>
+  </workspace>
+  <variables>
+    <variable id="ld$+m0TSpfBhZ`*6Fh3Z">temperature</variable>
+    <variable id="FE_.ea:A5HccdiAr6[_Z">humidity</variable>
+  </variables>
+  <block type="variables_declare_global" id="#7c8ig9.-Y6.[_1AY/NK" x="62" y="-63">
+    <field name="VAR" id="ld$+m0TSpfBhZ`*6Fh3Z">temperature</field>
+    <field name="TYPE">float</field>
+    <value name="VALUE">
+      <shadow xmlns="https://www.motoduino.com/" type="math_number" id="p:.I0uNDp:.e`Hm}v+mQ">
+        <field name="NUM">0</field>
+      </shadow>
+      <block type="math_number" id="[b~^VjJT:IS+Ikl_q9S?">
+        <field name="NUM">0</field>
+      </block>
+    </value>
+  </block>
+  <block type="variables_declare_global" id="7of*VtjMT=^;*IZLk#,8" x="63" y="-37">
+    <field name="VAR" id="FE_.ea:A5HccdiAr6[_Z">humidity</field>
+    <field name="TYPE">float</field>
+    <value name="VALUE">
+      <shadow type="math_number" id="s917o^M13,8s?zUqPu=8">
+        <field name="NUM">0</field>
+      </shadow>
+      <block type="math_number" id=";L:%5H1);xKIjbxZg=Y]">
+        <field name="NUM">0</field>
+      </block>
+    </value>
+  </block>
+  <block type="arduino_setup" id="xvhO%gdZ{j5;hE6B=wlf" x="38" y="13">
+    <statement name="MySetup">
+      <block type="i2clcd_setting_v2" id="++5(H+My|z`lOVWfmAUq">
+        <field name="I2CADDRESS">27</field>
+        <value name="COL">
+          <block type="math_number" id="5*h?V5i:rXu$v*2L2Ii`">
+            <field name="NUM">16</field>
+          </block>
+        </value>
+        <value name="ROW">
+          <block type="math_number" id="LW*l%laTT|D5SVK+*|SO">
+            <field name="NUM">2</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+    <statement name="MyLoop">
+      <block type="variables_set" id="xwDCBcm(XKFD}.vZ~vlm">
+        <field name="VAR" id="FE_.ea:A5HccdiAr6[_Z">humidity</field>
+        <value name="VALUE">
+          <block type="sensors_dht11_get" id="m3b9Pp3[Y[{+zx|~nJ@S">
+            <field name="TYPE">DHT11</field>
+            <field name="PIN">33</field>
+            <field name="DATATYPE">HUMI</field>
+          </block>
+        </value>
+        <next>
+          <block type="i2clcd_print_v2" id=",U9,2#M5(V5KDpBOAbf6">
+            <value name="ROW">
+              <block type="math_number" id="mZkT4Ox`jC(_qLs%wt/m">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+            <value name="COL">
+              <block type="math_number" id="-B:U:gOFL_ruOQ8:Pcg~">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+            <value name="PRINT">
+              <block type="text_join" id=",Ge.X6du)8mKwpUur~d~">
+                <mutation items="3"></mutation>
+                <value name="ADD0">
+                  <block type="text" id="{CiTszGIe=.+H??5X}_Q">
+                    <field name="TEXT">H:</field>
+                  </block>
+                </value>
+                <value name="ADD1">
+                  <block type="variables_get" id=":L3#YJ?.O1~@LT9`K6tL">
+                    <field name="VAR" id="FE_.ea:A5HccdiAr6[_Z">humidity</field>
+                  </block>
+                </value>
+                <value name="ADD2">
+                  <block type="text" id="]JJ4MK%v_3_34%sd#t#c">
+                    <field name="TEXT"> %</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="controls_if" id="[#RJ_U.#BYVa3+g/!c9g">
+                <mutation else="1"></mutation>
+                <value name="IF0">
+                  <block type="logic_compare" id="y$^X{TX?OBd[Qky7@46j">
+                    <field name="OP">GTE</field>
+                    <value name="A">
+                      <block type="variables_get" id="/}7]_pzIYbH}~6j8YXNt">
+                        <field name="VAR" id="FE_.ea:A5HccdiAr6[_Z">humidity</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="math_number" id="@,mTU:f3+%f1/-xh?):k">
+                        <field name="NUM">80</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="inout_digital_write" id="3E}_fqnb^qj[C`wHJ~X.">
+                    <field name="PIN">4</field>
+                    <field name="STAT">LOW</field>
+                    <next>
+                      <block type="i2clcd_print_v2" id=",IP]!8vTAohU+8G4@X`Y">
+                        <value name="ROW">
+                          <block type="math_number" id="q+}9uCkp8D`haMn;-t=;">
+                            <field name="NUM">1</field>
+                          </block>
+                        </value>
+                        <value name="COL">
+                          <block type="math_number" id="S)6M2N-VBxv~.lJSSYMw">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <value name="PRINT">
+                          <block type="text" id="X!eWJ%GRI5/O1]2ZD!0_">
+                            <field name="TEXT">Warning: HOT!</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <statement name="ELSE">
+                  <block type="inout_digital_write" id="G8Gf7?|7lh!n2zhG|wE{">
+                    <field name="PIN">4</field>
+                    <field name="STAT">HIGH</field>
+                    <next>
+                      <block type="i2clcd_print_v2" id="uE8m+iI(jLLDx!e$~9IV">
+                        <value name="ROW">
+                          <block type="math_number" id="XlszB@t9fo+hgt]EB-9n">
+                            <field name="NUM">1</field>
+                          </block>
+                        </value>
+                        <value name="COL">
+                          <block type="math_number" id="mpaM0m|.xR.Q#)i}z}*u">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                        <value name="PRINT">
+                          <block type="text" id="6DY;J-BT%l%S|nPls#Yo">
+                            <field name="TEXT">Status: OK   </field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <next>
+                  <block type="delay_custom" id="bnbg+?5Qb%K~dXH*+mi,">
+                    <value name="DELAY_TIME">
+                      <block type="math_number" id="nQ}4{JPduad/%7Cd@,s5">
+                        <field name="NUM">500</field>
+                      </block>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="variables_set" id="^6+U3`zd5B(p3f`teMre" disabled="true" x="788" y="-12">
+    <field name="VAR" id="ld$+m0TSpfBhZ`*6Fh3Z">temperature</field>
+    <value name="VALUE">
+      <block type="sensors_dht11_get" id="D|pI#{bu*,=^?Rp9UBcB">
+        <field name="TYPE">DHT11</field>
+        <field name="PIN">33</field>
+        <field name="DATATYPE">TEMP</field>
+      </block>
+    </value>
+    <next>
+      <block type="i2clcd_print_v2" id="AJ-L..m93Y|i?XnsO{Ys" disabled="true">
+        <value name="ROW">
+          <block type="math_number" id="^uzb^`Ila.8d(z#h^9Mx">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="COL">
+          <block type="math_number" id="wilnh{~}Y?n[BZ@j,s^[">
+            <field name="NUM">0</field>
+          </block>
+        </value>
+        <value name="PRINT">
+          <block type="text_join" id="idTl.X4=)5W2gOhf6s56">
+            <mutation items="3"></mutation>
+            <value name="ADD0">
+              <block type="text" id="x:n8/I#Y3!dcOe()JAFv">
+                <field name="TEXT">T:</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="variables_get" id="rZN?*.zBoD+C!6x~zEMT">
+                <field name="VAR" id="ld$+m0TSpfBhZ`*6Fh3Z">temperature</field>
+              </block>
+            </value>
+            <value name="ADD2">
+              <block type="text" id="/R~):^0/za,cJ*M{LW@^">
+                <field name="TEXT"> ^C</field>
+              </block>
+            </value>
+          </block>
+        </value>
+      </block>
+    </next>
+  </block>
+</xml>

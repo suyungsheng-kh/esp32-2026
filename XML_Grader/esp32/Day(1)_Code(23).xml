@@ -1,0 +1,385 @@
+<xml xmlns="https://www.motoduino.com/">
+  <workspace>
+    <field name="DEVICE">esp32</field>
+    <field name="VERSION">(v1.10.1</field>
+  </workspace>
+  <variables>
+    <variable id="GO^bFXsmui2z1ASVY+vY">inputG</variable>
+    <variable id="L7aB$$U{=Ss0[[R?k*s6">inputY</variable>
+    <variable id="i[hm}bvF!pQY~x9aM[_`">G</variable>
+    <variable id="yPVk)G[W~#WBROM4!-Qo">inputR</variable>
+    <variable id="TOoetT%,D=29)[}JZ;6U">Y</variable>
+    <variable id="I8R5BD{jZCu_%7!dF$H*">R</variable>
+  </variables>
+  <block type="variables_declare_global" id="IMtDNWNtC|OM*n/zcr)f" x="412" y="-12">
+    <field name="VAR" id="GO^bFXsmui2z1ASVY+vY">inputG</field>
+    <field name="TYPE">int</field>
+    <value name="VALUE">
+      <shadow xmlns="https://www.motoduino.com/" type="math_number" id="GfoemX$D.b0~sYyz1SIR">
+        <field name="NUM">100</field>
+      </shadow>
+      <block type="math_number" id="ChC8$@sCLT*k1q1};|mp">
+        <field name="NUM">200</field>
+      </block>
+    </value>
+  </block>
+  <block type="arduino_setup" id="xvhO%gdZ{j5;hE6B=wlf" x="188" y="13">
+    <statement name="MyLoop">
+      <block type="controls_if" id="z^AupMI1:dGDL]B(`(Mt">
+        <value name="IF0">
+          <block type="logic_compare" id="ET,`,i_7%}uwzaos2r+/">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="inout_digital_read_pullup" id="01-PR)*)aw6`mik^IuTI">
+                <field name="PIN">33</field>
+              </block>
+            </value>
+            <value name="B">
+              <block type="inout_highlow" id="U#w,c3b9;R3Ju3A=^zDD">
+                <field name="DIGITAL_LEVEL">0</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="variables_set" id="1d1_KK:=k_H`[l0e2Gz:">
+            <field name="VAR" id="GO^bFXsmui2z1ASVY+vY">inputG</field>
+            <value name="VALUE">
+              <block type="math_arithmetic" id="aVfcY/$8?B!}.I|7?SjM">
+                <field name="OP">ADD</field>
+                <value name="A">
+                  <shadow xmlns="https://www.motoduino.com/" type="math_number" id="/a+XEs1z,LDtosjqH/H[">
+                    <field name="NUM">1</field>
+                  </shadow>
+                  <block type="variables_get" id="lt^{GbP?_/s,9d-Ao)w/">
+                    <field name="VAR" id="GO^bFXsmui2z1ASVY+vY">inputG</field>
+                  </block>
+                </value>
+                <value name="B">
+                  <shadow type="math_number" id="gJzEhn.|}(AO@mGXDn4r">
+                    <field name="NUM">200</field>
+                  </shadow>
+                </value>
+              </block>
+            </value>
+            <next>
+              <block type="controls_if" id="f$o9gDT(G}u}E=NnXxv|">
+                <value name="IF0">
+                  <block type="logic_compare" id="~A[gze_.H2bUu?FAojh+">
+                    <field name="OP">GTE</field>
+                    <value name="A">
+                      <block type="variables_get" id="(|w)ADprOZ~I1[7+ICFM">
+                        <field name="VAR" id="GO^bFXsmui2z1ASVY+vY">inputG</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="math_number" id="u;zG/K`7M;d8T#.KHF@{">
+                        <field name="NUM">2000</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="variables_set" id="Zz=fpN{j|!=daDBd_$/m">
+                    <field name="VAR" id="GO^bFXsmui2z1ASVY+vY">inputG</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="o}~lESsRkoMxew~)VAeg">
+                        <field name="NUM">200</field>
+                      </block>
+                    </value>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <next>
+          <block type="controls_if" id="KyLdKOv-P(/okd.09X{`">
+            <value name="IF0">
+              <block type="logic_compare" id="B?}uGiKAp`wUkXk}zG[a">
+                <field name="OP">EQ</field>
+                <value name="A">
+                  <block type="inout_digital_read_pullup" id="?|lhsPH+}(}{-!J17!r^">
+                    <field name="PIN">34</field>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="inout_highlow" id="uMjYawd^^=].26CrPKwu">
+                    <field name="DIGITAL_LEVEL">0</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="variables_set" id=":s0}!/V)88QYSy+6A|Uk">
+                <field name="VAR" id="L7aB$$U{=Ss0[[R?k*s6">inputY</field>
+                <value name="VALUE">
+                  <block type="math_arithmetic" id="LJ9+uET_L{[m|o@PwgJg">
+                    <field name="OP">ADD</field>
+                    <value name="A">
+                      <shadow xmlns="https://www.motoduino.com/" type="math_number">
+                        <field name="NUM">1</field>
+                      </shadow>
+                      <block type="variables_get" id="B^c9|Zpig#~]qRjho0df">
+                        <field name="VAR" id="L7aB$$U{=Ss0[[R?k*s6">inputY</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <shadow type="math_number" id="~Gp!I..)D*(5cs8):oJn">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </value>
+                <next>
+                  <block type="controls_if" id="*B/~SX4h}6UJf8KwEGi;">
+                    <value name="IF0">
+                      <block type="logic_compare" id="4(RSg.`GF%E*+jZA}],h">
+                        <field name="OP">GTE</field>
+                        <value name="A">
+                          <block type="variables_get" id="hk$KVt~pon}zdZh2yMWz">
+                            <field name="VAR" id="L7aB$$U{=Ss0[[R?k*s6">inputY</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="math_number" id="Lic!e}~ab(l?Ij[U0?*Q">
+                            <field name="NUM">1000</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="variables_set" id="7CWc_TEI,pc()Z98{;M8">
+                        <field name="VAR" id="L7aB$$U{=Ss0[[R?k*s6">inputY</field>
+                        <value name="VALUE">
+                          <block type="math_number" id=")Ge4P=3XnIuw4Rj`?^5U">
+                            <field name="NUM">100</field>
+                          </block>
+                        </value>
+                      </block>
+                    </statement>
+                  </block>
+                </next>
+              </block>
+            </statement>
+            <next>
+              <block type="controls_if" id=":I9tds`R1]*+|~B2GNt6">
+                <value name="IF0">
+                  <block type="logic_compare" id="MuU5;]z!`XS{KOp=g28X">
+                    <field name="OP">EQ</field>
+                    <value name="A">
+                      <block type="inout_digital_read_pullup" id="qEWcgSz9O%]$e+T72oO!">
+                        <field name="PIN">35</field>
+                      </block>
+                    </value>
+                    <value name="B">
+                      <block type="inout_highlow" id="d[z+U3nNWWpT!-E^N,QV">
+                        <field name="DIGITAL_LEVEL">0</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="variables_set" id="ws/mi=b.%5Tl7$xy{jc*">
+                    <field name="VAR" id="yPVk)G[W~#WBROM4!-Qo">inputR</field>
+                    <value name="VALUE">
+                      <block type="math_arithmetic" id="@uTa(VO}!zMph0h@;l+Q">
+                        <field name="OP">ADD</field>
+                        <value name="A">
+                          <shadow xmlns="https://www.motoduino.com/" type="math_number">
+                            <field name="NUM">1</field>
+                          </shadow>
+                          <block type="variables_get" id="`WmhRF@{+ee9g?[I66vj">
+                            <field name="VAR" id="yPVk)G[W~#WBROM4!-Qo">inputR</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <shadow type="math_number" id="akSjn`5};Y!~NNGf`muN">
+                            <field name="NUM">300</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="controls_if" id="R~9CW)=6%?C*(SaS3)2!">
+                        <value name="IF0">
+                          <block type="logic_compare" id="|L+=[Z}^Y$?b_)E6L}:)">
+                            <field name="OP">GTE</field>
+                            <value name="A">
+                              <block type="variables_get" id="`*%hXSNkPjw4.ij2cEnq">
+                                <field name="VAR" id="yPVk)G[W~#WBROM4!-Qo">inputR</field>
+                              </block>
+                            </value>
+                            <value name="B">
+                              <block type="math_number" id="5a_TkN]#!y|sDNIfYP^B">
+                                <field name="NUM">3000</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <statement name="DO0">
+                          <block type="variables_set" id="Q=ih;WWw2=@|fXVUEw^L">
+                            <field name="VAR" id="yPVk)G[W~#WBROM4!-Qo">inputR</field>
+                            <value name="VALUE">
+                              <block type="math_number" id="ZQR,5#RHDZN*$yf$BQq*">
+                                <field name="NUM">300</field>
+                              </block>
+                            </value>
+                          </block>
+                        </statement>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <next>
+                  <block type="procedures_callnoreturn" id="^_N8{Hpp$L`2=.+[[/0r">
+                    <mutation name="綠燈">
+                      <arg name="G"></arg>
+                    </mutation>
+                    <value name="ARG0">
+                      <block type="variables_get" id="aaldN[-rtIBkhdq}aXR}">
+                        <field name="VAR" id="GO^bFXsmui2z1ASVY+vY">inputG</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="procedures_callnoreturn" id="o1Kz,1e}~yi*Z)t[fbD+">
+                        <mutation name="黃燈">
+                          <arg name="Y"></arg>
+                        </mutation>
+                        <value name="ARG0">
+                          <block type="variables_get" id="8;*4C8q4GIBi!z#lXX59">
+                            <field name="VAR" id="L7aB$$U{=Ss0[[R?k*s6">inputY</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="procedures_callnoreturn" id="{Zrdligb3*86(ZB|V={0">
+                            <mutation name="紅燈">
+                              <arg name="R"></arg>
+                            </mutation>
+                            <value name="ARG0">
+                              <block type="variables_get" id="T[4`Wr{DhKz_Zh^~.NSh">
+                                <field name="VAR" id="yPVk)G[W~#WBROM4!-Qo">inputR</field>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="variables_declare_global" id="wzDS=KL+df9m8t4/1]c}" x="412" y="13">
+    <field name="VAR" id="L7aB$$U{=Ss0[[R?k*s6">inputY</field>
+    <field name="TYPE">int</field>
+    <value name="VALUE">
+      <shadow xmlns="https://www.motoduino.com/" type="math_number" id="tpIx~9u8TbBb_CwlB0?b">
+        <field name="NUM">300</field>
+      </shadow>
+      <block type="math_number" id="}8RL(iBMIS^eem;.x]m`">
+        <field name="NUM">100</field>
+      </block>
+    </value>
+  </block>
+  <block type="procedures_defnoreturn" id="t@$QR?67i8ZHrTiwwL,N" x="938" y="-12">
+    <mutation>
+      <arg name="G" varid="i[hm}bvF!pQY~x9aM[_`" vartype="int"></arg>
+    </mutation>
+    <field name="NAME">綠燈</field>
+    <comment pinned="false" h="80" w="160">描述此函式...</comment>
+    <statement name="STACK">
+      <block type="inout_digital_write" id="up$@Krb=~l)_6o/_rGI8">
+        <field name="PIN">16</field>
+        <field name="STAT">HIGH</field>
+        <next>
+          <block type="delay_custom" id=".~RBKk{$[S{^,~)!V9~3">
+            <value name="DELAY_TIME">
+              <block type="variables_get" id="NCT6=dqLgAWoPRT*eS)*">
+                <field name="VAR" id="i[hm}bvF!pQY~x9aM[_`">G</field>
+              </block>
+            </value>
+            <next>
+              <block type="inout_digital_write" id="d6q%ehV{Vpk0]ntN+00q">
+                <field name="PIN">16</field>
+                <field name="STAT">LOW</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="variables_declare_global" id="9B#n.F.|GC$R1t+Z[w9#" x="413" y="38">
+    <field name="VAR" id="yPVk)G[W~#WBROM4!-Qo">inputR</field>
+    <field name="TYPE">int</field>
+    <value name="VALUE">
+      <shadow xmlns="https://www.motoduino.com/" type="math_number" id="%y;jMZ*$eV`vaOXC2,i[">
+        <field name="NUM">200</field>
+      </shadow>
+      <block type="math_number" id="lecj]Tgbl,5c8NdTG%T6">
+        <field name="NUM">300</field>
+      </block>
+    </value>
+  </block>
+  <block type="procedures_defnoreturn" id="3CT}R,Zgk@B0)/hV#L9v" x="938" y="163">
+    <mutation>
+      <arg name="Y" varid="TOoetT%,D=29)[}JZ;6U" vartype="int"></arg>
+    </mutation>
+    <field name="NAME">黃燈</field>
+    <comment pinned="false" h="80" w="160">描述此函式...</comment>
+    <statement name="STACK">
+      <block type="inout_digital_write" id="oEzs_m;rQ_-H~I9W%HAY">
+        <field name="PIN">17</field>
+        <field name="STAT">HIGH</field>
+        <next>
+          <block type="delay_custom" id="gA$``F}fsFcV:O@R4-}v">
+            <value name="DELAY_TIME">
+              <block type="variables_get" id="3sm[C(H#_)_?pCWSW30w">
+                <field name="VAR" id="TOoetT%,D=29)[}JZ;6U">Y</field>
+              </block>
+            </value>
+            <next>
+              <block type="inout_digital_write" id="e]dRq0H!z2ju{v.=g?l[">
+                <field name="PIN">17</field>
+                <field name="STAT">LOW</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="procedures_defnoreturn" id="cKM3-k}C,?K40]ec13f3" x="938" y="363">
+    <mutation>
+      <arg name="R" varid="I8R5BD{jZCu_%7!dF$H*" vartype="int"></arg>
+    </mutation>
+    <field name="NAME">紅燈</field>
+    <comment pinned="false" h="80" w="160">描述此函式...</comment>
+    <statement name="STACK">
+      <block type="inout_digital_write" id="lURin{Eq%lkg9ZQYNchp">
+        <field name="PIN">18</field>
+        <field name="STAT">HIGH</field>
+        <next>
+          <block type="delay_custom" id=":Z3?PzbNicgZ(WnNc?qM">
+            <value name="DELAY_TIME">
+              <block type="variables_get" id="9_2$:3egyUE(w_|@~D~l">
+                <field name="VAR" id="I8R5BD{jZCu_%7!dF$H*">R</field>
+              </block>
+            </value>
+            <next>
+              <block type="inout_digital_write" id="LYSeldmtqPifACs3S/FL">
+                <field name="PIN">18</field>
+                <field name="STAT">LOW</field>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+</xml>

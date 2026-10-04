@@ -1,0 +1,80 @@
+<xml xmlns="https://www.motoduino.com/">
+  <workspace>
+    <field name="DEVICE">esp32</field>
+    <field name="VERSION">(v1.10.1</field>
+  </workspace>
+  <variables>
+    <variable id="C/R0{3Wl}3P;b@W(h,m;">i</variable>
+  </variables>
+  <block type="arduino_setup" id="xvhO%gdZ{j5;hE6B=wlf" x="38" y="313">
+    <statement name="MyLoop">
+      <block type="controls_for" id="ptNQ9z]*r=n~F=AA#mtO">
+        <field name="VAR" id="C/R0{3Wl}3P;b@W(h,m;">i</field>
+        <value name="FROM">
+          <shadow type="math_number" id="XR5ycCo;4/Lv2)SLl$EX">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number" id="H1[1Q*T:$%?Y`xbT`i+|">
+            <field name="NUM">11</field>
+          </shadow>
+        </value>
+        <value name="BY">
+          <shadow type="math_number" id="M.q.QI99.E;5w(L)#i*c">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <statement name="DO">
+          <block type="ws2812_set" id="vl?3D~]61p2NIwnYhBbV">
+            <field name="PIN">4</field>
+            <value name="ws2812_total">
+              <block type="math_number" id="DgG9zVu0$YoG1R:gSLQ2">
+                <field name="NUM">12</field>
+              </block>
+            </value>
+            <value name="ws2812_number">
+              <block type="variables_get" id="}NRidJo!Xu1[q-8`-6DJ">
+                <field name="VAR" id="C/R0{3Wl}3P;b@W(h,m;">i</field>
+              </block>
+            </value>
+            <value name="ws2812_r">
+              <block type="math_number" id="(%V2ylcM.M%SuKhP5X:i">
+                <field name="NUM">10</field>
+              </block>
+            </value>
+            <value name="ws2812_g">
+              <block type="math_number" id="6;[7bG1?MOlH!(v8b+nL">
+                <field name="NUM">10</field>
+              </block>
+            </value>
+            <value name="ws2812_b">
+              <block type="math_number" id="4OsjRmM3kqiabxxiOGlo">
+                <field name="NUM">10</field>
+              </block>
+            </value>
+            <next>
+              <block type="ws2812_show" id="f)uegLQd1;3EDYjc(/C}">
+                <field name="PIN">4</field>
+                <next>
+                  <block type="delay_custom" id="l/r_(kGw01{3qp@:bC$C">
+                    <value name="DELAY_TIME">
+                      <block type="math_number" id="Qrsit?VIUEeo*e-T8*v:">
+                        <field name="NUM">1000</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="ws2812_close" id="K_h+b^eXmM%|bm!YR{%0">
+                        <field name="PIN">4</field>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>
